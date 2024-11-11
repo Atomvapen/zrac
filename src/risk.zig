@@ -51,10 +51,10 @@ pub fn calculateC(RF: i32, Dmax: i32, Amin: i32, inForest: bool) i32 {
 }
 
 pub fn calculateQ1(RF: i32) i32 {
-    const value = switch (RF) {
+    const value: i32 = switch (RF) {
         1 => 200,
-        2 => 400,
-        2 => 400,
+        2, 3 => 400,
+        else => 0,
     };
     return value;
 }

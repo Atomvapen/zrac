@@ -60,13 +60,13 @@ pub fn askInteger(prompt: []const u8) !i32 {
 
 pub fn main() !void {
     var riskProfile: risk.RiskArea = undefined;
-    riskProfile.factor = 1;
-    riskProfile.Amax = 100;
-    riskProfile.Dmax = 150;
-    riskProfile.f = 10;
+    riskProfile.factor = 2;
+    riskProfile.Amax = 200;
+    riskProfile.Dmax = 500;
+    riskProfile.Amin = 100;
+    riskProfile.f = 20;
     riskProfile.v = 100;
     // riskProfile.inForest = true;
-
     // riskProfile.h = try askInteger("h");
 
     // riskProfile.factor = try askInteger("Riskfaktor");
@@ -84,6 +84,7 @@ pub fn main() !void {
     riskProfile.l = risk.calculateL(riskProfile.factor, riskProfile.Dmax, riskProfile.Amax);
     riskProfile.h = risk.calculateH(riskProfile.Amax, riskProfile.l);
     // riskProfile.c = risk.calculateC(riskProfile.factor, riskProfile.Dmax, riskProfile.Amin, riskProfile.inForest);
+    riskProfile.q1 = risk.calculateQ1(riskProfile.factor);
 
     // print("{s:-<60}\n", .{""});
     // print("RF: {d} \n", .{riskProfile.factor});
