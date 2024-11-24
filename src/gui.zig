@@ -1,8 +1,7 @@
 const std = @import("std");
 const risk = @import("risk.zig");
 const rl = @import("raylib");
-// const rl = @import("raylib-zig/lib/raylib.zig");
-const rg = @import("raylib-zig/lib/raygui.zig");
+const rg = @import("raygui");
 const r = @import("raylib");
 
 const screenWidth = 800;
