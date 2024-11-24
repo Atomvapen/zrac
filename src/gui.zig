@@ -13,15 +13,19 @@ const Point = struct {
     y: i32,
 };
 
-// pub fn draw(riskProfile: risk.RiskArea) !void {
-pub fn draw() !void {
+pub fn init() !void {
     rl.initWindow(screenWidth, screenHeight, "Risk");
-    defer rl.closeWindow(); // Close window and OpenGL context
-
     rl.setTargetFPS(30);
+    rl.setExitKey(.key_escape);
+}
 
+pub fn deinit() void {
+    rl.closeWindow();
+}
+
+pub fn draw() !void {
     var drawRisk: bool = true;
-    var inForest: bool = true;
+    var inForest: bool = false;
 
     var dropdownBox000Active: i32 = 0;
     var comboBoxActive: i32 = 0;
@@ -78,33 +82,33 @@ pub fn draw() !void {
         _ = rg.guiLabel(.{ .x = 10, .y = 585, .width = 100, .height = 10 }, "Vapentyp");
         if (rg.guiDropdownBox(.{ .x = 10, .y = 600, .width = 100, .height = 30 }, "AK5;KSP58;KSP88;KSP90", &dropdownBox000Active, dropDown000EditMode) != 0) dropDown000EditMode = !dropDown000EditMode;
 
-        if (rg.guiButton(.{ .x = 10, .y = 680, .width = 100, .height = 50 }, "Beräkna") == 1) {
-            riskProfile.factor = comboBoxActive + 1;
-            riskProfile.Amin = combineAsciiToInt(&textBoxText002);
-            riskProfile.Amax = combineAsciiToInt(&textBoxText003);
-            riskProfile.f = combineAsciiToInt(&textBoxText004);
-            riskProfile.inForest = inForest;
-            riskProfile.forestMin = combineAsciiToInt(&textBoxText005);
+        // if (rg.guiButton(.{ .x = 10, .y = 680, .width = 100, .height = 50 }, "Beräkna") == 1) {
+        riskProfile.factor = comboBoxActive + 1;
+        riskProfile.Amin = combineAsciiToInt(&textBoxText002);
+        riskProfile.Amax = combineAsciiToInt(&textBoxText003);
+        riskProfile.f = combineAsciiToInt(&textBoxText004);
+        riskProfile.inForest = inForest;
+        riskProfile.forestMin = combineAsciiToInt(&textBoxText005);
 
-            riskProfile.v = 100;
-            riskProfile.Dmax = 500;
+        riskProfile.v = 100;
+        riskProfile.Dmax = 500;
 
-            riskProfile.l = riskProfile.calculateL();
-            riskProfile.h = riskProfile.calculateH();
-            riskProfile.c = riskProfile.calculateC();
-            riskProfile.q1 = riskProfile.calculateQ1();
-            riskProfile.q2 = riskProfile.calculateQ2();
-            riskProfile.valid = riskProfile.validate();
+        riskProfile.l = riskProfile.calculateL();
+        riskProfile.h = riskProfile.calculateH();
+        riskProfile.c = riskProfile.calculateC();
+        riskProfile.q1 = riskProfile.calculateQ1();
+        riskProfile.q2 = riskProfile.calculateQ2();
+        riskProfile.valid = riskProfile.validate();
 
-            std.debug.print("valid :{any} \n", .{riskProfile.valid});
+        // std.debug.print("valid :{any} \n", .{riskProfile.valid});
 
-            // std.debug.print("RF :{d} \n", .{riskProfile2.factor});
-            // std.debug.print("Amin :{d} \n", .{riskProfile2.Amin});
-            // std.debug.print("Amax :{d} \n", .{riskProfile2.Amax});
-            // std.debug.print("f :{d} \n", .{riskProfile2.f});
-            // std.debug.print("inForest :{any} \n", .{riskProfile2.inForest});
-            // std.debug.print("forestMin :{d} \n", .{riskProfile2.forestMin});
-        }
+        // std.debug.print("RF :{d} \n", .{riskProfile2.factor});
+        // std.debug.print("Amin :{d} \n", .{riskProfile2.Amin});
+        // std.debug.print("Amax :{d} \n", .{riskProfile2.Amax});
+        // std.debug.print("f :{d} \n", .{riskProfile2.f});
+        // std.debug.print("inForest :{any} \n", .{riskProfile2.inForest});
+        // std.debug.print("forestMin :{d} \n", .{riskProfile2.forestMin});
+        // }
 
         // Draw Lines
         if (drawRisk == true and riskProfile.valid == true) drawLines(riskProfile);
@@ -173,60 +177,56 @@ pub fn drawLines(riskProfile: risk.RiskArea) void {
     const center: rl.Vector2 = rl.Vector2{ .x = screenWidth / 2, .y = screenHeight - 50 };
 
     // h
-    var h = RiskLine{ .startX = origin.x, .startY = origin.y, .endX = origin.x, .endY = screenHeight - riskProfile.h, .angle = undefined };
+    var h = RiskLine{ .startX = origin.x, .startY = origin.y, .endX = origin.x, .endY = origin.y - riskProfile.h, .angle = undefined };
     h.DrawLine(false);
     h.DrawText("h", 0, -20);
 
     // Amin
-    var Amin = RiskLine{ .startX = undefined, .startY = undefined, .endX = origin.x, .endY = screenHeight - riskProfile.Amin, .angle = undefined };
+    var Amin = RiskLine{ .startX = undefined, .startY = undefined, .endX = origin.x, .endY = origin.y - riskProfile.Amin, .angle = undefined };
     Amin.DrawText("Amin", -30, 0);
 
     // f
-    var f = RiskLine{ .startX = origin.x, .startY = origin.y, .endX = origin.x, .endY = Amin.endY + riskProfile.f, .angle = undefined };
-    f.DrawLine(false);
-    f.DrawText("f", -30, 0);
+    var f = RiskLine{ .startX = origin.x, .startY = origin.y, .endX = origin.x, .endY = Amin.endY + (riskProfile.f + 50), .angle = undefined };
+    // f.DrawLine(false);
+    if (riskProfile.f != 0) f.DrawText("f", -30, -50);
 
     // v
-    var v = RiskLine{ .startX = origin.x, .startY = origin.y, .endX = origin.x, .endY = screenHeight - riskProfile.h, .angle = risk.milsToRadians(riskProfile.v) };
+    var v = RiskLine{ .startX = origin.x, .startY = origin.y, .endX = origin.x, .endY = origin.y - riskProfile.h, .angle = risk.milsToRadians(riskProfile.v) };
     v.DrawLine(true);
     v.DrawText("v", -5, -20);
 
     // h -> v
-    rl.drawCircleSectorLines(center, @as(f32, @floatFromInt(riskProfile.h - 50)), -90, -90 + @as(f32, @as(f32, @floatFromInt(riskProfile.v)) * 0.05625), 50, rl.Color.green);
+    rl.drawCircleSectorLines(center, @as(f32, @floatFromInt(riskProfile.h)), -90, -90 + @as(f32, @as(f32, @floatFromInt(riskProfile.v)) * 0.05625), 50, rl.Color.green);
 
     // ch
     // var ch = RiskLine{ .startX = v.endX, .startY = v.endY, .endX = v.endX - 100, .endY = v.endY - 100, .angle = risk.milsToRadians(riskProfile.ch+1000) };
-    var ch = RiskLine{ .startX = v.endX, .startY = v.endY, .endX = v.endX - 100, .endY = v.endY - 100, .angle = risk.milsToRadians(riskProfile.ch) };
+    var ch = RiskLine{ .startX = v.endX, .startY = v.endY, .endX = v.endX - 100, .endY = v.endY - 100, .angle = risk.milsToRadians(riskProfile.ch + 1000) };
+    // ch.startX = ch.calculateXfromAngle(riskProfile.v, v.angle) + origin.x;
 
     ch.DrawLine(true);
     ch.DrawText("ch", -5, -20);
 
     // q1
-    var q1 = RiskLine{ .startX = undefined, .startY = screenHeight - riskProfile.Amin + riskProfile.f, .endX = v.endX, .endY = v.endY, .angle = risk.milsToRadians(riskProfile.q1) };
-    q1.startX = q1.calculateXfromAngle(riskProfile.f, v.angle) + origin.x;
+    var q1 = RiskLine{ .startX = undefined, .startY = origin.y - riskProfile.Amin + (riskProfile.f + 50), .endX = v.endX, .endY = v.endY, .angle = risk.milsToRadians(riskProfile.q1) };
+    q1.startX = q1.calculateXfromAngle((riskProfile.f + 50), v.angle) + origin.x;
     q1.DrawLine(true);
     q1.DrawText("q1", 15, 0);
 
-    // std.debug.print("{any}", .{riskProfile.f});
-    // std.debug.print("{any}", .{riskProfile.q2});
-
-    if (riskProfile.forestMin > 0) {
+    // q2
+    if (riskProfile.inForest == true) {
+        var q2 = RiskLine{ .startX = origin.x, .startY = origin.y, .endX = v.endX, .endY = v.endY, .angle = risk.milsToRadians(riskProfile.q2) };
+        // q2.startX = q2.calculateXfromAngle(riskProfile.forestMin, v.angle) + origin.x;
+        q2.DrawLine(true);
+        q2.DrawText("q2", 25, 0);
+    } else if (riskProfile.forestMin > 0) {
         // forestMin
-        var forestMin = RiskLine{ .startX = undefined, .startY = undefined, .endX = origin.x, .endY = screenHeight - riskProfile.forestMin, .angle = undefined };
+        var forestMin = RiskLine{ .startX = undefined, .startY = undefined, .endX = origin.x, .endY = origin.y - riskProfile.forestMin, .angle = undefined };
         forestMin.DrawText("forestMin", -65, 0);
 
-        // q2
-        var q2 = RiskLine{ .startX = undefined, .startY = screenHeight - riskProfile.forestMin, .endX = v.endX, .endY = v.endY, .angle = risk.milsToRadians(riskProfile.q2) };
+        var q2 = RiskLine{ .startX = undefined, .startY = origin.y - riskProfile.forestMin, .endX = v.endX, .endY = v.endY, .angle = risk.milsToRadians(riskProfile.q2) };
         q2.startX = q2.calculateXfromAngle(riskProfile.forestMin, v.angle) + origin.x;
         q2.DrawLine(true);
         q2.DrawText("q2", 25, 0);
-
-        // var q3 = RiskLine{ .startX = undefined, .startY = screenHeight - riskProfile.forestMin, .endX = v.endX, .endY = v.endY, .angle = risk.milsToRadians(1000) };
-        // q3.startX = q3.calculateXfromAngle(riskProfile.forestMin, v.angle) + oX;
-        // q3.DrawLine(true);
-        // q3.DrawText("q3", 25, 0);
-
-        // std.debug.print("{any}", .{risk.milsToRadians(riskProfile.q2)});
     }
 }
 

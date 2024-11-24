@@ -28,7 +28,8 @@ pub const RiskArea = struct {
 
     pub fn validate(self: *RiskArea) bool {
         return !((self.f == 0 and self.Amax == 0 and self.Amin == 0) or
-            (self.forestMin < 0) or
+            (self.forestMin < -1) or
+            (self.forestMin > self.Dmax) or
             (self.Dmax < 0) or
             (self.Amax < 0) or
             (self.Amin < 0) or
@@ -39,6 +40,7 @@ pub const RiskArea = struct {
             (self.h < 0) or
             (self.Amin > self.Amax) or
             (self.Amax > self.Dmax) or
+            (self.f > self.Amin) or
             (self.f > self.Amax) or
             (self.f > self.Dmax));
     }
@@ -77,10 +79,13 @@ pub const RiskArea = struct {
     }
 
     pub fn calculateQ2(self: *RiskArea) i32 {
-        switch (self.forestMin) {
-            0 => return 0,
-            else => return 1000,
-        }
+        if (self.forestMin < 0) return 0;
+        return 1000;
+
+        // switch (self.forestMin) {
+        //     0 => return 0,
+        //     else => return 1000,
+        // }
     }
 };
 
