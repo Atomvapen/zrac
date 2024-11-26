@@ -1,10 +1,8 @@
-const WeaponType = enum {
-    AK5,
-    KSP58,
-};
+const arms = @import("weapons.zig");
 
 pub const RiskArea = struct {
     // Given values
+    weaponType: arms.Weapon,
     factor: i32,
     inForest: bool,
     forestMin: i32,
@@ -14,6 +12,7 @@ pub const RiskArea = struct {
     Amax: i32,
     Amin: i32,
     f: i32,
+    fixedTarget: bool,
 
     // Calculated and/or fixed values
     valid: bool,
@@ -29,7 +28,7 @@ pub const RiskArea = struct {
     pub fn validate(self: *RiskArea) bool {
         return !((self.f == 0 and self.Amax == 0 and self.Amin == 0) or
             (self.forestMin < -1) or
-            (self.forestMin > self.Dmax) or
+            // (self.forestMin > self.Dmax) or
             (self.Dmax < 0) or
             (self.Amax < 0) or
             (self.Amin < 0) or
@@ -39,10 +38,10 @@ pub const RiskArea = struct {
             (self.l < 0) or
             (self.h < 0) or
             (self.Amin > self.Amax) or
-            (self.Amax > self.Dmax) or
-            (self.f > self.Amin) or
-            (self.f > self.Amax) or
-            (self.f > self.Dmax));
+            (self.Amax > self.Dmax));
+        // (self.f > self.Amin) or
+        // (self.f > self.Amax) or
+        // (self.f > self.Dmax));
     }
 
     pub fn calculateH(self: *RiskArea) i32 {
@@ -72,7 +71,7 @@ pub const RiskArea = struct {
 
     pub fn calculateQ1(self: *RiskArea) i32 {
         switch (self.factor) {
-            1 => return 200,
+            1 => return self.weaponType.c,
             2, 3 => return 400,
             else => return 0,
         }
@@ -81,11 +80,6 @@ pub const RiskArea = struct {
     pub fn calculateQ2(self: *RiskArea) i32 {
         if (self.forestMin < 0) return 0;
         return 1000;
-
-        // switch (self.forestMin) {
-        //     0 => return 0,
-        //     else => return 1000,
-        // }
     }
 };
 
