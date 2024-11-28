@@ -1,8 +1,8 @@
 pub const Weapon = struct {
     Dmax: i32,
-    v_still: i32,
-    v_moveable: i32,
-    c: i32,
+    v_still: f32,
+    v_moveable: f32,
+    c: f32,
 };
 
 pub const AmmunitionType = struct {
@@ -31,29 +31,29 @@ pub const Weapons = struct {
 
     pub var invalid: Weapon = Weapon{
         .Dmax = 0,
-        .v_still = 0,
-        .v_moveable = 0,
-        .c = 0,
+        .v_still = 0.0,
+        .v_moveable = 0.0,
+        .c = 0.0,
     };
 
     pub var AK5: Weapon = Weapon{
         .Dmax = 3000,
-        .v_still = 100,
-        .v_moveable = 100,
-        .c = 200,
+        .v_still = 100.0,
+        .v_moveable = 100.0,
+        .c = 200.0,
     };
 
     pub var KSP58: Weapon = Weapon{
         .Dmax = 4300,
-        .v_still = 200,
-        .v_moveable = 300,
-        .c = 200,
+        .v_still = 200.0,
+        .v_moveable = 300.0,
+        .c = 200.0,
     };
 
     pub var KSP58_Benstod: Weapon = Weapon{
         .Dmax = 4300,
-        .v_still = 100,
-        .v_moveable = 200,
-        .c = 200,
+        .v_still = 100.0,
+        .v_moveable = 200.0,
+        .c = 200.0,
     };
 };
