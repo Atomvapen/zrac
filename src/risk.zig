@@ -30,8 +30,8 @@ pub const RiskArea = struct {
 
     pub fn update(self: *RiskArea, state: gui.guiState) !void {
         self.factor = state.riskFactor.value;
-        self.Amin = 100; //combineAsciiToInt(&state.Amin.value);
-        self.Amax = 200; //combineAsciiToInt(&state.Amax.value);
+        self.Amin = combineAsciiToInt(&state.Amin.value);
+        self.Amax = combineAsciiToInt(&state.Amax.value);
         self.f = combineAsciiToInt(&state.f.value);
         self.inForest = state.inForest.value;
         self.forestDist = combineAsciiToInt(&state.forstDist.value);
