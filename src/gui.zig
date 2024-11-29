@@ -4,8 +4,9 @@ const weapons = @import("weapons.zig");
 const rl = @import("raylib");
 const rg = @import("raygui");
 const RiskLine = @import("draw.zig").RiskLine;
+const draw = @import("draw.zig");
 
-const lineIntersection = @import("math2.zig").lineIntersection;
+// const lineIntersection = @import("math2.zig").getLineIntersectionPoint;
 
 const screenWidth = 800;
 const screenHeight: i32 = 800;
@@ -183,7 +184,7 @@ fn drawLines(riskProfile: risk.RiskArea) void {
     // ch
     var ch = RiskLine{ .startX = v.endX, .startY = v.endY, .endX = v.endX - 300, .endY = v.endY - 300, .angle = riskProfile.ch };
     ch.rotateEndPoint();
-    const intsersectPoint: rl.Vector2 = lineIntersection(ch.getStartVector(), ch.getEndVector(), q1.getStartVector(), q1.getEndVector()) orelse rl.Vector2{ .x = -10, .y = -10 };
+    const intsersectPoint: rl.Vector2 = draw.getLineIntersectionPoint(ch.getStartVector(), ch.getEndVector(), q1.getStartVector(), q1.getEndVector()) orelse rl.Vector2{ .x = -10, .y = -10 };
     ch = RiskLine{ .startX = v.endX, .startY = v.endY, .endX = @intFromFloat(intsersectPoint.x), .endY = @intFromFloat(intsersectPoint.y), .angle = riskProfile.ch };
 
     q1 = RiskLine{ .startX = q1.startX, .startY = origin.y - riskProfile.Amin + riskProfile.f, .endX = @intFromFloat(intsersectPoint.x), .endY = @intFromFloat(intsersectPoint.y), .angle = riskProfile.q1 };
@@ -192,6 +193,12 @@ fn drawLines(riskProfile: risk.RiskArea) void {
 
     ch.drawLine();
     ch.drawText("ch", -5, -20, 30);
+
+    // c
+    const cLine: draw.Line = try draw.calculate_parallel_line(@floatFromInt(v.startX), @floatFromInt(v.startY), @floatFromInt(v.endX), @floatFromInt(v.endY), riskProfile.c);
+
+    var c = RiskLine{ .startX = @intFromFloat(cLine.start.x), .startY = @intFromFloat(cLine.start.y), .endX = @intFromFloat(cLine.end.x), .endY = @intFromFloat(cLine.end.y), .angle = undefined };
+    c.drawLine();
 
     // q2
     if (riskProfile.inForest == true) {
