@@ -1,289 +1,330 @@
 const std = @import("std");
 const risk = @import("risk.zig");
+const weapons = @import("weapons.zig");
 const rl = @import("raylib");
-// const rl = @import("raylib-zig/lib/raylib.zig");
-const rg = @import("raylib-zig/lib/raygui.zig");
-const r = @import("raylib");
+const rg = @import("raygui");
+const RiskLine = @import("draw.zig").RiskLine;
+
+const lineIntersection = @import("math2.zig").lineIntersection;
 
 const screenWidth = 800;
 const screenHeight: i32 = 800;
-
 const Point = struct {
     x: i32,
     y: i32,
 };
+pub const guiState = struct {
+    const textBoxState = struct {
+        value: [64]u8,
+        editMode: bool,
+    };
 
-// pub fn draw(riskProfile: risk.RiskArea) !void {
-pub fn draw() !void {
+    const checkBoxState = struct {
+        value: bool,
+    };
+
+    const comboBoxState = struct {
+        value: i32,
+    };
+
+    const dropdownBoxState = struct {
+        value: i32,
+        editMode: bool,
+    };
+
+    Amin: textBoxState = .{ .editMode = false, .value = std.mem.zeroes([64]u8) },
+    Amax: textBoxState = .{ .editMode = false, .value = std.mem.zeroes([64]u8) },
+    f: textBoxState = .{ .editMode = false, .value = std.mem.zeroes([64]u8) },
+    forstDist: textBoxState = .{ .editMode = false, .value = std.mem.zeroes([64]u8) },
+    show: checkBoxState = .{ .value = true },
+    inForest: checkBoxState = .{ .value = false },
+    riskFactor: comboBoxState = .{ .value = 0 },
+    ammunitionType: dropdownBoxState = .{ .editMode = false, .value = 0 },
+    weaponType: dropdownBoxState = .{ .editMode = false, .value = 0 },
+    targetType: checkBoxState = .{ .value = false },
+    menu: Menu = .{ .page = 1 },
+
+    pub fn reset(self: *guiState) void {
+        self.Amin = .{ .editMode = false, .value = std.mem.zeroes([64]u8) };
+        self.Amax = .{ .editMode = false, .value = std.mem.zeroes([64]u8) };
+        self.f = .{ .editMode = false, .value = std.mem.zeroes([64]u8) };
+        self.forstDist = .{ .editMode = false, .value = std.mem.zeroes([64]u8) };
+        self.show = .{ .value = true };
+        self.inForest = .{ .value = false };
+        self.riskFactor = .{ .value = 0 };
+        self.ammunitionType = .{ .editMode = false, .value = 0 };
+        self.weaponType = .{ .editMode = false, .value = 0 };
+        self.targetType = .{ .value = false };
+    }
+
+    pub fn init(self: *guiState) !void {
+        try self.menu.init();
+        gui.show.value = true;
+        self.reset();
+    }
+};
+
+var camera = rl.Camera2D{
+    .target = .{ .x = 0, .y = 0 },
+    .offset = .{ .x = 0, .y = 0 },
+    .zoom = 1.0,
+    .rotation = 0,
+};
+var gui: guiState = undefined;
+
+pub fn init() !void {
     rl.initWindow(screenWidth, screenHeight, "Risk");
-    defer rl.closeWindow(); // Close window and OpenGL context
+    rl.setTargetFPS(15);
+    rl.setExitKey(.key_escape);
+    try gui.init();
+}
 
-    rl.setTargetFPS(30);
+pub fn deinit() void {
+    rl.closeWindow();
+}
 
-    var drawRisk: bool = true;
-    var inForest: bool = true;
+fn handleCamera() void {
+    const pos = rl.getMousePosition();
+    if (pos.x < 200) return;
 
-    var dropdownBox000Active: i32 = 0;
-    var comboBoxActive: i32 = 0;
-    var dropDown000EditMode: bool = false;
+    if (rl.isMouseButtonDown(.mouse_button_right)) {
+        var delta = rl.getMouseDelta();
+        delta = rl.math.vector2Scale(delta, -1.0 / camera.zoom);
+        camera.target = rl.math.vector2Add(camera.target, delta);
+    }
 
-    // var textBoxText001 = std.mem.zeroes([64]u8);
-    // var textBoxEditMode001: bool = false;
+    const wheel = rl.getMouseWheelMove();
+    if (wheel != 0) {
+        const mouseWorldPos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
+        camera.offset = rl.getMousePosition();
+        camera.target = mouseWorldPos;
+        var scaleFactor = 1.0 + (0.25 * @abs(wheel));
+        if (wheel < 0) scaleFactor = 1.0 / scaleFactor;
+        camera.zoom = rl.math.clamp(camera.zoom * scaleFactor, 0.125, 64.0);
+    }
+}
 
-    var textBoxText002 = std.mem.zeroes([64]u8);
-    var textBoxEditMode002: bool = false;
-
-    var textBoxText003 = std.mem.zeroes([64]u8);
-    var textBoxEditMode003: bool = false;
-
-    var textBoxText004 = std.mem.zeroes([64]u8);
-    var textBoxEditMode004: bool = false;
-
-    var textBoxText005 = std.mem.zeroes([64]u8);
-    var textBoxEditMode005: bool = false;
-
-    // var saveRisk: bool = false;
-    // var textInput = std.mem.zeroes([256]u8);
-    // var textInputFileName = std.mem.zeroes([256]u8);
-
+pub fn main() !void {
     var riskProfile: risk.RiskArea = undefined;
 
-    while (!rl.windowShouldClose()) { // Detect window close button or ESC key
+    while (!rl.windowShouldClose()) {
+        handleCamera();
+
         rl.beginDrawing();
         defer rl.endDrawing();
 
-        rl.clearBackground(rl.Color.black);
-        rl.drawRectangle(0, 0, 200, screenHeight, rl.Color.white);
-
-        // Input fields
-        _ = rg.guiCheckBox(.{ .x = 210, .y = 10, .width = 25, .height = 25 }, "Draw", &drawRisk);
-
-        _ = rg.guiLabel(.{ .x = 10, .y = 10, .width = 180, .height = 10 }, "Riskfaktor");
-        _ = rg.guiComboBox(.{ .x = 10, .y = 25, .width = 180, .height = 30 }, "I;II;III", &comboBoxActive);
-
-        _ = rg.guiLabel(.{ .x = 10, .y = 65, .width = 180, .height = 10 }, "Amin");
-        if (rg.guiTextBox(.{ .x = 10, .y = 80, .width = 180, .height = 30 }, @as([*:0]u8, @ptrCast(&textBoxText002)), 63, textBoxEditMode002) != 0) textBoxEditMode002 = !textBoxEditMode002;
-
-        _ = rg.guiLabel(.{ .x = 10, .y = 120, .width = 180, .height = 10 }, "Amax");
-        if (rg.guiTextBox(.{ .x = 10, .y = 135, .width = 180, .height = 30 }, @as([*:0]u8, @ptrCast(&textBoxText003)), 63, textBoxEditMode003) != 0) textBoxEditMode003 = !textBoxEditMode003;
-
-        _ = rg.guiLabel(.{ .x = 10, .y = 175, .width = 180, .height = 10 }, "f");
-        if (rg.guiTextBox(.{ .x = 10, .y = 190, .width = 180, .height = 30 }, @as([*:0]u8, @ptrCast(&textBoxText004)), 63, textBoxEditMode004) != 0) textBoxEditMode004 = !textBoxEditMode004;
-
-        _ = rg.guiLabel(.{ .x = 10, .y = 230, .width = 30, .height = 10 }, "Skog");
-        _ = rg.guiCheckBox(.{ .x = 10, .y = 245, .width = 30, .height = 30 }, "", &inForest);
-        _ = rg.guiLabel(.{ .x = 50, .y = 230, .width = 100, .height = 10 }, "Skogsavstånd");
-        if (rg.guiTextBox(.{ .x = 50, .y = 245, .width = 140, .height = 30 }, @as([*:0]u8, @ptrCast(&textBoxText005)), 63, textBoxEditMode005) != 0) textBoxEditMode005 = !textBoxEditMode005;
-
-        _ = rg.guiLabel(.{ .x = 10, .y = 585, .width = 100, .height = 10 }, "Vapentyp");
-        if (rg.guiDropdownBox(.{ .x = 10, .y = 600, .width = 100, .height = 30 }, "AK5;KSP58;KSP88;KSP90", &dropdownBox000Active, dropDown000EditMode) != 0) dropDown000EditMode = !dropDown000EditMode;
-
-        if (rg.guiButton(.{ .x = 10, .y = 680, .width = 100, .height = 50 }, "Beräkna") == 1) {
-            riskProfile.factor = comboBoxActive + 1;
-            riskProfile.Amin = combineAsciiToInt(&textBoxText002);
-            riskProfile.Amax = combineAsciiToInt(&textBoxText003);
-            riskProfile.f = combineAsciiToInt(&textBoxText004);
-            riskProfile.inForest = inForest;
-            riskProfile.forestMin = combineAsciiToInt(&textBoxText005);
-
-            riskProfile.v = 100;
-            riskProfile.Dmax = 500;
-
-            riskProfile.l = riskProfile.calculateL();
-            riskProfile.h = riskProfile.calculateH();
-            riskProfile.c = riskProfile.calculateC();
-            riskProfile.q1 = riskProfile.calculateQ1();
-            riskProfile.q2 = riskProfile.calculateQ2();
-            riskProfile.valid = riskProfile.validate();
-
-            std.debug.print("valid :{any} \n", .{riskProfile.valid});
-
-            // std.debug.print("RF :{d} \n", .{riskProfile2.factor});
-            // std.debug.print("Amin :{d} \n", .{riskProfile2.Amin});
-            // std.debug.print("Amax :{d} \n", .{riskProfile2.Amax});
-            // std.debug.print("f :{d} \n", .{riskProfile2.f});
-            // std.debug.print("inForest :{any} \n", .{riskProfile2.inForest});
-            // std.debug.print("forestMin :{d} \n", .{riskProfile2.forestMin});
+        // Link Risk Values to GUI State
+        {
+            try riskProfile.update(gui);
+            riskProfile.validate();
         }
 
-        // Draw Lines
-        if (drawRisk == true and riskProfile.valid == true) drawLines(riskProfile);
+        rl.clearBackground(rl.Color.ray_white);
 
-        // Save
-        // if (rg.guiButton(.{ .x = 10, .y = 740, .width = 100, .height = 50 }, "Spara") == 1) {
-        //     saveRisk = !saveRisk;
-        // }
+        // Moveable UI
+        {
+            camera.begin();
+            defer camera.end();
 
-        // if (saveRisk == true) {
-        //     rl.drawRectangle(0, 0, rl.getScreenWidth(), rl.getScreenHeight(), rl.fade(rl.Color.ray_white, 0.8));
-        //     var secretViewActive = false;
-        //     const result = rg.guiTextInputBox(
-        //         .{ .x = @as(f32, @floatFromInt(rl.getScreenWidth())) / 2 - 120, .y = @as(f32, @floatFromInt(rl.getScreenHeight())) / 2 - 60, .width = 240, .height = 140 },
-        //         "Save",
-        //         "Save file as...",
-        //         "Ok;Cancel",
-        //         @as([*:0]u8, @ptrCast(&textInput)),
-        //         255,
-        //         &secretViewActive,
-        //     );
+            rl.gl.rlPushMatrix();
+            rl.gl.rlTranslatef(0, 50 * 50, 0);
+            rl.gl.rlRotatef(90, 1, 0, 0);
+            rl.drawGrid(200, 100);
+            rl.gl.rlPopMatrix();
 
-        //     if (result == 1) {
-        //         // TODO: Validate textInput value and save
-        //         std.mem.copyForwards(u8, &textInputFileName, &textInput);
-        //         // std.debug.print("{d} \n", .{textInputFileName});
+            if (gui.show.value == true and riskProfile.valid == true) drawLines(riskProfile);
+        }
 
-        //         // const teststring = asciiToString(&textInputFileName);
-        //         // std.debug.print("{d} \n", .{teststring});
-
-        //         // const teststring: i32 = combineAsciiToInt(&textInputFileName);
-
-        //     }
-
-        //     if (result != 1) {
-        //         saveRisk = false;
-        //         std.mem.copyForwards(u8, &textInput, &[_]u8{0});
-        //     }
-        // }
+        // Static UI
+        {
+            gui.menu.drawMenu();
+        }
     }
 }
 
-pub fn combineAsciiToInt(asciiArray: []const u8) i32 {
-    var result: i32 = 0;
-
-    for (asciiArray) |asciiChar| {
-        const digit = @as(i32, @intCast(asciiChar)) - '0'; // Convert ASCII digit to numeric value
-
-        // Check for potential overflow before performing the operation
-        if (digit < 0 or digit > 9) continue; // Skip non-digit characters
-
-        if (result > @divFloor((std.math.maxInt(i32) - digit), 10)) {
-            // Handle overflow (e.g., return an error, set result to max, etc.)
-            return std.math.maxInt(i32); // Example: return max value on overflow
-        }
-
-        result = result * 10 + digit; // Shift left and add digit
-    }
-
-    return result;
-}
-
-pub fn drawLines(riskProfile: risk.RiskArea) void {
+fn drawLines(riskProfile: risk.RiskArea) void {
     // Origin
     const origin: Point = Point{ .x = screenWidth / 2, .y = screenHeight - 50 };
-    const center: rl.Vector2 = rl.Vector2{ .x = screenWidth / 2, .y = screenHeight - 50 };
+    // const center: rl.Vector2 = rl.Vector2{ .x = screenWidth / 2, .y = screenHeight - 50 };
 
     // h
-    var h = RiskLine{ .startX = origin.x, .startY = origin.y, .endX = origin.x, .endY = screenHeight - riskProfile.h, .angle = undefined };
-    h.DrawLine(false);
-    h.DrawText("h", 0, -20);
+    var h = RiskLine{ .startX = origin.x, .startY = origin.y, .endX = origin.x, .endY = origin.y - riskProfile.h, .angle = undefined };
+    h.drawLine();
+    h.drawText("h", 0, -20, 30);
 
     // Amin
-    var Amin = RiskLine{ .startX = undefined, .startY = undefined, .endX = origin.x, .endY = screenHeight - riskProfile.Amin, .angle = undefined };
-    Amin.DrawText("Amin", -30, 0);
-
-    // f
-    var f = RiskLine{ .startX = origin.x, .startY = origin.y, .endX = origin.x, .endY = Amin.endY + riskProfile.f, .angle = undefined };
-    f.DrawLine(false);
-    f.DrawText("f", -30, 0);
+    var Amin = RiskLine{ .startX = undefined, .startY = undefined, .endX = origin.x, .endY = origin.y - riskProfile.Amin, .angle = undefined };
+    Amin.drawText("Amin", -30, 0, 30);
 
     // v
-    var v = RiskLine{ .startX = origin.x, .startY = origin.y, .endX = origin.x, .endY = screenHeight - riskProfile.h, .angle = risk.milsToRadians(riskProfile.v) };
-    v.DrawLine(true);
-    v.DrawText("v", -5, -20);
+    var v = RiskLine{ .startX = origin.x, .startY = origin.y, .endX = origin.x, .endY = origin.y - riskProfile.h, .angle = riskProfile.v };
+    v.rotateEndPoint();
+    v.drawLine();
+    v.drawText("v", -5, -20, 30);
 
-    // h -> v
-    rl.drawCircleSectorLines(center, @as(f32, @floatFromInt(riskProfile.h - 50)), -90, -90 + @as(f32, @as(f32, @floatFromInt(riskProfile.v)) * 0.05625), 50, rl.Color.green);
-
-    // ch
-    // var ch = RiskLine{ .startX = v.endX, .startY = v.endY, .endX = v.endX - 100, .endY = v.endY - 100, .angle = risk.milsToRadians(riskProfile.ch+1000) };
-    var ch = RiskLine{ .startX = v.endX, .startY = v.endY, .endX = v.endX - 100, .endY = v.endY - 100, .angle = risk.milsToRadians(riskProfile.ch) };
-
-    ch.DrawLine(true);
-    ch.DrawText("ch", -5, -20);
+    if (riskProfile.f > riskProfile.Amin) return;
+    // if (riskProfile.f <= riskProfile.Amin) {
+    //f
+    var f = RiskLine{ .startX = origin.x, .startY = origin.y, .endX = origin.x, .endY = Amin.endY + (riskProfile.f + 50), .angle = undefined };
+    f.drawText("f", -30, -50, 30);
 
     // q1
-    var q1 = RiskLine{ .startX = undefined, .startY = screenHeight - riskProfile.Amin + riskProfile.f, .endX = v.endX, .endY = v.endY, .angle = risk.milsToRadians(riskProfile.q1) };
-    q1.startX = q1.calculateXfromAngle(riskProfile.f, v.angle) + origin.x;
-    q1.DrawLine(true);
-    q1.DrawText("q1", 15, 0);
+    var q1 = RiskLine{ .startX = undefined, .startY = origin.y - riskProfile.Amin + riskProfile.f, .endX = v.endX, .endY = v.endY, .angle = riskProfile.q1 };
+    q1.startX = q1.calculateXfromAngle(riskProfile.Amin - riskProfile.f, v.angle) + origin.x;
+    q1.rotateEndPoint();
+    // q1.drawLine();
+    // q1.drawText("q1", 15, 0, 30);
+    // }
 
-    // std.debug.print("{any}", .{riskProfile.f});
-    // std.debug.print("{any}", .{riskProfile.q2});
+    // h -> v
+    var hv = RiskLine{ .startX = origin.x, .startY = origin.y, .endX = undefined, .endY = undefined, .angle = riskProfile.v };
+    hv.drawCircleSector(@as(f32, @floatFromInt(riskProfile.h)));
 
-    if (riskProfile.forestMin > 0) {
+    // ch
+    var ch = RiskLine{ .startX = v.endX, .startY = v.endY, .endX = v.endX - 300, .endY = v.endY - 300, .angle = riskProfile.ch };
+    ch.rotateEndPoint();
+    const intsersectPoint: rl.Vector2 = lineIntersection(ch.getStartVector(), ch.getEndVector(), q1.getStartVector(), q1.getEndVector()) orelse rl.Vector2{ .x = -10, .y = -10 };
+    ch = RiskLine{ .startX = v.endX, .startY = v.endY, .endX = @intFromFloat(intsersectPoint.x), .endY = @intFromFloat(intsersectPoint.y), .angle = riskProfile.ch };
+
+    q1 = RiskLine{ .startX = q1.startX, .startY = origin.y - riskProfile.Amin + riskProfile.f, .endX = @intFromFloat(intsersectPoint.x), .endY = @intFromFloat(intsersectPoint.y), .angle = riskProfile.q1 };
+    q1.drawLine();
+    q1.drawText("q1", 15, 0, 30);
+
+    ch.drawLine();
+    ch.drawText("ch", -5, -20, 30);
+
+    // q2
+    if (riskProfile.inForest == true) {
+        var q2 = RiskLine{ .startX = origin.x, .startY = origin.y, .endX = v.endX, .endY = v.endY, .angle = riskProfile.q2 };
+        q2.rotateEndPoint();
+        q2.drawLine();
+        q2.drawText("q2", 25, 0, 30);
+    } else if (riskProfile.forestDist > 0 and riskProfile.forestDist <= riskProfile.h) {
         // forestMin
-        var forestMin = RiskLine{ .startX = undefined, .startY = undefined, .endX = origin.x, .endY = screenHeight - riskProfile.forestMin, .angle = undefined };
-        forestMin.DrawText("forestMin", -65, 0);
+        var forestMin = RiskLine{ .startX = undefined, .startY = undefined, .endX = origin.x, .endY = origin.y - riskProfile.forestDist, .angle = undefined };
+        forestMin.drawText("forestMin", -65, 0, 30);
 
-        // q2
-        var q2 = RiskLine{ .startX = undefined, .startY = screenHeight - riskProfile.forestMin, .endX = v.endX, .endY = v.endY, .angle = risk.milsToRadians(riskProfile.q2) };
-        q2.startX = q2.calculateXfromAngle(riskProfile.forestMin, v.angle) + origin.x;
-        q2.DrawLine(true);
-        q2.DrawText("q2", 25, 0);
-
-        // var q3 = RiskLine{ .startX = undefined, .startY = screenHeight - riskProfile.forestMin, .endX = v.endX, .endY = v.endY, .angle = risk.milsToRadians(1000) };
-        // q3.startX = q3.calculateXfromAngle(riskProfile.forestMin, v.angle) + oX;
-        // q3.DrawLine(true);
-        // q3.DrawText("q3", 25, 0);
-
-        // std.debug.print("{any}", .{risk.milsToRadians(riskProfile.q2)});
+        var q2 = RiskLine{ .startX = undefined, .startY = origin.y - riskProfile.forestDist, .endX = v.endX, .endY = v.endY, .angle = riskProfile.q2 };
+        q2.startX = q2.calculateXfromAngle(riskProfile.forestDist, v.angle) + origin.x;
+        q2.rotateEndPoint();
+        q2.drawLine();
+        q2.drawText("q2", 25, 0, 30);
     }
 }
 
-pub const RiskLine = struct {
-    startX: i32,
-    startY: i32,
-    endX: i32,
-    endY: i32,
-    angle: f64,
+pub const Menu = struct {
+    pub const barWidth = 100;
+    pub const barHeight = 30;
+    pub const originPoint = Point{
+        .x = 0,
+        .y = 1,
+    };
 
-    fn DrawLine(self: *RiskLine, rotate: bool) void {
-        if (rotate) {
-            const point: Point = self.rotateLineEndPoints();
-            self.endX = point.x;
-            self.endY = point.y;
+    var pageNr: i8 = 1;
+
+    page: i8, //TODO: måste ha en getPage istället så att denna inte kan ändras hur som
+    origin: Point = originPoint,
+
+    var p: i32 = 1;
+
+    pub fn init(self: *Menu) !void {
+        self.origin = originPoint;
+        self.page = 1;
+    }
+
+    pub fn setPage(self: *Menu, value: i8) void {
+        if (value != self.page) gui.reset();
+        self.page = value;
+    }
+
+    pub fn drawMenu(self: *Menu) void {
+        //Pane
+        rl.drawRectangle(self.origin.x, self.origin.y, (barWidth * 2), screenHeight, rl.Color.white);
+        rl.drawRectangle(self.origin.x + (barWidth * 2), self.origin.y, 1, screenHeight, rl.Color.black);
+        rl.drawRectangle(self.origin.x, self.origin.y - 1, (barWidth * 2), 1, rl.Color.black);
+
+        // Switch Page
+        switch (self.page) {
+            1 => self.drawMenuSST(),
+            2 => self.drawMenuBOX(),
+            else => return,
         }
 
-        rl.drawLine(self.startX, self.startY, self.endX, self.endY, rl.Color.green);
+        // Reset button
+        if (rg.guiButton(.{ .x = 10, .y = 740, .width = 180, .height = 30 }, "Nollställ") == 1) gui.reset();
+
+        // Switch page buttons
+        if (rg.guiLabelButton(.{ .x = 0 + 40, .y = 10, .width = 10, .height = 10 }, "SST") == 1) gui.menu.setPage(1);
+        if (rg.guiLabelButton(.{ .x = 0 + barWidth + 40, .y = 10, .width = 10, .height = 10 }, "BOX") == 1) gui.menu.setPage(2);
+
+        // Status bar
+        const mouse_pos = rl.getMousePosition();
+        var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+        defer _ = gpa.deinit();
+
+        const allocator = gpa.allocator();
+
+        const string = std.fmt.allocPrintZ(allocator, "ZRAC v0.0.1 | x: {d} y: {d}", .{ mouse_pos.x, mouse_pos.y }) catch |err| {
+            std.debug.print("{any}", .{err});
+            return;
+        };
+
+        defer allocator.free(string);
+
+        _ = rg.guiStatusBar(.{ .x = 0, .y = @as(f32, @floatFromInt(screenHeight - 20)), .width = @as(f32, @floatFromInt(screenWidth)), .height = 20 }, string);
     }
 
-    fn DrawText(self: *RiskLine, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32) void {
-        rl.drawText(text, self.endX + textOffsetX, self.endY + textOffsetY, 13, rl.Color.white);
+    pub fn drawMenuSST(self: *Menu) void {
+        // Menu Bar
+        rl.drawRectangle(self.origin.x, self.origin.y, barWidth + 1, barHeight, rl.Color.black);
+        rl.drawRectangle(self.origin.x, self.origin.y, barWidth, barHeight, rl.Color.white);
+
+        rl.drawRectangle(self.origin.x + barWidth - 1, self.origin.y, barWidth + 1, barHeight + 1, rl.Color.black);
+        rl.drawRectangle(self.origin.x + barWidth, self.origin.y, barWidth, barHeight, rl.Color.light_gray);
+
+        // Input fields
+        _ = rg.guiLabel(.{ .x = 160, .y = barHeight + 10, .width = 30, .height = 10 }, "Visa");
+        _ = rg.guiCheckBox(.{ .x = 160, .y = barHeight + 25, .width = 30, .height = 30 }, "", &gui.show.value);
+        // _ = rg.guiCheckBox(.{ .x = 160, .y = barHeight + 25, .width = 30, .height = 30 }, "", &riskProfile.show);
+
+        _ = rg.guiLabel(.{ .x = 10, .y = barHeight + 10, .width = 180, .height = 10 }, "Riskfaktor");
+        _ = rg.guiComboBox(.{ .x = 10, .y = barHeight + 25, .width = 60, .height = 30 }, "I;II;III", &gui.riskFactor.value);
+        // _ = rg.guiComboBox(.{ .x = 10, .y = barHeight + 25, .width = 60, .height = 30 }, "I;II;III", &riskProfile.factor);
+
+        _ = rg.guiLabel(.{ .x = 10, .y = barHeight + 65, .width = 180, .height = 10 }, "Amin");
+        if (rg.guiTextBox(.{ .x = 10, .y = barHeight + 80, .width = 180, .height = 30 }, @as([*:0]u8, @ptrCast(&gui.Amin.value)), 63, gui.Amin.editMode) != 0) gui.Amin.editMode = !gui.Amin.editMode;
+
+        _ = rg.guiLabel(.{ .x = 10, .y = barHeight + 120, .width = 180, .height = 10 }, "Amax");
+        if (rg.guiTextBox(.{ .x = 10, .y = barHeight + 135, .width = 180, .height = 30 }, @as([*:0]u8, @ptrCast(&gui.Amax.value)), 63, gui.Amax.editMode) != 0) gui.Amax.editMode = !gui.Amax.editMode;
+
+        _ = rg.guiLabel(.{ .x = 10, .y = barHeight + 175, .width = 180, .height = 10 }, "f");
+        if (rg.guiTextBox(.{ .x = 10, .y = barHeight + 190, .width = 180, .height = 30 }, @as([*:0]u8, @ptrCast(&gui.f.value)), 63, gui.f.editMode) != 0) gui.f.editMode = !gui.f.editMode;
+
+        _ = rg.guiLabel(.{ .x = 10, .y = barHeight + 230, .width = 30, .height = 10 }, "Skog");
+        _ = rg.guiCheckBox(.{ .x = 10, .y = barHeight + 245, .width = 30, .height = 30 }, "", &gui.inForest.value);
+        _ = rg.guiLabel(.{ .x = 50, .y = barHeight + 230, .width = 100, .height = 10 }, "Skogsavstånd");
+        if (rg.guiTextBox(.{ .x = 50, .y = barHeight + 245, .width = 140, .height = 30 }, @as([*:0]u8, @ptrCast(&gui.forstDist.value)), 63, gui.forstDist.editMode) != 0) gui.forstDist.editMode = !gui.forstDist.editMode;
+
+        _ = rg.guiLabel(.{ .x = 10, .y = barHeight + 340, .width = 30, .height = 10 }, "Fast");
+        _ = rg.guiCheckBox(.{ .x = 10, .y = barHeight + 355, .width = 30, .height = 30 }, "", &gui.targetType.value);
+
+        _ = rg.guiLabel(.{ .x = 50, .y = barHeight + 340, .width = 140, .height = 10 }, "Ammunitionstyp");
+        if (rg.guiDropdownBox(.{ .x = 50, .y = barHeight + 355, .width = 140, .height = 30 }, weapons.AmmunitionType.allNames, &gui.ammunitionType.value, gui.ammunitionType.editMode) != 0) gui.ammunitionType.editMode = !gui.ammunitionType.editMode;
+
+        _ = rg.guiLabel(.{ .x = 10, .y = barHeight + 285, .width = 180, .height = 10 }, "Vapentyp");
+        if (rg.guiDropdownBox(.{ .x = 10, .y = barHeight + 300, .width = 180, .height = 30 }, weapons.Weapons.allNames, &gui.weaponType.value, gui.weaponType.editMode) != 0) gui.weaponType.editMode = !gui.weaponType.editMode;
     }
 
-    fn calculateXfromAngle(self: *RiskLine, width: i32, angle: f64) i32 {
-        // https://www.omnicalculator.com/math/right-triangle-side-angle
-        //
-        // Given an angle and one leg
-        // Find the missing leg using trigonometric functions
-        //
-        // a = b × tan(α)
+    pub fn drawMenuBOX(self: *Menu) void {
+        // Menu Bar
+        rl.drawRectangle(self.origin.x - 1, self.origin.y, barWidth + 1, barHeight + 1, rl.Color.black);
+        rl.drawRectangle(self.origin.x, self.origin.y, barWidth, barHeight, rl.Color.light_gray);
 
-        _ = self;
-        const b: f64 = @as(f64, @floatFromInt(width));
-        const a: f64 = @tan(angle);
+        rl.drawRectangle(self.origin.x + barWidth - 1, self.origin.y, barWidth + 1, barHeight, rl.Color.black);
+        rl.drawRectangle(self.origin.x + barWidth, self.origin.y, barWidth, barHeight, rl.Color.white);
 
-        return @intFromFloat(b * a);
-    }
+        _ = rg.guiLabel(.{ .x = 10, .y = barHeight + 10, .width = 30, .height = 10 }, "TBA");
 
-    fn rotateLineEndPoints(self: *RiskLine) Point {
-        // https://danceswithcode.net/engineeringnotes/rotations_in_2d/rotations_in_2d.html
-        //
-        // Rotating Points around an Arbitrary Center
-        //
-        // (x, y) = Point to be rotated
-        // (ox, oy) = Coordinates of center of rotation
-        // θ = Angle of rotation (positive counterclockwise) in radians
-        // (x1, y1) = Coordinates of point after rotation
-        //
-        // rotated_x = (x – ox) * cos(θ) – (y – oy)* sin(θ) + ox
-        // rotated_y = (x – ox) * sin(θ) + (y – oy)* cos(θ) + oy
-
-        var rotatedPoints: Point = Point{ .x = 0, .y = 0 };
-
-        rotatedPoints.x = @intFromFloat((@as(f64, @floatFromInt(self.endX - self.startX)) * @cos(self.angle) - (@as(f64, @floatFromInt(self.endY - self.startY))) * @sin(self.angle)) + @as(f64, @floatFromInt(self.startX)));
-        rotatedPoints.y = @intFromFloat((@as(f64, @floatFromInt(self.endX - self.startX)) * @sin(self.angle) + (@as(f64, @floatFromInt(self.endY - self.startY))) * @cos(self.angle)) + @as(f64, @floatFromInt(self.startY)));
-
-        return rotatedPoints;
+        // Input fields
     }
 };
