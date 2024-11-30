@@ -1,8 +1,6 @@
 .{
     .name = "Risk",
-
     .version = "0.0.1",
-
     .dependencies = .{
         .raylib = .{
             .url = "https://github.com/Not-Nik/raylib-zig/archive/devel.tar.gz",
