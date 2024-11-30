@@ -1,13 +1,33 @@
 const std = @import("std");
 const rl = @import("raylib");
 
+/// Represents a 2D line segment with additional operations for transformations and rendering.
+///
+/// Values:
+/// - start
+/// - end
+/// - angle
+///
+/// Methods:
+/// - init
+/// - drawCircleSector
+/// - drawText
+/// - drawLine
+/// - scale
+/// - rotateEndVector
+/// - endAtIntersection
+/// - startAtIntersection
 pub const Line = struct {
     start: rl.Vector2,
     end: rl.Vector2,
     angle: f32,
 
+    pub fn init(start: rl.Vector2, end: rl.Vector2, rotate: bool, angle: f32) !Line {
+        return Line{ .start = start, .end = if (rotate == true) try rotateEndVector(start, end, angle) else end, .angle = angle };
+    }
+
     pub fn drawCircleSector(self: *Line, radius: f32) void {
-        rl.drawCircleSectorLines(.{ .x = self.start.x, .y = self.start.y }, radius, -90, -90 + milsToDegree(self.angle), 50, rl.Color.maroon);
+        rl.drawRingLines(.{ .x = self.start.x, .y = self.start.y }, radius, radius, -90, -90 + milsToDegree(self.angle), 50, rl.Color.maroon);
     }
 
     pub fn drawText(self: *Line, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32) void {
@@ -18,33 +38,31 @@ pub const Line = struct {
         rl.drawLine(@as(i32, @intFromFloat(self.start.x)), @as(i32, @intFromFloat(self.start.y)), @as(i32, @intFromFloat(self.end.x)), @as(i32, @intFromFloat(self.end.y)), rl.Color.maroon);
     }
 
-    /// Calculates the length of one leg of a right triangle given the other leg and an angle.
-    ///
-    /// This function uses the formula for finding a missing leg in a right triangle.
-    pub fn calculateXfromAngle(self: *Line, width: i32, angle: f32) f32 {
-        _ = self;
-        const b: f32 = @as(f32, @floatFromInt(width));
-        const a: f32 = @tan(milsToRadians(angle));
-
-        return (b * a);
+    pub fn scale(self: *Line, factor: f32) void {
+        self.end.x *= factor;
+        self.end.y *= factor;
+        self.start.x *= factor;
+        self.start.y *= factor;
     }
 
-    /// Rotates the endpoint of a `RiskLine` around its starting point by the specified angle.
+    pub fn endAtIntersection(self: *Line, line: Line) void {
+        self.*.end = getLineIntersectionPoint(self.*, line) orelse rl.Vector2{ .x = 0, .y = 0 };
+    }
+
+    pub fn startAtIntersection(self: *Line, line: Line) void {
+        self.*.start = getLineIntersectionPoint(self.*, line) orelse rl.Vector2{ .x = 0, .y = 0 };
+    }
+
+    /// Rotates the endpoint of a `Line` around its starting point by the specified angle.
     ///
-    /// This function modifies the `endX` and `endY` coordinates of the `RiskLine` to reflect
-    /// the new position of the endpoint after rotation.
+    /// This function returns a new rotated Vector2 with the new position of the endpoint.
     ///
     /// The rotation is performed using the formula for rotating points around an arbitrary center.
-    pub fn rotateLine(self: *Line) void {
-        const localEndX: f32 = ((self.end.x - self.start.x) * @cos(milsToRadians(self.angle))) - ((self.end.y - self.start.y) * @sin(milsToRadians(self.angle))) + (self.start.x);
-        const localEndY: f32 = ((self.end.x - self.start.x) * @sin(milsToRadians(self.angle))) + ((self.end.y - self.start.y) * @cos(milsToRadians(self.angle))) + (self.start.y);
-
-        self.*.end.x = localEndX;
-        self.*.end.y = localEndY;
-    }
-
-    pub fn endAtIntersection(line: Line) void { //TODO skapa
-        _ = line;
+    fn rotateEndVector(start: rl.Vector2, end: rl.Vector2, angle: f32) !rl.Vector2 {
+        return rl.Vector2{
+            .x = ((end.x - start.x) * @cos(milsToRadians(angle))) - ((end.y - start.y) * @sin(milsToRadians(angle))) + (start.x),
+            .y = ((end.x - start.x) * @sin(milsToRadians(angle))) + ((end.y - start.y) * @cos(milsToRadians(angle))) + (start.y),
+        };
     }
 };
 
@@ -56,7 +74,7 @@ pub const Line = struct {
 ///
 /// The formula for finding the intersection is derived from solving the equations
 /// of the two lines in parametric form:
-pub fn getLineIntersectionPoint(line1: Line, line2: Line) ?rl.Vector2 {
+fn getLineIntersectionPoint(line1: Line, line2: Line) ?rl.Vector2 {
     // Line 1 points
     const line1_start_x: f32 = line1.start.x;
     const line1_start_y: f32 = line1.start.y;
@@ -126,11 +144,21 @@ pub fn getParallelLine(line: Line, c: f32) !Line {
 }
 
 /// Converts a given angle in mils to degrees.
-pub fn milsToDegree(mils: f32) f32 {
+fn milsToDegree(mils: f32) f32 {
     return mils * 0.05625;
 }
 
 /// Converts a given angle in mils to radians.
-pub fn milsToRadians(mils: f32) f32 {
+fn milsToRadians(mils: f32) f32 {
     return mils * 0.000982;
+}
+
+/// Calculates the length of one leg of a right triangle given the other leg and an angle.
+///
+/// This function uses the formula for finding a missing leg in a right triangle.
+pub fn calculateXfromAngle(width: i32, angle: f32) f32 {
+    const b: f32 = @as(f32, @floatFromInt(width));
+    const a: f32 = @tan(milsToRadians(angle));
+
+    return (b * a);
 }

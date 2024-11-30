@@ -1,10 +1,10 @@
 const std = @import("std");
-const arms = @import("weapons.zig");
 const gui = @import("gui.zig");
 
 pub const RiskArea = struct {
     // Given values
-    weaponType: arms.Weapon,
+    weaponType: WeaponArsenal.Model,
+    weaponCaliber: WeaponArsenal.Caliber,
     selectedWeaponType: i32,
     factor: i32,
     inForest: bool,
@@ -36,15 +36,34 @@ pub const RiskArea = struct {
         self.inForest = state.inForest.value;
         self.forestDist = combineAsciiToInt(&state.forstDist.value);
         self.fixedTarget = state.targetType.value;
+        self.weaponCaliber = switch (state.ammunitionType.value) {
+            0 => WeaponArsenal.Caliber.hagelptr,
+            1 => WeaponArsenal.Caliber.long_rifle_22,
+            2 => WeaponArsenal.Caliber.ptr556_sk_prj_slprj,
+            3 => WeaponArsenal.Caliber.ptr65_sk_prj_m41,
+            4 => WeaponArsenal.Caliber.ptr762_sk_10b_prj_slprj,
+            5 => WeaponArsenal.Caliber.ptr762_sk_10_pprj,
+            6 => WeaponArsenal.Caliber.ptr762_sk_prick_lh,
+            7 => WeaponArsenal.Caliber.ptr762_sk_prick,
+            8 => WeaponArsenal.Caliber.ptr762_sk_39_prj,
+            9 => WeaponArsenal.Caliber.ptr762_sk_95_prj_slprj,
+            10 => WeaponArsenal.Caliber.ptr9_sk_39b,
+            11 => WeaponArsenal.Caliber.ptr9_9_39_ovnprj_11,
+            12 => WeaponArsenal.Caliber.ptr9_sk_67_slprj,
+            13 => WeaponArsenal.Caliber.ptr127_sk_45_nprj_slnprj,
+            14 => WeaponArsenal.Caliber.ptr27_sk_nprj_prick_slprj_prick,
+            15 => WeaponArsenal.Caliber.ptr127_sk_45_pbrsprj_brsprj_slbrsprj,
+            else => unreachable,
+        };
         self.weaponType = switch (state.weaponType.value) {
-            0 => arms.Weapons.AK5,
-            1 => arms.Weapons.KSP58,
-            2 => arms.Weapons.KSP58_Benstod,
-            else => arms.Weapons.invalid,
+            0 => WeaponArsenal.AK5,
+            1 => WeaponArsenal.KSP58,
+            2 => WeaponArsenal.KSP58_Benstod,
+            else => WeaponArsenal.invalid,
         };
 
         self.v = if (self.fixedTarget) self.weaponType.v_still else self.weaponType.v_moveable;
-        self.Dmax = self.weaponType.Dmax;
+        self.Dmax = self.weaponCaliber.Dmax;
 
         self.l = self.calculateL();
         self.h = self.calculateH();
@@ -83,7 +102,7 @@ pub const RiskArea = struct {
 
     pub fn calculateC(self: *RiskArea) f32 {
         switch (self.inForest) {
-            true => return 200.0,
+            true => return self.weaponCaliber.c,
             false => switch (self.factor + 1) {
                 1 => return 0.2 * @as(f32, @floatFromInt(self.Dmax - self.Amin)),
                 2 => return 0.15 * @as(f32, @floatFromInt(self.Dmax - self.Amin)),
@@ -105,6 +124,171 @@ pub const RiskArea = struct {
         if (self.forestDist < 0) return 0.0;
         return 1000.0;
     }
+};
+
+pub const WeaponArsenal = struct {
+    const Model = struct {
+        Dmax: i32,
+        v_still: f32,
+        v_moveable: f32,
+        c: f32,
+        caliber: Caliber,
+    };
+
+    pub const Caliber = struct {
+        Dmax: i32,
+        y: i32,
+        c: f32,
+        name: []const u8,
+
+        pub var hagelptr: Caliber = Caliber{
+            .Dmax = 350,
+            .y = undefined,
+            .c = 70,
+            .name = "Hagelptr",
+        };
+
+        pub var long_rifle_22: Caliber = Caliber{
+            .Dmax = 1500,
+            .y = undefined,
+            .c = 200,
+            .name = "22 long rifle",
+        };
+
+        pub var ptr556_sk_prj_slprj: Caliber = Caliber{
+            .Dmax = 3000,
+            .y = undefined,
+            .c = 200,
+            .name = "5,56 mm sk ptr 5/5B prj/slprj",
+        };
+
+        pub var ptr65_sk_prj_m41: Caliber = Caliber{
+            .Dmax = 4500,
+            .y = undefined,
+            .c = 200,
+            .name = "6,5 mm sk ptr m/41",
+        };
+
+        pub var ptr762_sk_10b_prj_slprj: Caliber = Caliber{
+            .Dmax = 4300,
+            .y = undefined,
+            .c = 200,
+            .name = "7,62 mm sk ptr 10(B) prj/slprj",
+        };
+
+        pub var ptr762_sk_10_pprj: Caliber = Caliber{
+            .Dmax = 4300,
+            .y = undefined,
+            .c = 200,
+            .name = "7,62 mm sk ptr 10 PPRJ",
+        };
+
+        pub var ptr762_sk_prick_lh: Caliber = Caliber{
+            .Dmax = 4300,
+            .y = undefined,
+            .c = 200,
+            .name = "7,62 mm sk ptr PRICK LH",
+        };
+
+        pub var ptr762_sk_prick: Caliber = Caliber{
+            .Dmax = 4300,
+            .y = undefined,
+            .c = 200,
+            .name = "7,62 mm sk ptr PRICK",
+        };
+
+        pub var ptr762_sk_39_prj: Caliber = Caliber{
+            .Dmax = 4000,
+            .y = undefined,
+            .c = 200,
+            .name = "7,62 mm sk ptr 39 prj",
+        };
+
+        pub var ptr762_sk_95_prj_slprj: Caliber = Caliber{
+            .Dmax = 4700,
+            .y = undefined,
+            .c = 200,
+            .name = "7,62 mm sk ptr 95 prj/slprj",
+        };
+
+        pub var ptr9_sk_39b: Caliber = Caliber{
+            .Dmax = 1800,
+            .y = undefined,
+            .c = 150,
+            .name = "9 mm sk ptr m/39B",
+        };
+
+        pub var ptr9_9_39_ovnprj_11: Caliber = Caliber{
+            .Dmax = 1800,
+            .y = undefined,
+            .c = 150,
+            .name = "9 mm 9/39 övnprj 11",
+        };
+
+        pub var ptr9_sk_67_slprj: Caliber = Caliber{
+            .Dmax = 1600,
+            .y = undefined,
+            .c = 150,
+            .name = "9 mm sk ptr m/67 slprj",
+        };
+
+        pub var ptr127_sk_45_nprj_slnprj: Caliber = Caliber{
+            .Dmax = 7000,
+            .y = undefined,
+            .c = 400,
+            .name = "12,7 mm sk ptr m/45 nprj och slnprj",
+        };
+
+        pub var ptr27_sk_nprj_prick_slprj_prick: Caliber = Caliber{
+            .Dmax = 7000,
+            .y = undefined,
+            .c = 400,
+            .name = "2,7 mm sk ptr nprj prick och slprj prick",
+        };
+
+        pub var ptr127_sk_45_pbrsprj_brsprj_slbrsprj: Caliber = Caliber{
+            .Dmax = 7000,
+            .y = undefined,
+            .c = 400,
+            .name = "12,7 mm sk ptr m/45 pbrsprj, brsprj och slbrsprj",
+        };
+    };
+
+    pub const allAmmunitionNames: [*:0]const u8 = "Hagelptr; 22 long rifle;5,56 mm sk ptr 5/5B prj/slprj;6,5 mm sk ptr prj m/41;7,62 mm sk ptr 10(B) prj/slprj;7,62 mm sk ptr 10 PPRJ;7,62 mm sk ptr PRICK LH;7,62 mm sk ptr PRICK;7,62 mm sk ptr 39 prj;7,62 mm sk ptr 95 prj/slprj;9 mm sk ptr m/39B;9 mm 9/39 övnprj 11;9 mm sk ptr m/67 slprj;12,7 mm sk ptr m/45 nprj och slnprj;12,7 mm sk ptr nprj prick och slprj prick;12,7 mm sk ptr m/45 pbrsprj, brsprj och slbrsprj";
+
+    pub const names: [*:0]const u8 = "AK5C;KSP58;KSP58_Benstod";
+
+    pub var invalid: Model = Model{
+        .Dmax = 0,
+        .v_still = 0.0,
+        .v_moveable = 0.0,
+        .c = 0.0,
+        .caliber = undefined,
+    };
+
+    pub var AK5: Model = Model{
+        .Dmax = 3000,
+        .v_still = 100.0,
+        .v_moveable = 100.0,
+        .c = 200.0,
+        .caliber = undefined,
+    };
+
+    pub var KSP58: Model = Model{
+        .Dmax = 4300,
+        .v_still = 200.0,
+        .v_moveable = 300.0,
+        .c = 200.0,
+        .caliber = undefined,
+    };
+
+    pub var KSP58_Benstod: Model = Model{
+        .Dmax = 4300,
+        .v_still = 100.0,
+        .v_moveable = 200.0,
+        .c = 200.0,
+        .caliber = undefined,
+    };
 };
 
 /// Combines an array of ASCII characters representing digits into an integer.

@@ -1,11 +1,11 @@
 const std = @import("std");
 const risk = @import("risk.zig");
-const weapons = @import("weapons.zig");
+// const weapons = @import("weapons.zig");
 const rl = @import("raylib");
 const rg = @import("raygui");
 const geo = @import("geo_calculations.zig");
 
-const screenWidth = 800;
+const screenWidth: i32 = 800;
 const screenHeight: i32 = 800;
 
 pub const guiState = struct {
@@ -149,189 +149,158 @@ fn drawLines(riskProfile: risk.RiskArea) void {
     const origin: rl.Vector2 = rl.Vector2{ .x = @as(f32, @floatFromInt(screenWidth)) / 2, .y = @as(f32, @floatFromInt(screenHeight)) - 50 };
 
     // h
-    var h: geo.Line = geo.Line{ .start = rl.Vector2{
+    var h: geo.Line = try geo.Line.init(rl.Vector2{
         .x = origin.x,
         .y = origin.y,
-    }, .end = rl.Vector2{
+    }, rl.Vector2{
         .x = origin.x,
         .y = origin.y - @as(f32, @floatFromInt(riskProfile.h)),
-    }, .angle = undefined };
-
+    }, false, undefined);
     h.drawLine();
     h.drawText("h", 0, -30, 30);
 
     // Amin
-    var Amin: geo.Line = geo.Line{ .start = rl.Vector2{
+    var Amin: geo.Line = try geo.Line.init(rl.Vector2{
         .x = undefined,
         .y = undefined,
-    }, .end = rl.Vector2{
+    }, rl.Vector2{
         .x = origin.x,
         .y = origin.y - @as(f32, @floatFromInt(riskProfile.Amin)),
-    }, .angle = undefined };
-
+    }, false, undefined);
     Amin.drawText("Amin", -70, 0, 30);
 
     // v
-    var v: geo.Line = geo.Line{ .start = rl.Vector2{
+    var v: geo.Line = try geo.Line.init(rl.Vector2{
         .x = origin.x,
         .y = origin.y,
-    }, .end = rl.Vector2{
+    }, rl.Vector2{
         .x = origin.x,
         .y = origin.y - @as(f32, @floatFromInt(riskProfile.h)),
-    }, .angle = riskProfile.v };
-
-    v.rotateLine();
+    }, true, riskProfile.v);
     v.drawLine();
     v.drawText("v", -5, -30, 30);
 
     if (riskProfile.f > riskProfile.Amin) return;
-    // if (riskProfile.f <= riskProfile.Amin) {
-    //f
-    var f: geo.Line = geo.Line{ .start = rl.Vector2{
+    var f: geo.Line = try geo.Line.init(rl.Vector2{
         .x = origin.x,
         .y = origin.y - @as(f32, @floatFromInt(riskProfile.Amin)) + @as(f32, @floatFromInt(riskProfile.f)),
-    }, .end = rl.Vector2{
+    }, rl.Vector2{
         .x = origin.x,
         .y = Amin.end.y + (@as(f32, @floatFromInt(riskProfile.f)) + 50.0),
-    }, .angle = undefined };
-
+    }, false, undefined);
     f.drawText("f", -30, -70, 30);
 
     // q1
-    var q1: geo.Line = geo.Line{ .start = rl.Vector2{
-        .x = undefined,
+    var q1: geo.Line = try geo.Line.init(rl.Vector2{
+        .x = geo.calculateXfromAngle(riskProfile.Amin - riskProfile.f, v.angle) + origin.x,
         .y = origin.y - @as(f32, @floatFromInt(riskProfile.Amin)) + @as(f32, @floatFromInt(riskProfile.f)),
-    }, .end = rl.Vector2{
+    }, rl.Vector2{
         .x = v.end.x,
         .y = v.end.y,
-    }, .angle = riskProfile.q1 };
-
-    q1.start.x = q1.calculateXfromAngle(riskProfile.Amin - riskProfile.f, v.angle) + origin.x; //TODO gör calculateXfromAngle kan användas i declaration av q1.
-    q1.rotateLine();
+    }, true, riskProfile.q1);
 
     // h -> v
-    var hv: geo.Line = geo.Line{ .start = rl.Vector2{
+    var hv: geo.Line = try geo.Line.init(rl.Vector2{
         .x = origin.x,
         .y = origin.y,
-    }, .end = rl.Vector2{
+    }, rl.Vector2{
         .x = undefined,
         .y = undefined,
-    }, .angle = riskProfile.v };
-
+    }, false, riskProfile.v);
     hv.drawCircleSector(@as(f32, @floatFromInt(riskProfile.h)));
 
     // ch
-    var ch: geo.Line = geo.Line{ .start = rl.Vector2{
+    var ch: geo.Line = try geo.Line.init(rl.Vector2{
         .x = v.end.x,
         .y = v.end.y,
-    }, .end = rl.Vector2{
+    }, rl.Vector2{
         .x = v.end.x - 30000.0,
         .y = v.end.y - 30000.0,
-    }, .angle = riskProfile.ch };
-
-    ch.rotateLine();
+    }, true, riskProfile.ch);
 
     if (riskProfile.inForest == false and riskProfile.forestDist <= 0) {
-        const chIntsersectPoint: rl.Vector2 = geo.getLineIntersectionPoint(ch, q1) orelse rl.Vector2{ .x = -10, .y = -10 };
+        ch.endAtIntersection(q1);
+        // ch.drawLine();
+        // ch.drawText("ch", -5, -20, 30);
 
-        ch.end.x = chIntsersectPoint.x;
-        ch.end.y = chIntsersectPoint.y;
-        ch.drawLine();
-        ch.drawText("ch", -5, -20, 30);
-
-        q1.end.x = chIntsersectPoint.x;
-        q1.end.y = chIntsersectPoint.y;
-        q1.drawLine();
-        q1.drawText("q1", 15, 0, 30);
+        q1.endAtIntersection(ch);
+        // q1.drawLine();
+        // q1.drawText("q1", 15, 0, 30);
 
         // c
         var c: geo.Line = try geo.getParallelLine(v, riskProfile.c);
-        const cIntsersectPoint: rl.Vector2 = geo.getLineIntersectionPoint(c, q1) orelse rl.Vector2{ .x = -10, .y = -10 };
-        c.end.x = cIntsersectPoint.x;
-        c.end.y = cIntsersectPoint.y;
+        c.startAtIntersection(q1);
+        c.endAtIntersection(ch);
+        // c.drawLine();
 
-        c.drawLine();
+        if (riskProfile.factor > 0) {
+            q1.end = c.start;
+            ch.end = c.end;
+            c.drawLine();
+        }
+
+        q1.drawLine();
+        q1.drawText("q1", 15, 0, 30);
+        ch.drawLine();
+        ch.drawText("ch", -5, -20, 30);
     }
 
     // q2
     if (riskProfile.inForest == true) {
         // q2
-        var q2: geo.Line = geo.Line{ .start = rl.Vector2{
+        var q2: geo.Line = try geo.Line.init(rl.Vector2{
             .x = origin.x,
             .y = origin.y,
-        }, .end = rl.Vector2{
+        }, rl.Vector2{
             .x = v.end.x,
             .y = v.end.y,
-        }, .angle = riskProfile.q2 };
-
-        q2.rotateLine();
-        // q2.drawLine();
-        // q2.drawText("q2", 25, 0, 30);
+        }, true, riskProfile.q2);
 
         var c: geo.Line = try geo.getParallelLine(v, riskProfile.c);
-        const cIntsersectPoint: rl.Vector2 = geo.getLineIntersectionPoint(c, q2) orelse rl.Vector2{ .x = -10, .y = -10 };
-        c.start.x = cIntsersectPoint.x;
-        c.start.y = cIntsersectPoint.y;
+        c.startAtIntersection(q2);
 
-        const chIntsersectPoint: rl.Vector2 = geo.getLineIntersectionPoint(ch, c) orelse rl.Vector2{ .x = -10, .y = -10 };
-
-        ch.end.x = chIntsersectPoint.x;
-        ch.end.y = chIntsersectPoint.y;
+        ch.endAtIntersection(c);
         ch.drawLine();
         ch.drawText("ch", -5, -20, 30);
 
-        c.end.x = ch.end.x;
-        c.end.y = ch.end.y;
+        c.end = ch.end;
+        // c.end.y = ch.end.y;
         c.drawLine();
 
-        q2.end.x = c.start.x;
-        q2.end.y = c.start.y;
+        q2.end = c.start;
         q2.drawLine();
         q2.drawText("q2", 25, 0, 30);
     } else if (riskProfile.forestDist > 0 and riskProfile.forestDist <= riskProfile.h) {
         // forestMin
-        var forestMin: geo.Line = geo.Line{ .start = rl.Vector2{
+        var forestMin: geo.Line = try geo.Line.init(rl.Vector2{
             .x = undefined,
             .y = undefined,
-        }, .end = rl.Vector2{
+        }, rl.Vector2{
             .x = origin.x,
             .y = origin.y - @as(f32, @floatFromInt(riskProfile.forestDist)),
-        }, .angle = undefined };
-
-        forestMin.drawText("forestMin", -65, 0, 30);
+        }, false, undefined);
+        forestMin.drawText("forestMin", -65, -70, 30);
 
         // q2
-        var q2: geo.Line = geo.Line{ .start = rl.Vector2{
-            .x = origin.x,
+        var q2: geo.Line = try geo.Line.init(rl.Vector2{
+            .x = geo.calculateXfromAngle(riskProfile.forestDist, v.angle) + origin.x,
             .y = origin.y - @as(f32, @floatFromInt(riskProfile.forestDist)),
-        }, .end = rl.Vector2{
+        }, rl.Vector2{
             .x = v.end.x,
             .y = v.end.y,
-        }, .angle = riskProfile.q2 };
-
-        q2.start.x = q2.calculateXfromAngle(riskProfile.forestDist, v.angle) + origin.x;
-        q2.rotateLine();
-        // q2.drawLine();
-        // q2.drawText("q2", 25, 0, 30);
+        }, true, riskProfile.q2);
 
         var c: geo.Line = try geo.getParallelLine(v, riskProfile.c);
-        const cIntsersectPoint: rl.Vector2 = geo.getLineIntersectionPoint(c, q2) orelse rl.Vector2{ .x = -10, .y = -10 };
-        c.start.x = cIntsersectPoint.x;
-        c.start.y = cIntsersectPoint.y;
+        c.startAtIntersection(q2);
 
-        const chIntsersectPoint: rl.Vector2 = geo.getLineIntersectionPoint(ch, c) orelse rl.Vector2{ .x = -10, .y = -10 };
-
-        ch.end.x = chIntsersectPoint.x;
-        ch.end.y = chIntsersectPoint.y;
+        ch.endAtIntersection(c);
         ch.drawLine();
         ch.drawText("ch", -5, -20, 30);
 
-        c.end.x = ch.end.x;
-        c.end.y = ch.end.y;
+        c.endAtIntersection(ch);
         c.drawLine();
 
-        q2.end.x = c.start.x;
-        q2.end.y = c.start.y;
+        q2.endAtIntersection(c);
         q2.drawLine();
         q2.drawText("q2", 25, 0, 30);
     }
@@ -457,10 +426,10 @@ pub const Menu = struct {
         _ = rg.guiCheckBox(.{ .x = 10, .y = barHeight + 355, .width = 30, .height = 30 }, "", &gui.targetType.value);
 
         _ = rg.guiLabel(.{ .x = 50, .y = barHeight + 340, .width = 140, .height = 10 }, "Ammunitionstyp");
-        if (rg.guiDropdownBox(.{ .x = 50, .y = barHeight + 355, .width = 140, .height = 30 }, weapons.AmmunitionType.allNames, &gui.ammunitionType.value, gui.ammunitionType.editMode) != 0) gui.ammunitionType.editMode = !gui.ammunitionType.editMode;
+        if (rg.guiDropdownBox(.{ .x = 50, .y = barHeight + 355, .width = 140, .height = 30 }, risk.WeaponArsenal.allAmmunitionNames, &gui.ammunitionType.value, gui.ammunitionType.editMode) != 0) gui.ammunitionType.editMode = !gui.ammunitionType.editMode;
 
         _ = rg.guiLabel(.{ .x = 10, .y = barHeight + 285, .width = 180, .height = 10 }, "Vapentyp");
-        if (rg.guiDropdownBox(.{ .x = 10, .y = barHeight + 300, .width = 180, .height = 30 }, weapons.Weapons.allNames, &gui.weaponType.value, gui.weaponType.editMode) != 0) gui.weaponType.editMode = !gui.weaponType.editMode;
+        if (rg.guiDropdownBox(.{ .x = 10, .y = barHeight + 300, .width = 180, .height = 30 }, risk.WeaponArsenal.names, &gui.weaponType.value, gui.weaponType.editMode) != 0) gui.weaponType.editMode = !gui.weaponType.editMode;
     }
 
     pub fn drawMenuBOX(self: *Menu) void {
