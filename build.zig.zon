@@ -1,17 +1,16 @@
 .{
     .name = "Risk",
-
     .version = "0.0.1",
-
     .dependencies = .{
-        .raylib = .{
-            .url = "https://github.com/Not-Nik/raylib-zig/archive/devel.tar.gz",
-            .hash = "122062d2421175ba6bf89382c86621270e4883f1074ee4cc09da282e231bdef57328",
+        .@"raylib-zig" = .{
+            .url = "git+https://github.com/Not-Nik/raylib-zig?ref=devel#de8c2d458516fc971f0859c4473e3381767d2471",
+            .hash = "122058d3ea6318efb819d0bffba630afd1a459fa3a99b4bfe4b680a937d5de04d2fc",
         },
     },
     .paths = .{
         "build.zig",
         "build.zig.zon",
         "src",
+        "deps",
     },
 }
