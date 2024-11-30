@@ -107,6 +107,30 @@ pub const RiskArea = struct {
     }
 };
 
+/// Combines an array of ASCII characters representing digits into an integer.
+///
+/// This function takes an array of ASCII characters, interprets them as numeric digits,
+/// and combines them into a single integer. Non-digit characters are skipped.
+/// The function handles potential overflow by returning the maximum value of an `i32`
+/// when overflow is detected.
+///
+/// # Parameters
+/// - `asciiArray`: A slice of unsigned 8-bit integers (`[]const u8`) representing ASCII characters.
+///
+/// # Returns
+/// - `i32`: The combined integer value of the ASCII digits. If an overflow occurs,
+/// the function returns `std.math.maxInt(i32)`.
+///
+/// # Example
+/// ```zig
+/// const asciiArray: []const u8 = "12345";
+/// const result = combineAsciiToInt(asciiArray);
+/// std.debug.print("The combined integer is: {}", .{result});
+/// ```
+///
+/// # Notes
+/// - Non-digit characters in the input are ignored.
+/// - Overflow is handled gracefully by returning the maximum integer value.
 fn combineAsciiToInt(asciiArray: []const u8) i32 {
     var result: i32 = 0;
 
