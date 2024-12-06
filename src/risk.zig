@@ -1,5 +1,5 @@
 const std = @import("std");
-const gui = @import("gui.zig");
+const gui = @import("gui/state.zig");
 
 const RiskValidationError = error{
     NoValue,

@@ -71,27 +71,26 @@ pub const Line = struct {
             .y = 0,
         };
     }
-
-    /// Rotates the endpoint of a `Line` around its starting point by the specified angle.
-    ///
-    /// This function returns a new rotated Vector2 with the new position of the endpoint.
-    ///
-    /// The rotation is performed using the formula for rotating points around an arbitrary center.
-    fn rotateEndVector(start: rl.Vector2, end: rl.Vector2, angle: f32) !rl.Vector2 {
-        const dx = end.x - start.x;
-        const dy = end.y - start.y;
-        const rad = milsToRadians(angle);
-
-        const cosAngle = @cos(rad);
-        const sinAngle = @sin(rad);
-
-        return rl.Vector2{
-            .x = (dx * cosAngle) - (dy * sinAngle) + start.x,
-            .y = (dx * sinAngle) + (dy * cosAngle) + start.y,
-        };
-    }
 };
 
+/// Rotates the endpoint of a `Line` around its starting point by the specified angle.
+///
+/// This function returns a new rotated Vector2 with the new position of the endpoint.
+///
+/// The rotation is performed using the formula for rotating points around an arbitrary center.
+fn rotateEndVector(start: rl.Vector2, end: rl.Vector2, angle: f32) !rl.Vector2 {
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const rad = milsToRadians(angle);
+
+    const cosAngle = @cos(rad);
+    const sinAngle = @sin(rad);
+
+    return rl.Vector2{
+        .x = (dx * cosAngle) - (dy * sinAngle) + start.x,
+        .y = (dx * sinAngle) + (dy * cosAngle) + start.y,
+    };
+}
 /// Calculates the intersection point of two line segments, if it exists.
 ///
 /// The function determines the point where two lines intersect, based on their
