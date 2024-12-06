@@ -1,6 +1,15 @@
 const std = @import("std");
 const gui = @import("gui.zig");
 
+const RiskValidationError = error{
+    NoValue,
+    NegativeValue,
+    InvalidRange,
+    IntegerOverflow,
+    UnknownError,
+    InvadlidCharacter,
+};
+
 pub const RiskArea = struct {
     // Given values
     weaponType: WeaponArsenal.Model,
