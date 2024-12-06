@@ -22,7 +22,6 @@ pub const RiskArea = struct {
     Dmax: i32,
     Amax: i32,
     Amin: i32,
-    // Amin2: [*:0]u8,
     f: i32,
     fixedTarget: bool,
 
@@ -128,7 +127,8 @@ pub const RiskArea = struct {
         self.q2 = self.calculateQ2();
 
         validate(self) catch |err| {
-            std.debug.print("Validation failed: {any}\n", .{err});
+            std.log.info("Validation failed: {any}", .{err});
+            return;
         };
     }
 

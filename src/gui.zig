@@ -1,6 +1,5 @@
 const std = @import("std");
 const risk = @import("risk.zig");
-// const weapons = @import("weapons.zig");
 const rl = @import("raylib");
 const rg = @import("raygui");
 const geo = @import("geo_calculations.zig");
@@ -27,18 +26,18 @@ pub const guiState = struct {
         editMode: bool,
     };
 
-    Amin: textBoxState, //.{ .editMode = false, .value = std.mem.zeroes([64]u8) },
-    Amax: textBoxState, //.{ .editMode = false, .value = std.mem.zeroes([64]u8) },
-    f: textBoxState, //.{ .editMode = false, .value = std.mem.zeroes([64]u8) },
-    forestDist: textBoxState, //.{ .editMode = false, .value = std.mem.zeroes([64]u8) },
-    show: checkBoxState, //.{ .value = true },
-    inForest: checkBoxState, //.{ .value = false },
-    riskFactor: comboBoxState, //.{ .value = 0 },
-    ammunitionType: dropdownBoxState, //.{ .editMode = false, .value = 0 },
-    weaponType: dropdownBoxState, //.{ .editMode = false, .value = 0 },
-    targetType: checkBoxState, //.{ .value = false },
-    menu: Menu, //.{ .page = 1, .origin = rl.Vector2{ .x = 0, .y = 1 } },
-    infoPanel: checkBoxState, //.{ .value = false },
+    Amin: textBoxState,
+    Amax: textBoxState,
+    f: textBoxState,
+    forestDist: textBoxState,
+    show: checkBoxState,
+    inForest: checkBoxState,
+    riskFactor: comboBoxState,
+    ammunitionType: dropdownBoxState,
+    weaponType: dropdownBoxState,
+    targetType: checkBoxState,
+    menu: Menu,
+    infoPanel: checkBoxState,
 
     pub fn reset(self: *guiState) void {
         self.Amin = .{ .editMode = false, .value = std.mem.zeroes([64]u8) };

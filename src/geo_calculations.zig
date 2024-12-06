@@ -3,11 +3,6 @@ const rl = @import("raylib");
 
 /// Represents a 2D line segment with additional operations for transformations and rendering.
 ///
-/// Values:
-/// - start
-/// - end
-/// - angle
-///
 /// Methods:
 /// - init
 /// - drawCircleSector
@@ -23,11 +18,23 @@ pub const Line = struct {
     angle: f32,
 
     pub fn init(start: rl.Vector2, end: rl.Vector2, rotate: bool, angle: f32) !Line {
-        return Line{ .start = start, .end = if (rotate == true) try rotateEndVector(start, end, angle) else end, .angle = angle };
+        return Line{
+            .start = start,
+            .end = if (rotate == true) try rotateEndVector(start, end, angle) else end,
+            .angle = angle,
+        };
     }
 
     pub fn drawCircleSector(self: *Line, radius: f32) void {
-        rl.drawRingLines(.{ .x = self.start.x, .y = self.start.y }, radius, radius, -90, -90 + milsToDegree(self.angle), 50, rl.Color.maroon);
+        rl.drawRingLines(
+            .{ .x = self.start.x, .y = self.start.y },
+            radius,
+            radius,
+            -90,
+            -90 + milsToDegree(self.angle),
+            50,
+            rl.Color.maroon,
+        );
     }
 
     pub fn drawText(self: *Line, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32) void {
@@ -35,7 +42,13 @@ pub const Line = struct {
     }
 
     pub fn drawLine(self: *Line) void {
-        rl.drawLine(@as(i32, @intFromFloat(self.start.x)), @as(i32, @intFromFloat(self.start.y)), @as(i32, @intFromFloat(self.end.x)), @as(i32, @intFromFloat(self.end.y)), rl.Color.maroon);
+        rl.drawLine(
+            @as(i32, @intFromFloat(self.start.x)),
+            @as(i32, @intFromFloat(self.start.y)),
+            @as(i32, @intFromFloat(self.end.x)),
+            @as(i32, @intFromFloat(self.end.y)),
+            rl.Color.maroon,
+        );
     }
 
     pub fn scale(self: *Line, factor: f32) void {
@@ -46,11 +59,17 @@ pub const Line = struct {
     }
 
     pub fn endAtIntersection(self: *Line, line: Line) void {
-        self.*.end = getLineIntersectionPoint(self.*, line) orelse rl.Vector2{ .x = 0, .y = 0 };
+        self.*.end = getLineIntersectionPoint(self.*, line) orelse rl.Vector2{
+            .x = 0,
+            .y = 0,
+        };
     }
 
     pub fn startAtIntersection(self: *Line, line: Line) void {
-        self.*.start = getLineIntersectionPoint(self.*, line) orelse rl.Vector2{ .x = 0, .y = 0 };
+        self.*.start = getLineIntersectionPoint(self.*, line) orelse rl.Vector2{
+            .x = 0,
+            .y = 0,
+        };
     }
 
     /// Rotates the endpoint of a `Line` around its starting point by the specified angle.
@@ -59,9 +78,16 @@ pub const Line = struct {
     ///
     /// The rotation is performed using the formula for rotating points around an arbitrary center.
     fn rotateEndVector(start: rl.Vector2, end: rl.Vector2, angle: f32) !rl.Vector2 {
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        const rad = milsToRadians(angle);
+
+        const cosAngle = @cos(rad);
+        const sinAngle = @sin(rad);
+
         return rl.Vector2{
-            .x = ((end.x - start.x) * @cos(milsToRadians(angle))) - ((end.y - start.y) * @sin(milsToRadians(angle))) + (start.x),
-            .y = ((end.x - start.x) * @sin(milsToRadians(angle))) + ((end.y - start.y) * @cos(milsToRadians(angle))) + (start.y),
+            .x = (dx * cosAngle) - (dy * sinAngle) + start.x,
+            .y = (dx * sinAngle) + (dy * cosAngle) + start.y,
         };
     }
 };
