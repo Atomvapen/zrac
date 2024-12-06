@@ -41,10 +41,6 @@ pub const guiState = struct {
     infoPanel: checkBoxState, //.{ .value = false },
 
     pub fn reset(self: *guiState) void {
-        try self.init();
-    }
-
-    pub fn init(self: *guiState) !void {
         self.Amin = .{ .editMode = false, .value = std.mem.zeroes([64]u8) };
         self.Amax = .{ .editMode = false, .value = std.mem.zeroes([64]u8) };
         self.f = .{ .editMode = false, .value = std.mem.zeroes([64]u8) };
@@ -55,6 +51,10 @@ pub const guiState = struct {
         self.ammunitionType = .{ .editMode = false, .value = 0 };
         self.weaponType = .{ .editMode = false, .value = 0 };
         self.targetType = .{ .value = false };
+    }
+
+    pub fn init(self: *guiState) !void {
+        self.reset();
 
         try self.menu.init();
         gui.show.value = true;

@@ -93,15 +93,20 @@ pub const RiskArea = struct {
         };
     }
 
-    pub fn update(self: *RiskArea, state: gui.guiState) !void {
-        if (self.factor == state.riskFactor.value and
+    fn checkUpdate(self: *RiskArea, state: gui.guiState) bool {
+        return (!(self.factor == state.riskFactor.value and
             self.fixedTarget == state.targetType.value and
+            self.inForest == state.inForest.value and
             self.Amin == combineAsciiToInt(&state.Amin.value) and
             self.Amax == combineAsciiToInt(&state.Amax.value) and
             self.f == combineAsciiToInt(&state.f.value) and
             self.forestDist == combineAsciiToInt(&state.forestDist.value) and
             std.mem.eql(u8, self.weaponCaliber.name, getAmmunitionType(state.ammunitionType.value).name) and
-            std.mem.eql(u8, self.weaponType.caliber.name, getWeaponType(state.weaponType.value).caliber.name)) return;
+            std.mem.eql(u8, self.weaponType.caliber.name, getWeaponType(state.weaponType.value).caliber.name)));
+    }
+
+    pub fn update(self: *RiskArea, state: gui.guiState) !void {
+        if (checkUpdate(self, state) == false) return;
 
         self.factor = state.riskFactor.value;
         self.Amin = combineAsciiToInt(&state.Amin.value);
@@ -121,8 +126,6 @@ pub const RiskArea = struct {
         self.c = self.calculateC();
         self.q1 = self.calculateQ1();
         self.q2 = self.calculateQ2();
-
-        std.debug.print("RF: {any}", .{self.factor});
 
         validate(self) catch |err| {
             std.debug.print("Validation failed: {any}\n", .{err});
