@@ -30,7 +30,7 @@ pub const guiState = struct {
     Amin: textBoxState, //.{ .editMode = false, .value = std.mem.zeroes([64]u8) },
     Amax: textBoxState, //.{ .editMode = false, .value = std.mem.zeroes([64]u8) },
     f: textBoxState, //.{ .editMode = false, .value = std.mem.zeroes([64]u8) },
-    forstDist: textBoxState, //.{ .editMode = false, .value = std.mem.zeroes([64]u8) },
+    forestDist: textBoxState, //.{ .editMode = false, .value = std.mem.zeroes([64]u8) },
     show: checkBoxState, //.{ .value = true },
     inForest: checkBoxState, //.{ .value = false },
     riskFactor: comboBoxState, //.{ .value = 0 },
@@ -41,20 +41,21 @@ pub const guiState = struct {
     infoPanel: checkBoxState, //.{ .value = false },
 
     pub fn reset(self: *guiState) void {
+        try self.init();
+    }
+
+    pub fn init(self: *guiState) !void {
         self.Amin = .{ .editMode = false, .value = std.mem.zeroes([64]u8) };
         self.Amax = .{ .editMode = false, .value = std.mem.zeroes([64]u8) };
         self.f = .{ .editMode = false, .value = std.mem.zeroes([64]u8) };
-        self.forstDist = .{ .editMode = false, .value = std.mem.zeroes([64]u8) };
+        self.forestDist = .{ .editMode = false, .value = std.mem.zeroes([64]u8) };
         self.show = .{ .value = true };
         self.inForest = .{ .value = false };
         self.riskFactor = .{ .value = 0 };
         self.ammunitionType = .{ .editMode = false, .value = 0 };
         self.weaponType = .{ .editMode = false, .value = 0 };
         self.targetType = .{ .value = false };
-    }
 
-    pub fn init(self: *guiState) !void {
-        self.reset();
         try self.menu.init();
         gui.show.value = true;
     }
@@ -102,7 +103,7 @@ fn handleCamera() void {
 
 pub fn update(_: std.mem.Allocator, riskProfile: *risk.RiskArea) !void {
     try riskProfile.update(gui);
-    riskProfile.validate();
+    // riskProfile.validate();
 }
 
 pub fn render(allocator: std.mem.Allocator, riskProfile: *risk.RiskArea) !void {
@@ -124,13 +125,14 @@ pub fn render(allocator: std.mem.Allocator, riskProfile: *risk.RiskArea) !void {
 
     // Static UI
     {
-        try gui.menu.drawMenu(allocator);
+        try gui.menu.drawMenu(allocator, riskProfile);
         if (gui.infoPanel.value == true) try gui.menu.drawInfoPanel(riskProfile.*, allocator);
     }
 }
 
 pub fn main(allocator: std.mem.Allocator) !void {
     var riskProfile: risk.RiskArea = undefined;
+    riskProfile.valid = false;
 
     while (!rl.windowShouldClose()) {
         handleCamera();
@@ -326,7 +328,7 @@ pub const Menu = struct {
         self.page = value;
     }
 
-    pub fn drawMenu(self: *Menu, allocator: std.mem.Allocator) !void {
+    pub fn drawMenu(self: *Menu, allocator: std.mem.Allocator, riskProfile: *risk.RiskArea) !void {
         //Pane
         rl.drawRectangle(@as(i32, @intFromFloat(self.origin.x)), @as(i32, @intFromFloat(self.origin.y)), (barWidth * 2), screenHeight, rl.Color.white);
         rl.drawRectangle(@as(i32, @intFromFloat(self.origin.x)) + (barWidth * 2), @as(i32, @intFromFloat(self.origin.y)), 1, screenHeight, rl.Color.black);
@@ -334,7 +336,7 @@ pub const Menu = struct {
 
         // Switch Page
         switch (self.page) {
-            1 => self.drawMenuSST(),
+            1 => self.drawMenuSST(riskProfile),
             2 => self.drawMenuBOX(),
             else => return,
         }
@@ -391,7 +393,8 @@ pub const Menu = struct {
         _ = rg.guiLabel(.{ .x = screenWidth - infoPanelWidth - infoPanelXOffset + 10, .y = 10 + 30 + 15 + 15 + 15 + 15, .width = 180, .height = 10 }, q2_string);
     }
 
-    pub fn drawMenuSST(self: *Menu) void {
+    pub fn drawMenuSST(self: *Menu, riskProfile: *risk.RiskArea) void {
+        _ = riskProfile;
         // Menu Bar
         rl.drawRectangle(@as(i32, @intFromFloat(self.origin.x)), @as(i32, @intFromFloat(self.origin.y)), barWidth + 1, barHeight, rl.Color.black);
         rl.drawRectangle(@as(i32, @intFromFloat(self.origin.x)), @as(i32, @intFromFloat(self.origin.y)), barWidth, barHeight, rl.Color.white);
@@ -419,11 +422,14 @@ pub const Menu = struct {
 
         _ = rg.guiLabel(.{ .x = 10, .y = barHeight + 230, .width = 30, .height = 10 }, "Skog");
         _ = rg.guiCheckBox(.{ .x = 10, .y = barHeight + 245, .width = 30, .height = 30 }, "", &gui.inForest.value);
+        // _ = rg.guiCheckBox(.{ .x = 10, .y = barHeight + 245, .width = 30, .height = 30 }, "", &riskProfile.inForest);
+
         _ = rg.guiLabel(.{ .x = 50, .y = barHeight + 230, .width = 100, .height = 10 }, "Skogsavstånd");
-        if (rg.guiTextBox(.{ .x = 50, .y = barHeight + 245, .width = 140, .height = 30 }, @as([*:0]u8, @ptrCast(&gui.forstDist.value)), 63, gui.forstDist.editMode) != 0) gui.forstDist.editMode = !gui.forstDist.editMode;
+        if (rg.guiTextBox(.{ .x = 50, .y = barHeight + 245, .width = 140, .height = 30 }, @as([*:0]u8, @ptrCast(&gui.forestDist.value)), 63, gui.forestDist.editMode) != 0) gui.forestDist.editMode = !gui.forestDist.editMode;
 
         _ = rg.guiLabel(.{ .x = 10, .y = barHeight + 340, .width = 30, .height = 10 }, "Fast");
         _ = rg.guiCheckBox(.{ .x = 10, .y = barHeight + 355, .width = 30, .height = 30 }, "", &gui.targetType.value);
+        // _ = rg.guiCheckBox(.{ .x = 10, .y = barHeight + 355, .width = 30, .height = 30 }, "", &riskProfile.fixedTarget);
 
         _ = rg.guiLabel(.{ .x = 50, .y = barHeight + 340, .width = 140, .height = 10 }, "Ammunitionstyp");
         if (rg.guiDropdownBox(.{ .x = 50, .y = barHeight + 355, .width = 140, .height = 30 }, risk.WeaponArsenal.allAmmunitionNames, &gui.ammunitionType.value, gui.ammunitionType.editMode) != 0) gui.ammunitionType.editMode = !gui.ammunitionType.editMode;

@@ -22,7 +22,7 @@ pub const RiskArea = struct {
     Dmax: i32,
     Amax: i32,
     Amin: i32,
-    Amin2: [*:0]u8,
+    // Amin2: [*:0]u8,
     f: i32,
     fixedTarget: bool,
 
@@ -37,15 +37,33 @@ pub const RiskArea = struct {
     l: i32 = undefined,
     h: i32 = undefined,
 
-    pub fn update(self: *RiskArea, state: gui.guiState) !void {
-        self.factor = state.riskFactor.value;
-        self.Amin = combineAsciiToInt(&state.Amin.value);
-        self.Amax = combineAsciiToInt(&state.Amax.value);
-        self.f = combineAsciiToInt(&state.f.value);
-        self.inForest = state.inForest.value;
-        self.forestDist = combineAsciiToInt(&state.forstDist.value);
-        self.fixedTarget = state.targetType.value;
-        self.weaponCaliber = switch (state.ammunitionType.value) {
+    fn validate(self: *RiskArea) RiskValidationError!void {
+        // Check for zero values in Amax or Amin
+        if (self.Amax == 0 or self.Amin == 0) {
+            return RiskValidationError.NoValue;
+        }
+
+        // Check for invalid range conditions
+        if (self.Amin > self.Amax or self.Amin > self.Dmax or self.Amax > self.Dmax) {
+            return RiskValidationError.InvalidRange;
+        }
+
+        // Check for negative values
+        if (self.Dmax < 0 or self.Amax < 0 or self.Amin < 0 or self.f < 0 or self.q1 < 0 or self.c < 0 or self.l < 0 or self.h < 0) {
+            return RiskValidationError.NegativeValue;
+        }
+
+        // Check for integer overflow (example check - you can adjust based on your logic)
+        if (self.Amax > std.math.maxInt(i32) or self.Amin > std.math.maxInt(i32) or self.Dmax > std.math.maxInt(i32) or self.f > std.math.maxInt(i32)) {
+            return RiskValidationError.IntegerOverflow;
+        }
+
+        // If all checks pass, set the valid flag
+        self.valid = true;
+    }
+
+    fn getAmmunitionType(value: i32) WeaponArsenal.Caliber {
+        return switch (value) {
             0 => WeaponArsenal.Caliber.hagelptr,
             1 => WeaponArsenal.Caliber.long_rifle_22,
             2 => WeaponArsenal.Caliber.ptr556_sk_prj_slprj,
@@ -64,12 +82,36 @@ pub const RiskArea = struct {
             15 => WeaponArsenal.Caliber.ptr127_sk_45_pbrsprj_brsprj_slbrsprj,
             else => unreachable,
         };
-        self.weaponType = switch (state.weaponType.value) {
+    }
+
+    fn getWeaponType(value: i32) WeaponArsenal.Model {
+        return switch (value) {
             0 => WeaponArsenal.AK5,
             1 => WeaponArsenal.KSP58,
             2 => WeaponArsenal.KSP58_Benstod,
             else => WeaponArsenal.invalid,
         };
+    }
+
+    pub fn update(self: *RiskArea, state: gui.guiState) !void {
+        if (self.factor == state.riskFactor.value and
+            self.fixedTarget == state.targetType.value and
+            self.Amin == combineAsciiToInt(&state.Amin.value) and
+            self.Amax == combineAsciiToInt(&state.Amax.value) and
+            self.f == combineAsciiToInt(&state.f.value) and
+            self.forestDist == combineAsciiToInt(&state.forestDist.value) and
+            std.mem.eql(u8, self.weaponCaliber.name, getAmmunitionType(state.ammunitionType.value).name) and
+            std.mem.eql(u8, self.weaponType.caliber.name, getWeaponType(state.weaponType.value).caliber.name)) return;
+
+        self.factor = state.riskFactor.value;
+        self.Amin = combineAsciiToInt(&state.Amin.value);
+        self.Amax = combineAsciiToInt(&state.Amax.value);
+        self.f = combineAsciiToInt(&state.f.value);
+        self.inForest = state.inForest.value;
+        self.forestDist = combineAsciiToInt(&state.forestDist.value);
+        self.fixedTarget = state.targetType.value;
+        self.weaponCaliber = getAmmunitionType(state.ammunitionType.value);
+        self.weaponType = getWeaponType(state.weaponType.value);
 
         self.v = if (self.fixedTarget) self.weaponType.v_still else self.weaponType.v_moveable;
         self.Dmax = self.weaponCaliber.Dmax;
@@ -79,21 +121,12 @@ pub const RiskArea = struct {
         self.c = self.calculateC();
         self.q1 = self.calculateQ1();
         self.q2 = self.calculateQ2();
-    }
 
-    pub fn validate(self: *RiskArea) void {
-        self.valid = !((self.f == 0 and self.Amax == 0 and self.Amin == 0) or
-            (self.forestDist < -1) or
-            (self.Dmax < 0) or
-            (self.Amax < 0) or
-            (self.Amin < 0) or
-            (self.f < 0) or
-            (self.q1 < 0) or
-            (self.c < 0) or
-            (self.l < 0) or
-            (self.h < 0) or
-            (self.Amin > self.Amax) or
-            (self.Amax > self.Dmax));
+        std.debug.print("RF: {any}", .{self.factor});
+
+        validate(self) catch |err| {
+            std.debug.print("Validation failed: {any}\n", .{err});
+        };
     }
 
     pub fn calculateH(self: *RiskArea) i32 {
