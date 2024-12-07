@@ -1,6 +1,6 @@
 const std = @import("std");
 const rl = @import("raylib");
-const risk = @import("../risk.zig");
+const risk = @import("../risk/profile.zig");
 const rg = @import("raygui");
 const render = @import("render.zig");
 
@@ -181,10 +181,10 @@ pub const Menu = struct {
         // _ = rg.guiCheckBox(.{ .x = 10, .y = barHeight + 355, .width = 30, .height = 30 }, "", &riskProfile.fixedTarget);
 
         _ = rg.guiLabel(.{ .x = 50, .y = barHeight + 340, .width = 140, .height = 10 }, "Ammunitionstyp");
-        if (rg.guiDropdownBox(.{ .x = 50, .y = barHeight + 355, .width = 140, .height = 30 }, risk.WeaponArsenal.allAmmunitionNames, &render.gui.ammunitionType.value, render.gui.ammunitionType.editMode) != 0) render.gui.ammunitionType.editMode = !render.gui.ammunitionType.editMode;
+        if (rg.guiDropdownBox(.{ .x = 50, .y = barHeight + 355, .width = 140, .height = 30 }, risk.amm.names, &render.gui.ammunitionType.value, render.gui.ammunitionType.editMode) != 0) render.gui.ammunitionType.editMode = !render.gui.ammunitionType.editMode;
 
         _ = rg.guiLabel(.{ .x = 10, .y = barHeight + 285, .width = 180, .height = 10 }, "Vapentyp");
-        if (rg.guiDropdownBox(.{ .x = 10, .y = barHeight + 300, .width = 180, .height = 30 }, risk.WeaponArsenal.names, &render.gui.weaponType.value, render.gui.weaponType.editMode) != 0) render.gui.weaponType.editMode = !render.gui.weaponType.editMode;
+        if (rg.guiDropdownBox(.{ .x = 10, .y = barHeight + 300, .width = 180, .height = 30 }, risk.weapon.Weapons.names, &render.gui.weaponType.value, render.gui.weaponType.editMode) != 0) render.gui.weaponType.editMode = !render.gui.weaponType.editMode;
     }
 
     pub fn drawMenuBOX(self: *Menu) void {
