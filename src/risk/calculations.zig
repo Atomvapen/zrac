@@ -13,6 +13,7 @@ const RiskValidationError = error{
     InvadlidCharacter,
 };
 
+//TODO splitta mellan calc och state
 pub const RiskArea = struct {
     // Given values
     weaponType: weapon.Weapons.Model,
@@ -215,4 +216,35 @@ fn combineAsciiToInt(asciiArray: []const u8) i32 {
     }
 
     return result;
+}
+
+pub fn getAmmunitionType2(value: i32) amm.Caliber {
+    return switch (value) {
+        0 => amm.Caliber.hagelptr,
+        1 => amm.Caliber.long_rifle_22,
+        2 => amm.Caliber.ptr556_sk_prj_slprj,
+        3 => amm.Caliber.ptr65_sk_prj_m41,
+        4 => amm.Caliber.ptr762_sk_10b_prj_slprj,
+        5 => amm.Caliber.ptr762_sk_10_pprj,
+        6 => amm.Caliber.ptr762_sk_prick_lh,
+        7 => amm.Caliber.ptr762_sk_prick,
+        8 => amm.Caliber.ptr762_sk_39_prj,
+        9 => amm.Caliber.ptr762_sk_95_prj_slprj,
+        10 => amm.Caliber.ptr9_sk_39b,
+        11 => amm.Caliber.ptr9_9_39_ovnprj_11,
+        12 => amm.Caliber.ptr9_sk_67_slprj,
+        13 => amm.Caliber.ptr127_sk_45_nprj_slnprj,
+        14 => amm.Caliber.ptr27_sk_nprj_prick_slprj_prick,
+        15 => amm.Caliber.ptr127_sk_45_pbrsprj_brsprj_slbrsprj,
+        else => unreachable,
+    };
+}
+
+pub fn getWeaponType2(value: i32) weapon.Weapons.Model {
+    return switch (value) {
+        0 => weapon.Weapons.AK5,
+        1 => weapon.Weapons.KSP58,
+        2 => weapon.Weapons.KSP58_Benstod,
+        else => weapon.Weapons.invalid,
+    };
 }

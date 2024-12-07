@@ -57,6 +57,7 @@ pub const guiState = struct {
     }
 };
 
+// TODO flytta -> render
 pub const Menu = struct {
     pub const barWidth = 100;
     pub const barHeight = 30;
