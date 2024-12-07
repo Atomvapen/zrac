@@ -1,6 +1,6 @@
 const std = @import("std");
 const rl = @import("raylib");
-const risk = @import("../risk/profile.zig");
+const risk = @import("../risk/calculations.zig");
 const rg = @import("raygui");
 const render = @import("render.zig");
 

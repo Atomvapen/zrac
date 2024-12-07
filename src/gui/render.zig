@@ -1,5 +1,5 @@
 const std = @import("std");
-const risk = @import("../risk/profile.zig");
+const risk = @import("../risk/calculations.zig");
 const rl = @import("raylib");
 const state = @import("state.zig");
 const geo = @import("../geo/calculations.zig");

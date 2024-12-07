@@ -95,7 +95,7 @@ pub const RiskArea = struct {
         };
     }
 
-    fn checkUpdate(self: *RiskArea, state: gui.guiState) bool {
+    fn controlUpdate(self: *RiskArea, state: gui.guiState) bool {
         return (!(self.factor == state.riskFactor.value and
             self.fixedTarget == state.targetType.value and
             self.inForest == state.inForest.value and
@@ -108,7 +108,7 @@ pub const RiskArea = struct {
     }
 
     pub fn update(self: *RiskArea, state: gui.guiState) !void {
-        if (checkUpdate(self, state) == false) return;
+        if (controlUpdate(self, state) == false) return;
 
         self.factor = state.riskFactor.value;
         self.Amin = combineAsciiToInt(&state.Amin.value);
@@ -140,37 +140,36 @@ pub const RiskArea = struct {
     }
 
     fn calculateL(self: *RiskArea) i32 {
-        switch (self.factor + 1) {
-            1 => return @intFromFloat(0.8 * @as(f32, @floatFromInt(self.Dmax)) - 0.7 * @as(f32, @floatFromInt(self.Amax))),
-            2 => return @intFromFloat(0.6 * @as(f32, @floatFromInt(self.Dmax)) - 0.5 * @as(f32, @floatFromInt(self.Amax))),
-            3 => return @intFromFloat(0.4 * @as(f32, @floatFromInt(self.Dmax)) - 0.3 * @as(f32, @floatFromInt(self.Amax))),
-            else => return 0,
-        }
+        return switch (self.factor + 1) {
+            1 => @intFromFloat(0.8 * @as(f32, @floatFromInt(self.Dmax)) - 0.7 * @as(f32, @floatFromInt(self.Amax))),
+            2 => @intFromFloat(0.6 * @as(f32, @floatFromInt(self.Dmax)) - 0.5 * @as(f32, @floatFromInt(self.Amax))),
+            3 => @intFromFloat(0.4 * @as(f32, @floatFromInt(self.Dmax)) - 0.3 * @as(f32, @floatFromInt(self.Amax))),
+            else => 0,
+        };
     }
 
     fn calculateC(self: *RiskArea) f32 {
-        switch (self.inForest) {
-            true => return self.weaponCaliber.c,
+        return switch (self.inForest) {
+            true => self.weaponCaliber.c,
             false => switch (self.factor + 1) {
-                1 => return 0.2 * @as(f32, @floatFromInt(self.Dmax - self.Amin)),
-                2 => return 0.15 * @as(f32, @floatFromInt(self.Dmax - self.Amin)),
-                3 => return 0.08 * @as(f32, @floatFromInt(self.Dmax - self.Amin)),
-                else => return 0.0,
+                1 => 0.2 * @as(f32, @floatFromInt(self.Dmax - self.Amin)),
+                2 => 0.15 * @as(f32, @floatFromInt(self.Dmax - self.Amin)),
+                3 => 0.08 * @as(f32, @floatFromInt(self.Dmax - self.Amin)),
+                else => 0.0,
             },
-        }
+        };
     }
 
     fn calculateQ1(self: *RiskArea) f32 {
-        switch (self.factor + 1) {
-            1 => return self.weaponType.c,
-            2, 3 => return 400.0,
-            else => return 0.0,
-        }
+        return switch (self.factor + 1) {
+            1 => self.weaponType.c,
+            2, 3 => 400.0,
+            else => 0.0,
+        };
     }
 
     fn calculateQ2(self: *RiskArea) f32 {
-        if (self.forestDist < 0) return 0.0;
-        return 1000.0;
+        return if (self.forestDist < 0) 0.0 else 1000.0;
     }
 };
 
