@@ -7,6 +7,7 @@ pub const Weapons = struct {
         v_moveable: f32,
         c: f32,
         caliber: amm.Caliber,
+        name: [*:0]const u8,
     };
 
     pub const names: [*:0]const u8 = "AK5C;KSP58;KSP58_Benstod";
@@ -17,6 +18,7 @@ pub const Weapons = struct {
         .v_moveable = 0.0,
         .c = 0.0,
         .caliber = undefined,
+        .name = "",
     };
 
     pub var AK5: Model = Model{
@@ -25,6 +27,7 @@ pub const Weapons = struct {
         .v_moveable = 100.0,
         .c = 200.0,
         .caliber = undefined,
+        .name = "AK5C",
     };
 
     pub var KSP58: Model = Model{
@@ -33,6 +36,7 @@ pub const Weapons = struct {
         .v_moveable = 300.0,
         .c = 200.0,
         .caliber = undefined,
+        .name = "KSP58",
     };
 
     pub var KSP58_Benstod: Model = Model{
@@ -41,5 +45,6 @@ pub const Weapons = struct {
         .v_moveable = 200.0,
         .c = 200.0,
         .caliber = undefined,
+        .name = "KSP58_Benstod",
     };
 };
