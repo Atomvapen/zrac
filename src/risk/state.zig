@@ -21,10 +21,11 @@ pub const RiskArea = struct {
     weaponCaliber: amm.Caliber,
     selectedWeaponType: i32,
     factor: i32,
-    inForest: bool,
-    forestDist: i32,
+    interceptingForest: bool,
+
     fixedTarget: bool,
 
+    forestDist: f32,
     Dmax: f32,
     Amax: f32,
     Amin: f32,
@@ -58,7 +59,7 @@ pub const RiskArea = struct {
         }
 
         // Check for integer overflow (example check - you can adjust based on your logic)
-        if (self.Amax > std.math.maxInt(i32) or self.Amin > std.math.maxInt(i32) or self.Dmax > std.math.maxInt(i32) or self.f > std.math.maxInt(i32)) {
+        if (self.Amax > std.math.floatMax(f32) or self.Amin > std.math.floatMax(f32) or self.Dmax > std.math.floatMax(f32) or self.f > std.math.floatMax(f32)) {
             return RiskValidationError.IntegerOverflow;
         }
 
@@ -69,11 +70,11 @@ pub const RiskArea = struct {
     fn controlUpdate(self: *RiskArea, state: gui.guiState) bool {
         return (!(self.factor == state.riskFactor.value and
             self.fixedTarget == state.targetType.value and
-            self.inForest == state.inForest.value and
+            self.interceptingForest == state.interceptingForest.value and
             self.Amin == utils.combineAsciiToFloat(&state.Amin.value) and
             self.Amax == utils.combineAsciiToFloat(&state.Amax.value) and
             self.f == utils.combineAsciiToFloat(&state.f.value) and
-            self.forestDist == utils.combineAsciiToInt(&state.forestDist.value) and
+            self.forestDist == utils.combineAsciiToFloat(&state.forestDist.value) and
             std.mem.eql(u8, self.weaponCaliber.name, amm.getAmmunitionType(state.ammunitionType.value).name) and
             std.mem.eql(u8, self.weaponType.caliber.name, weapon.getWeaponType(state.weaponType.value).caliber.name)));
     }
@@ -83,8 +84,8 @@ pub const RiskArea = struct {
         self.Amin = utils.combineAsciiToFloat(&state.Amin.value);
         self.Amax = utils.combineAsciiToFloat(&state.Amax.value);
         self.f = utils.combineAsciiToFloat(&state.f.value);
-        self.inForest = state.inForest.value;
-        self.forestDist = utils.combineAsciiToInt(&state.forestDist.value);
+        self.interceptingForest = state.interceptingForest.value;
+        self.forestDist = utils.combineAsciiToFloat(&state.forestDist.value);
         self.fixedTarget = state.targetType.value;
         self.weaponCaliber = amm.getAmmunitionType(state.ammunitionType.value);
         self.weaponType = weapon.getWeaponType(state.weaponType.value);

@@ -14,7 +14,7 @@ pub fn calculateL(self: *profile) f32 {
 }
 
 pub fn calculateC(self: *profile) f32 {
-    return switch (self.inForest) {
+    return switch (self.interceptingForest) {
         true => self.weaponCaliber.c,
         false => switch (self.factor + 1) {
             1 => 0.2 * (self.Dmax - self.Amin),
