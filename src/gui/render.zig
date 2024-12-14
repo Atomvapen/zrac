@@ -102,7 +102,7 @@ fn drawLines(riskProfile: risk.RiskArea) void {
         .y = origin.y,
     }, rl.Vector2{
         .x = origin.x,
-        .y = origin.y - @as(f32, @floatFromInt(riskProfile.h)),
+        .y = origin.y - riskProfile.h,
     }, false, undefined);
     h.drawLine();
     h.drawText("h", 0, -30, 30);
@@ -113,7 +113,7 @@ fn drawLines(riskProfile: risk.RiskArea) void {
         .y = undefined,
     }, rl.Vector2{
         .x = origin.x,
-        .y = origin.y - @as(f32, @floatFromInt(riskProfile.Amin)),
+        .y = origin.y - riskProfile.Amin,
     }, false, undefined);
     Amin.drawText("Amin", -70, 0, 30);
 
@@ -123,7 +123,7 @@ fn drawLines(riskProfile: risk.RiskArea) void {
         .y = origin.y,
     }, rl.Vector2{
         .x = origin.x,
-        .y = origin.y - @as(f32, @floatFromInt(riskProfile.h)),
+        .y = origin.y - riskProfile.h,
     }, true, riskProfile.v);
     v.drawLine();
     v.drawText("v", -5, -30, 30);
@@ -131,17 +131,17 @@ fn drawLines(riskProfile: risk.RiskArea) void {
     if (riskProfile.f > riskProfile.Amin) return;
     var f: geo.Line = try geo.Line.init(rl.Vector2{
         .x = origin.x,
-        .y = origin.y - @as(f32, @floatFromInt(riskProfile.Amin)) + @as(f32, @floatFromInt(riskProfile.f)),
+        .y = origin.y - riskProfile.Amin + riskProfile.f,
     }, rl.Vector2{
         .x = origin.x,
-        .y = Amin.end.y + (@as(f32, @floatFromInt(riskProfile.f)) + 50.0),
+        .y = Amin.end.y + (riskProfile.f + 50.0),
     }, false, undefined);
     f.drawText("f", -30, -70, 30);
 
     // q1
     var q1: geo.Line = try geo.Line.init(rl.Vector2{
-        .x = geo.calculateXfromAngle(riskProfile.Amin - riskProfile.f, v.angle) + origin.x,
-        .y = origin.y - @as(f32, @floatFromInt(riskProfile.Amin)) + @as(f32, @floatFromInt(riskProfile.f)),
+        .x = geo.calculateXfromAngle(@intFromFloat(riskProfile.Amin - riskProfile.f), v.angle) + origin.x,
+        .y = origin.y - riskProfile.Amin + riskProfile.f,
     }, rl.Vector2{
         .x = v.end.x,
         .y = v.end.y,
@@ -155,7 +155,7 @@ fn drawLines(riskProfile: risk.RiskArea) void {
         .x = undefined,
         .y = undefined,
     }, false, riskProfile.v);
-    hv.drawCircleSector(@as(f32, @floatFromInt(riskProfile.h)));
+    hv.drawCircleSector(riskProfile.h);
 
     // ch
     var ch: geo.Line = try geo.Line.init(rl.Vector2{
@@ -218,7 +218,7 @@ fn drawLines(riskProfile: risk.RiskArea) void {
         q2.end = c.start;
         q2.drawLine();
         q2.drawText("q2", 25, 0, 30);
-    } else if (riskProfile.forestDist > 0 and riskProfile.forestDist <= riskProfile.h) {
+    } else if (riskProfile.forestDist > 0 and riskProfile.forestDist <= @as(i32, @intFromFloat(riskProfile.h))) {
         // forestMin
         var forestMin: geo.Line = try geo.Line.init(rl.Vector2{
             .x = undefined,

@@ -23,8 +23,8 @@ pub fn getAmmunitionType(value: i32) Caliber {
 }
 
 pub const Caliber = struct {
-    Dmax: i32,
-    y: i32,
+    Dmax: f32,
+    y: f32,
     c: f32,
     name: []const u8,
 

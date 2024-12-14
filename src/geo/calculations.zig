@@ -38,7 +38,13 @@ pub const Line = struct {
     }
 
     pub fn drawText(self: *Line, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32) void {
-        rl.drawText(text, @as(i32, @intFromFloat(self.end.x)) + textOffsetX, @as(i32, @intFromFloat(self.end.y)) + textOffsetY, fontSize, rl.Color.black);
+        rl.drawText(
+            text,
+            @as(i32, @intFromFloat(self.end.x)) + textOffsetX,
+            @as(i32, @intFromFloat(self.end.y)) + textOffsetY,
+            fontSize,
+            rl.Color.black,
+        );
     }
 
     pub fn drawLine(self: *Line) void {

@@ -1,9 +1,8 @@
 const std = @import("std");
 const rl = @import("raylib");
-const risk = @import("../risk/state.zig");
 const rg = @import("raygui");
+const risk = @import("../risk/state.zig");
 const render = @import("render.zig");
-const risk_state = risk.RiskArea;
 
 pub const guiState = struct {
     const textBoxState = struct {
@@ -79,7 +78,7 @@ pub const Menu = struct {
         self.page = value;
     }
 
-    pub fn drawMenu(self: *Menu, allocator: std.mem.Allocator, riskProfile: *risk_state) !void {
+    pub fn drawMenu(self: *Menu, allocator: std.mem.Allocator, riskProfile: *risk.RiskArea) !void {
         //Pane
         rl.drawRectangle(@as(i32, @intFromFloat(self.origin.x)), @as(i32, @intFromFloat(self.origin.y)), (barWidth * 2), rl.getScreenHeight(), rl.Color.white);
         rl.drawRectangle(@as(i32, @intFromFloat(self.origin.x)) + (barWidth * 2), @as(i32, @intFromFloat(self.origin.y)), 1, rl.getScreenWidth(), rl.Color.black);
@@ -114,7 +113,7 @@ pub const Menu = struct {
         }
     }
 
-    pub fn drawInfoPanel(self: *Menu, riskProfile: risk_state, allocator: std.mem.Allocator) !void {
+    pub fn drawInfoPanel(self: *Menu, riskProfile: risk.RiskArea, allocator: std.mem.Allocator) !void {
         _ = self;
 
         const infoPanelXOffset: i32 = 10;
@@ -144,7 +143,7 @@ pub const Menu = struct {
         _ = rg.guiLabel(.{ .x = @as(f32, @floatFromInt(rl.getScreenWidth())) - infoPanelWidth - infoPanelXOffset + 10, .y = 10 + 30 + 15 + 15 + 15 + 15, .width = 180, .height = 10 }, q2_string);
     }
 
-    pub fn drawMenuSST(self: *Menu, riskProfile: *risk_state) void {
+    pub fn drawMenuSST(self: *Menu, riskProfile: *risk.RiskArea) void {
         _ = riskProfile;
         // Menu Bar
         rl.drawRectangle(@as(i32, @intFromFloat(self.origin.x)), @as(i32, @intFromFloat(self.origin.y)), barWidth + 1, barHeight, rl.Color.black);
@@ -171,7 +170,7 @@ pub const Menu = struct {
         _ = rg.guiLabel(.{ .x = 10, .y = barHeight + 175, .width = 180, .height = 10 }, "f");
         if (rg.guiTextBox(.{ .x = 10, .y = barHeight + 190, .width = 180, .height = 30 }, @as([*:0]u8, @ptrCast(&render.gui.f.value)), 63, render.gui.f.editMode) != 0) render.gui.f.editMode = !render.gui.f.editMode;
 
-        _ = rg.guiLabel(.{ .x = 10, .y = barHeight + 230, .width = 30, .height = 10 }, "Skog");
+        _ = rg.guiLabel(.{ .x = 10, .y = barHeight + 230, .width = 30, .height = 10 }, "Uppfång");
         _ = rg.guiCheckBox(.{ .x = 10, .y = barHeight + 245, .width = 30, .height = 30 }, "", &render.gui.inForest.value);
         // _ = rg.guiCheckBox(.{ .x = 10, .y = barHeight + 245, .width = 30, .height = 30 }, "", &riskProfile.inForest);
 
