@@ -168,59 +168,34 @@ fn drawLines(riskProfile: risk.RiskArea) void {
     }, true, riskProfile.ch);
 
     //TODO: Fix interceptingForest
-    if (riskProfile.interceptingForest == false and riskProfile.forestDist <= 0) {
-        ch.endAtIntersection(q1);
-        // ch.drawLine();
-        // ch.drawText("ch", -5, -20, 30);
+    // if (riskProfile.interceptingForest == false and riskProfile.forestDist < 0) {
+    //     ch.endAtIntersection(q1);
+    //     // ch.drawLine();
+    //     // ch.drawText("ch", -5, -20, 30);
 
-        q1.endAtIntersection(ch);
-        // q1.drawLine();
-        // q1.drawText("q1", 15, 0, 30);
+    //     q1.endAtIntersection(ch);
+    //     // q1.drawLine();
+    //     // q1.drawText("q1", 15, 0, 30);
 
-        // c
-        var c: geo.Line = try geo.getParallelLine(v, riskProfile.c);
-        c.startAtIntersection(q1);
-        c.endAtIntersection(ch);
-        // c.drawLine();
+    //     // c
+    //     var c: geo.Line = try geo.getParallelLine(v, riskProfile.c);
+    //     c.startAtIntersection(q1);
+    //     c.endAtIntersection(ch);
+    //     // c.drawLine();
 
-        if (riskProfile.factor > 0) {
-            q1.end = c.start;
-            ch.end = c.end;
-            c.drawLine();
-        }
+    //     if (riskProfile.factor > 0) {
+    //         q1.end = c.start;
+    //         ch.end = c.end;
+    //         c.drawLine();
+    //     }
 
-        q1.drawLine();
-        q1.drawText("q1", 15, 0, 30);
-        ch.drawLine();
-        ch.drawText("ch", -5, -20, 30);
-    }
+    //     q1.drawLine();
+    //     q1.drawText("q1", 15, 0, 30);
+    //     ch.drawLine();
+    //     ch.drawText("ch", -5, -20, 30);
+    // }
 
-    // q2
-    if (riskProfile.interceptingForest == true) {
-        // q2
-        var q2: geo.Line = try geo.Line.init(rl.Vector2{
-            .x = origin.x,
-            .y = origin.y,
-        }, rl.Vector2{
-            .x = v.end.x,
-            .y = v.end.y,
-        }, true, riskProfile.q2);
-
-        var c: geo.Line = try geo.getParallelLine(v, riskProfile.c);
-        c.startAtIntersection(q2);
-
-        ch.endAtIntersection(c);
-        ch.drawLine();
-        ch.drawText("ch", -5, -20, 30);
-
-        c.end = ch.end;
-        // c.end.y = ch.end.y;
-        c.drawLine();
-
-        q2.end = c.start;
-        q2.drawLine();
-        q2.drawText("q2", 25, 0, 30);
-    } else if (riskProfile.forestDist > 0 and riskProfile.forestDist <= riskProfile.h) {
+    if (riskProfile.forestDist > 0) {
         // forestMin
         var forestMin: geo.Line = try geo.Line.init(rl.Vector2{
             .x = undefined,
@@ -253,7 +228,92 @@ fn drawLines(riskProfile: risk.RiskArea) void {
         q2.endAtIntersection(c);
         q2.drawLine();
         q2.drawText("q2", 25, 0, 30);
+    } else {
+        ch.endAtIntersection(q1);
+        // ch.drawLine();
+        // ch.drawText("ch", -5, -20, 30);
+
+        q1.endAtIntersection(ch);
+        // q1.drawLine();
+        // q1.drawText("q1", 15, 0, 30);
+
+        // c
+        var c: geo.Line = try geo.getParallelLine(v, riskProfile.c);
+        c.startAtIntersection(q1);
+        c.endAtIntersection(ch);
+        // c.drawLine();
+
+        if (riskProfile.factor > 0) {
+            q1.end = c.start;
+            ch.end = c.end;
+            c.drawLine();
+        }
+
+        q1.drawLine();
+        q1.drawText("q1", 15, 0, 30);
+        ch.drawLine();
+        ch.drawText("ch", -5, -20, 30);
     }
+
+    // q2
+    // if (riskProfile.interceptingForest == true) {
+    //     // q2
+    //     var q2: geo.Line = try geo.Line.init(rl.Vector2{
+    //         .x = origin.x,
+    //         .y = origin.y,
+    //     }, rl.Vector2{
+    //         .x = v.end.x,
+    //         .y = v.end.y,
+    //     }, true, riskProfile.q2);
+
+    //     var c: geo.Line = try geo.getParallelLine(v, riskProfile.c);
+    //     c.startAtIntersection(q2);
+
+    //     ch.endAtIntersection(c);
+    //     ch.drawLine();
+    //     ch.drawText("ch", -5, -20, 30);
+
+    //     c.end = ch.end;
+    //     // c.end.y = ch.end.y;
+    //     c.drawLine();
+
+    //     q2.end = c.start;
+    //     q2.drawLine();
+    //     q2.drawText("q2", 25, 0, 30);
+    // } else if (riskProfile.forestDist >= 0 and riskProfile.forestDist <= riskProfile.h) {
+    //     // forestMin
+    //     var forestMin: geo.Line = try geo.Line.init(rl.Vector2{
+    //         .x = undefined,
+    //         .y = undefined,
+    //     }, rl.Vector2{
+    //         .x = origin.x,
+    //         .y = origin.y - riskProfile.forestDist,
+    //     }, false, undefined);
+    //     forestMin.drawText("forestMin", -65, -70, 30);
+
+    //     // q2
+    //     var q2: geo.Line = try geo.Line.init(rl.Vector2{
+    //         .x = geo.calculateXfromAngle(@intFromFloat(riskProfile.forestDist), v.angle) + origin.x,
+    //         .y = origin.y - riskProfile.forestDist,
+    //     }, rl.Vector2{
+    //         .x = v.end.x,
+    //         .y = v.end.y,
+    //     }, true, riskProfile.q2);
+
+    //     var c: geo.Line = try geo.getParallelLine(v, riskProfile.c);
+    //     c.startAtIntersection(q2);
+
+    //     ch.endAtIntersection(c);
+    //     ch.drawLine();
+    //     ch.drawText("ch", -5, -20, 30);
+
+    //     c.endAtIntersection(ch);
+    //     c.drawLine();
+
+    //     q2.endAtIntersection(c);
+    //     q2.drawLine();
+    //     q2.drawText("q2", 25, 0, 30);
+    // }
 }
 
 pub const Menu = struct {
