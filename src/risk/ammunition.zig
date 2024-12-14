@@ -1,5 +1,27 @@
 pub const weapon = @import("weapon.zig").Weapons;
 
+pub fn getAmmunitionType(value: i32) Caliber {
+    return switch (value) {
+        0 => Caliber.hagelptr,
+        1 => Caliber.long_rifle_22,
+        2 => Caliber.ptr556_sk_prj_slprj,
+        3 => Caliber.ptr65_sk_prj_m41,
+        4 => Caliber.ptr762_sk_10b_prj_slprj,
+        5 => Caliber.ptr762_sk_10_pprj,
+        6 => Caliber.ptr762_sk_prick_lh,
+        7 => Caliber.ptr762_sk_prick,
+        8 => Caliber.ptr762_sk_39_prj,
+        9 => Caliber.ptr762_sk_95_prj_slprj,
+        10 => Caliber.ptr9_sk_39b,
+        11 => Caliber.ptr9_9_39_ovnprj_11,
+        12 => Caliber.ptr9_sk_67_slprj,
+        13 => Caliber.ptr127_sk_45_nprj_slnprj,
+        14 => Caliber.ptr27_sk_nprj_prick_slprj_prick,
+        15 => Caliber.ptr127_sk_45_pbrsprj_brsprj_slbrsprj,
+        else => unreachable,
+    };
+}
+
 pub const Caliber = struct {
     Dmax: i32,
     y: i32,

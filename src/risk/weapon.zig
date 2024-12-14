@@ -1,5 +1,14 @@
 const amm = @import("ammunition.zig");
 
+pub fn getWeaponType(value: i32) Weapons.Model {
+    return switch (value) {
+        0 => Weapons.AK5,
+        1 => Weapons.KSP58,
+        2 => Weapons.KSP58_Benstod,
+        else => Weapons.invalid,
+    };
+}
+
 pub const Weapons = struct {
     pub const Model = struct {
         Dmax: i32,
