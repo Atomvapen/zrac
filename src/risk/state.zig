@@ -1,6 +1,6 @@
 const std = @import("std");
 const gui = @import("../gui/state.zig");
-const calc = @import("calculations.zig");
+const calc = @import("calc.zig");
 const utils = @import("../utils.zig");
 
 pub const amm = @import("ammunition.zig");

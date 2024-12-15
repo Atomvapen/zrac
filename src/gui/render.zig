@@ -3,7 +3,8 @@ const risk = @import("../risk/state.zig");
 const rl = @import("raylib");
 const rg = @import("raygui");
 const state = @import("state.zig");
-const geo = @import("../geo/calculations.zig");
+const geo = @import("../geo/calc.zig");
+const camera_fn = @import("camera.zig");
 
 pub const screenWidth: i32 = 800;
 pub const screenHeight: i32 = 800;
@@ -52,27 +53,6 @@ pub fn deinit() void {
     rl.closeWindow();
 }
 
-fn handleCamera() void {
-    const pos = rl.getMousePosition();
-    if (pos.x < 200) return;
-
-    if (rl.isMouseButtonDown(.mouse_button_right)) {
-        var delta = rl.getMouseDelta();
-        delta = rl.math.vector2Scale(delta, -1.0 / camera.zoom);
-        camera.target = rl.math.vector2Add(camera.target, delta);
-    }
-
-    const wheel = rl.getMouseWheelMove();
-    if (wheel != 0) {
-        const mouseWorldPos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
-        camera.offset = rl.getMousePosition();
-        camera.target = mouseWorldPos;
-        var scaleFactor = 1.0 + (0.25 * @abs(wheel));
-        if (wheel < 0) scaleFactor = 1.0 / scaleFactor;
-        camera.zoom = rl.math.clamp(camera.zoom * scaleFactor, 0.125, 64.0);
-    }
-}
-
 pub fn update(_: std.mem.Allocator, riskProfile: *risk.RiskArea) !void {
     try riskProfile.update(gui);
 }
@@ -82,7 +62,8 @@ pub fn main(allocator: std.mem.Allocator) !void {
     riskProfile.valid = false;
 
     while (!rl.windowShouldClose()) {
-        handleCamera();
+        // handleCamera();
+        camera_fn.handleCamera(&camera);
 
         try update(allocator, &riskProfile);
 
