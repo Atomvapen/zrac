@@ -1,7 +1,7 @@
 const std = @import("std");
-const gui = @import("../gui/state.zig");
 const calc = @import("calc.zig");
 const utils = @import("../utils.zig");
+const render = @import("../gui/render.zig");
 
 pub const amm = @import("ammunition.zig");
 pub const weapon = @import("weapon.zig");
@@ -15,6 +15,8 @@ const RiskValidationError = error{
     InvadlidCharacter,
 };
 
+// TODO rensa valeus som finns i weapon etc
+// slå ihop med gui state
 pub const RiskArea = struct {
     // Given values
     weaponType: weapon.Weapons.Model,
@@ -67,7 +69,7 @@ pub const RiskArea = struct {
         self.valid = true;
     }
 
-    fn controlUpdate(self: *RiskArea, state: gui.guiState) bool {
+    fn controlUpdate(self: *RiskArea, state: guiState) bool {
         return (!(self.factor == state.riskFactor.value and
             self.fixedTarget == state.targetType.value and
             self.interceptingForest == state.interceptingForest.value and
@@ -79,7 +81,7 @@ pub const RiskArea = struct {
             std.mem.eql(u8, self.weaponType.caliber.name, weapon.getWeaponType(state.weaponType.value).caliber.name)));
     }
 
-    fn updateValues(self: *RiskArea, state: gui.guiState) void {
+    fn updateValues(self: *RiskArea, state: guiState) void {
         self.factor = state.riskFactor.value;
         self.Amin = utils.combineAsciiToFloat(&state.Amin.value);
         self.Amax = utils.combineAsciiToFloat(&state.Amax.value);
@@ -101,7 +103,7 @@ pub const RiskArea = struct {
         self.q2 = calc.calculateQ2(self);
     }
 
-    pub fn update(self: *RiskArea, state: gui.guiState) !void {
+    pub fn update(self: *RiskArea, state: guiState) !void {
         if (!controlUpdate(self, state)) return;
 
         self.updateValues(state);
@@ -111,5 +113,58 @@ pub const RiskArea = struct {
             std.log.info("Validation failed: {any}", .{err});
             return;
         };
+    }
+};
+
+pub const guiState = struct {
+    const textBoxState = struct {
+        value: [64]u8,
+        editMode: bool,
+    };
+
+    const checkBoxState = struct {
+        value: bool,
+    };
+
+    const comboBoxState = struct {
+        value: i32,
+    };
+
+    const dropdownBoxState = struct {
+        value: i32,
+        editMode: bool,
+    };
+
+    Amin: textBoxState,
+    Amax: textBoxState,
+    f: textBoxState,
+    forestDist: textBoxState,
+    draw: checkBoxState,
+    interceptingForest: checkBoxState,
+    riskFactor: comboBoxState,
+    ammunitionType: dropdownBoxState,
+    weaponType: dropdownBoxState,
+    targetType: checkBoxState,
+    menu: render.Menu,
+    showInfoPanel: checkBoxState,
+
+    pub fn init(self: *guiState) !void {
+        self.reset();
+
+        try self.menu.init();
+        render.gui.draw.value = true;
+    }
+
+    pub fn reset(self: *guiState) void {
+        self.Amin = .{ .editMode = false, .value = std.mem.zeroes([64]u8) };
+        self.Amax = .{ .editMode = false, .value = std.mem.zeroes([64]u8) };
+        self.f = .{ .editMode = false, .value = std.mem.zeroes([64]u8) };
+        self.forestDist = .{ .editMode = false, .value = std.mem.zeroes([64]u8) };
+        self.draw = .{ .value = true };
+        self.interceptingForest = .{ .value = false };
+        self.riskFactor = .{ .value = 0 };
+        self.ammunitionType = .{ .editMode = false, .value = 0 };
+        self.weaponType = .{ .editMode = false, .value = 0 };
+        self.targetType = .{ .value = false };
     }
 };

@@ -2,7 +2,8 @@ const std = @import("std");
 const risk = @import("../risk/state.zig");
 const rl = @import("raylib");
 const rg = @import("raygui");
-const state = @import("state.zig");
+// const state = @import("state.zig");
+const state = @import("../risk/state.zig");
 
 pub var gui: state.guiState = undefined;
 
