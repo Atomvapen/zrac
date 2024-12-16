@@ -143,10 +143,10 @@ pub const Caliber = struct {
 
 pub const names: [*:0]const u8 = "Hagelptr; 22 long rifle;5,56 mm sk ptr 5/5B prj/slprj;6,5 mm sk ptr prj m/41;7,62 mm sk ptr 10(B) prj/slprj;7,62 mm sk ptr 10 PPRJ;7,62 mm sk ptr PRICK LH;7,62 mm sk ptr PRICK;7,62 mm sk ptr 39 prj;7,62 mm sk ptr 95 prj/slprj;9 mm sk ptr m/39B;9 mm 9/39 övnprj 11;9 mm sk ptr m/67 slprj;12,7 mm sk ptr m/45 nprj och slnprj;12,7 mm sk ptr nprj prick och slprj prick;12,7 mm sk ptr m/45 pbrsprj, brsprj och slbrsprj";
 
-pub fn getValidNames(comptime model: weapon.Model) [*:0]const u8 {
-    return switch (model.name) {
-        weapon.AK5.name => "5,56 mm sk ptr 5/5B prj/slprj;",
-        weapon.KSP58.name, weapon.KSP58_Benstod.name => "7,62 mm sk ptr 10(B) prj/slprj;7,62 mm sk ptr 10 PPRJ;7,62 mm sk ptr PRICK LH;7,62 mm sk ptr PRICK;7,62 mm sk ptr 39 prj;7,62 mm sk ptr 95 prj/slprj",
+pub fn getValidNames(model: weapon.Model) [*:0]const u8 {
+    return switch (model.id) {
+        0 => "5,56 mm sk ptr 5/5B prj/slprj",
+        1, 2 => "7,62 mm sk ptr 10(B) prj/slprj;7,62 mm sk ptr 10 PPRJ;7,62 mm sk ptr PRICK LH;7,62 mm sk ptr PRICK;7,62 mm sk ptr 39 prj;7,62 mm sk ptr 95 prj/slprj",
         else => names,
     };
 }
