@@ -1,5 +1,9 @@
 const std = @import("std");
-const gui = @import("gui.zig");
+const gui = @import("gui/render.zig");
+
+pub const std_options = std.Options{
+    .log_level = .debug,
+};
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
