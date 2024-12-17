@@ -1,8 +1,8 @@
-const risk = @import("../risk/state.zig");
+const state = @import("../risk/state.zig");
 const rl = @import("raylib");
 const geo = @import("../geo/calc.zig");
 
-pub fn drawLines(riskProfile: *risk.riskState) void {
+pub fn drawLines(riskProfile: *state.riskState) void {
     // Origin
     const origin: rl.Vector2 = rl.Vector2{ .x = @as(f32, @floatFromInt(rl.getScreenWidth())) / 2, .y = @as(f32, @floatFromInt(rl.getScreenHeight())) - 50 };
 

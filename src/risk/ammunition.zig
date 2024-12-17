@@ -147,6 +147,6 @@ pub fn getValidNames(model: weapon.Model) [*:0]const u8 {
     return switch (model.id) {
         0 => "5,56 mm sk ptr 5/5B prj/slprj",
         1, 2 => "7,62 mm sk ptr 10(B) prj/slprj;7,62 mm sk ptr 10 PPRJ;7,62 mm sk ptr PRICK LH;7,62 mm sk ptr PRICK;7,62 mm sk ptr 39 prj;7,62 mm sk ptr 95 prj/slprj",
-        else => names,
+        else => "",
     };
 }

@@ -1,12 +1,5 @@
 const rl = @import("raylib");
 
-// pub var camera = rl.Camera2D{
-//     .target = .{ .x = 0, .y = 0 },
-//     .offset = .{ .x = 0, .y = 0 },
-//     .zoom = 1.0,
-//     .rotation = 0.0,
-// };
-
 pub fn init(self: *rl.Camera2D) void {
     self.begin();
     defer self.end();
