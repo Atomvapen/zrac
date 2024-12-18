@@ -102,8 +102,11 @@ pub const riskState = struct {
     //         self.Amax == utils.combineAsciiToFloat(&state.Amax.value) and
     //         self.f == utils.combineAsciiToFloat(&state.f.value) and
     //         self.forestDist == utils.combineAsciiToFloat(&state.forestDist.value) and
-    //         std.mem.eql(u8, self.weaponCaliber.name, amm.getAmmunitionType(state.ammunitionType.value).name) and
-    //         std.mem.eql(u8, self.weaponType.caliber.name, weapon.getWeaponType(state.weaponType.value).caliber.name)));
+    //         self.weaponType.id == weapon.getWeaponType(state.weaponType.value).caliber.id and
+    //         self.weaponType.caliber.id == weapon.getAmmunitionType(state.ammunitionType.value).id and
+
+    //         // std.mem.eql(u8, self.weaponCaliber.name, amm.getAmmunitionType(state.ammunitionType.value).name) and
+    //         // std.mem.eql(u8, self.weaponType.caliber.name, weapon.getWeaponType(state.weaponType.value).caliber.name)));
     // }
 
     // fn updateValues(self: *riskState, state: guiState) void {

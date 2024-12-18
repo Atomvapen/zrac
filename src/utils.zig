@@ -99,3 +99,29 @@ pub fn combineAsciiToFloat(asciiArray: []const u8) f32 {
 
     return result;
 }
+
+pub fn combineAsciiToString(asciiArray: []const u8) []const u8 {
+    var result: i32 = 0;
+
+    for (asciiArray) |asciiChar| {
+        const digit = @as(i32, asciiChar) - @as(i32, '0'); // Convert ASCII digit to numeric value
+
+        // Skip non-digit characters
+        if (digit < 0 or digit > 9) continue;
+
+        // Check for potential overflow before performing the operation
+        if (result > @divFloor((std.math.maxInt(i32) - digit), 10)) {
+            // Handle overflow (e.g., return an error, set result to max, etc.)
+            return "Overflow"; // Return "Overflow" string on overflow
+        }
+
+        result = result * 10 + digit; // Shift left and add digit
+    }
+
+    // Convert the result integer to a string representation
+    var buf: [20]u8 = undefined; // Buffer for the result string
+    const length = std.fmt.bufPrint(buf, "{}\n", .{result});
+
+    // Return the string representation of the result
+    return buf[0..length];
+}

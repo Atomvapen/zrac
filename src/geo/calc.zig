@@ -20,7 +20,7 @@ pub const Line = struct {
     pub fn init(start: rl.Vector2, end: rl.Vector2, rotate: bool, angle: f32) !Line {
         return Line{
             .start = start,
-            .end = if (rotate == true) try rotateEndVector(start, end, angle) else end,
+            .end = if (rotate) try rotateEndVector(start, end, angle) else end,
             .angle = angle,
         };
     }
@@ -185,8 +185,6 @@ fn milsToRadians(mils: f32) f32 {
 }
 
 /// Calculates the length of one leg of a right triangle given the other leg and an angle.
-///
-/// This function uses the formula for finding a missing leg in a right triangle.
 pub fn calculateXfromAngle(width: i32, angle: f32) f32 {
     const b: f32 = @as(f32, @floatFromInt(width));
     const a: f32 = @tan(milsToRadians(angle));
