@@ -1,8 +1,8 @@
-const risk = @import("../risk/state.zig");
+const state = @import("../risk/state.zig");
 const rl = @import("raylib");
 const geo = @import("../geo/calc.zig");
 
-pub fn drawLines(riskProfile: risk.RiskArea) void {
+pub fn drawLines(riskProfile: *state.riskState) void {
     // Origin
     const origin: rl.Vector2 = rl.Vector2{ .x = @as(f32, @floatFromInt(rl.getScreenWidth())) / 2, .y = @as(f32, @floatFromInt(rl.getScreenHeight())) - 50 };
 
@@ -23,7 +23,7 @@ pub fn drawLines(riskProfile: risk.RiskArea) void {
         .y = undefined,
     }, rl.Vector2{
         .x = origin.x,
-        .y = origin.y - riskProfile.Amin,
+        .y = origin.y - riskProfile.getAmin(),
     }, false, undefined);
     Amin.drawText("Amin", -70, 0, 30);
 
@@ -38,20 +38,20 @@ pub fn drawLines(riskProfile: risk.RiskArea) void {
     v.drawLine();
     v.drawText("v", -5, -30, 30);
 
-    if (riskProfile.f > riskProfile.Amin) return;
+    if (riskProfile.getF() > riskProfile.getAmin()) return;
     var f: geo.Line = try geo.Line.init(rl.Vector2{
         .x = origin.x,
-        .y = origin.y - riskProfile.Amin + riskProfile.f,
+        .y = origin.y - riskProfile.getAmin() + riskProfile.getF(),
     }, rl.Vector2{
         .x = origin.x,
-        .y = Amin.end.y + (riskProfile.f + 50.0),
+        .y = Amin.end.y + (riskProfile.getF() + 50.0),
     }, false, undefined);
     f.drawText("f", -30, -70, 30);
 
     // q1
     var q1: geo.Line = try geo.Line.init(rl.Vector2{
-        .x = geo.calculateXfromAngle(@intFromFloat(riskProfile.Amin - riskProfile.f), v.angle) + origin.x,
-        .y = origin.y - riskProfile.Amin + riskProfile.f,
+        .x = geo.calculateXfromAngle(@intFromFloat(riskProfile.getAmin() - riskProfile.getF()), v.angle) + origin.x,
+        .y = origin.y - riskProfile.getAmin() + riskProfile.getF(),
     }, rl.Vector2{
         .x = v.end.x,
         .y = v.end.y,
@@ -104,21 +104,21 @@ pub fn drawLines(riskProfile: risk.RiskArea) void {
     //     ch.drawText("ch", -5, -20, 30);
     // }
 
-    if (riskProfile.forestDist > 0) {
+    if (riskProfile.getForestDist() > 0) {
         // forestMin
         var forestMin: geo.Line = try geo.Line.init(rl.Vector2{
             .x = undefined,
             .y = undefined,
         }, rl.Vector2{
             .x = origin.x,
-            .y = origin.y - riskProfile.forestDist,
+            .y = origin.y - riskProfile.getForestDist(),
         }, false, undefined);
         forestMin.drawText("forestMin", -65, -70, 30);
 
         // q2
         var q2: geo.Line = try geo.Line.init(rl.Vector2{
-            .x = geo.calculateXfromAngle(@intFromFloat(riskProfile.forestDist), v.angle) + origin.x,
-            .y = origin.y - riskProfile.forestDist,
+            .x = geo.calculateXfromAngle(@intFromFloat(riskProfile.getForestDist()), v.angle) + origin.x,
+            .y = origin.y - riskProfile.getForestDist(),
         }, rl.Vector2{
             .x = v.end.x,
             .y = v.end.y,

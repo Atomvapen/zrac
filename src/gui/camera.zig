@@ -1,32 +1,26 @@
 const rl = @import("raylib");
 
-// pub var camera = rl.Camera2D{
-//     .target = .{ .x = 0, .y = 0 },
-//     .offset = .{ .x = 0, .y = 0 },
-//     .zoom = 1.0,
-//     .rotation = 0.0,
-// };
-
-pub fn init(self: *rl.Camera2D) void {
+pub fn setup(self: *rl.Camera2D) void {
     self.begin();
     defer self.end();
 }
 
 pub fn handleCamera(self: *rl.Camera2D) void {
-    if (checkDeadZone()) return;
-    moveCamera(self);
-    zoomCamera(self);
+    if (checkValidity()) return;
+    move(self);
+    zoom(self);
 }
 
-fn moveCamera(self: *rl.Camera2D) void {
-    if (rl.isMouseButtonDown(.mouse_button_right)) {
+fn move(self: *rl.Camera2D) void {
+    const button = rl.isMouseButtonDown(.mouse_button_right);
+    if (button) {
         var delta = rl.getMouseDelta();
         delta = rl.math.vector2Scale(delta, -1.0 / self.zoom);
         self.target = rl.math.vector2Add(self.target, delta);
     }
 }
 
-fn zoomCamera(self: *rl.Camera2D) void {
+fn zoom(self: *rl.Camera2D) void {
     const wheel = rl.getMouseWheelMove();
     if (wheel != 0) {
         const mouseWorldPos = rl.getScreenToWorld2D(rl.getMousePosition(), self.*);
@@ -38,6 +32,6 @@ fn zoomCamera(self: *rl.Camera2D) void {
     }
 }
 
-fn checkDeadZone() bool {
+fn checkValidity() bool {
     return if (rl.getMousePosition().x < 200) true else false;
 }

@@ -1,38 +1,38 @@
-const profile = @import("state.zig").RiskArea;
+const riskProfile = @import("state.zig").riskState;
 
-pub fn calculateH(self: *profile) f32 {
-    return self.Amax + self.l;
+pub fn calculateH(self: *riskProfile) f32 {
+    return self.getAmax() + self.l;
 }
 
-pub fn calculateL(self: *profile) f32 {
-    return switch (self.factor + 1) {
-        1 => 0.8 * self.Dmax - 0.7 * self.Amax,
-        2 => 0.6 * self.Dmax - 0.5 * self.Amax,
-        3 => 0.4 * self.Dmax - 0.3 * self.Amax,
+pub fn calculateL(self: *riskProfile) f32 {
+    return switch (self.getFactor() + 1) {
+        1 => 0.8 * self.getDmax() - 0.7 * self.getAmax(),
+        2 => 0.6 * self.getDmax() - 0.5 * self.getAmax(),
+        3 => 0.4 * self.getDmax() - 0.3 * self.getAmax(),
         else => 0,
     };
 }
 
-pub fn calculateC(self: *profile) f32 {
-    return switch (self.interceptingForest) {
-        false => self.weaponCaliber.c,
-        true => switch (self.factor + 1) {
-            1 => 0.2 * (self.Dmax - self.Amin),
-            2 => 0.15 * (self.Dmax - self.Amin),
-            3 => 0.08 * (self.Dmax - self.Amin),
+pub fn calculateC(self: *riskProfile) f32 {
+    return switch (self.getInterceptingForest()) {
+        false => self.getWeaponCaliber().c,
+        true => switch (self.getFactor() + 1) {
+            1 => 0.2 * (self.getDmax() - self.getAmin()),
+            2 => 0.15 * (self.getDmax() - self.getAmin()),
+            3 => 0.08 * (self.getDmax() - self.getAmin()),
             else => 0.0,
         },
     };
 }
 
-pub fn calculateQ1(self: *profile) f32 {
-    return switch (self.factor + 1) {
-        1 => self.weaponType.c,
+pub fn calculateQ1(self: *riskProfile) f32 {
+    return switch (self.getFactor() + 1) {
+        1 => self.getWeaponType().c,
         2, 3 => 400.0,
         else => 0.0,
     };
 }
 
-pub fn calculateQ2(self: *profile) f32 {
-    return if (self.forestDist < 0) 0.0 else 1000.0;
+pub fn calculateQ2(self: *riskProfile) f32 {
+    return if (self.getForestDist() < 0) 0.0 else 1000.0;
 }
