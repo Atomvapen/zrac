@@ -11,14 +11,10 @@
 ---
 ## Features
 
-* 100% written in ZIG
-* 2 weapon types
-* 17 calibers
-* GUI
+* 100% written in [ZIG]
+* GUI from [Raylib-ZIG] 
+* Compliant with and based upon [SÄKR EHV/PV]
   
-## Dependencies
-
-* [Raylib-ZIG]
 
 ## License
 
@@ -30,6 +26,8 @@ Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in Limbo by you, shall be licensed as MIT, without any additional
 terms or conditions.
 
+[ZIG]:https://ziglang.org/
 [MIT license]:https://github.com/Atomvapen/ZRAC/blob/next/LICENSE
 [Raylib-ZIG]:https://github.com/Not-Nik/raylib-zig
+[SÄKR EHV/PV]:https://www.forsvarsmakten.se/siteassets/2-om-forsvarsmakten/dokument/reglementen/sakr-ehv-pv.pdf
 
