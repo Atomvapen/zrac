@@ -1,6 +1,6 @@
 const std = @import("std");
-const calc = @import("calc.zig");
-const utils = @import("../utils.zig");
+const calc = @import("../math/risk.zig");
+const utils = @import("conversion.zig");
 const render = @import("../gui/render.zig");
 const menuPane = @import("../gui/menu.zig").Menu;
 

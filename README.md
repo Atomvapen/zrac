@@ -11,7 +11,7 @@
 ---
 ## Features
 
-* 100% written in [ZIG]
+* 100% written in [ZIG] (0.14.0-dev.2183+ee9f00d67)
 * GUI from [Raylib-ZIG] 
 * Compliant with and based upon [SÄKR EHV/PV]
   

@@ -1,5 +1,5 @@
 const std = @import("std");
-const state = @import("../risk/state.zig");
+const state = @import("../data/state.zig");
 const rl = @import("raylib");
 const camera_fn = @import("camera.zig");
 const drawLines = @import("draw.zig").drawLines;

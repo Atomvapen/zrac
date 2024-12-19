@@ -1,4 +1,4 @@
-const riskProfile = @import("state.zig").riskState;
+const riskProfile = @import("../data/state.zig").riskState;
 
 pub fn calculateH(self: *riskProfile) f32 {
     return self.getAmax() + self.l;

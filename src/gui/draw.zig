@@ -1,6 +1,6 @@
-const state = @import("../risk/state.zig");
+const state = @import("../data/state.zig");
 const rl = @import("raylib");
-const geo = @import("../geo/calc.zig");
+const geo = @import("../math/geo.zig");
 
 pub fn drawLines(riskProfile: *state.riskState) void {
     // Origin

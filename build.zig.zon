@@ -1,6 +1,7 @@
 .{
     .name = "Risk",
-    .version = "0.0.1",
+    .version = "0.0.2",
+    .minimum_zig_version = "0.14.0-dev.2183+ee9f00d67",
     .dependencies = .{
         .@"raylib-zig" = .{
             .url = "git+https://github.com/Not-Nik/raylib-zig?ref=devel#de8c2d458516fc971f0859c4473e3381767d2471",
