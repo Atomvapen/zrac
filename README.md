@@ -21,9 +21,14 @@
 
 ## Roadmap
 
-* [ ] Save/load function
-* [ ] Remove dependencies
+* [ ] Save/load function (JSON)
+* [ ] Enum Weapon/Ammunition
+* [ ] Remove dependencies -> move to own SDL2/3 lib
 * [ ] Whole area implementation
+* [ ] Redo MenuSystem
+* [ ] Better Validation
+* [ ] Better getName functions
+* [X] Restructure filesystem
 
 
 ## License

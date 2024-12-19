@@ -1,4 +1,4 @@
-pub const weapon = @import("weapon.zig").Weapons;
+pub const weapon = @import("weapon.zig").Models;
 
 pub fn getAmmunitionType(value: i32) Caliber {
     return switch (value) {

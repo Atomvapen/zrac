@@ -1,17 +1,31 @@
 const amm = @import("ammunition.zig");
 
-pub fn getWeaponType(value: i32) Weapons.Model {
+pub const ModelEnum = enum(i32) {
+    Invalid = -1,
+    AK5C,
+    KSP58,
+    KSP58MB,
+};
+
+pub const ModelEnums = enum(Models) {
+    Invalid = Models.Invalid,
+    AK5C = Models.Model{ .Dmax = 3000, .v_still = 100.0, .v_moveable = 100.0, .c = 200.0, .caliber = undefined, .id = 0 },
+    KSP58 = Models.Model{ .Dmax = 4300, .v_still = 200.0, .v_moveable = 300.0, .c = 200.0, .caliber = undefined, .id = 1 },
+    KSP58MB = Models.Model{ .Dmax = 4300, .v_still = 100.0, .v_moveable = 200.0, .c = 200.0, .caliber = undefined, .id = 2 },
+};
+
+pub fn getWeaponType(value: i32) Models.Model {
     return switch (value) {
-        0 => Weapons.AK5,
-        1 => Weapons.KSP58,
-        2 => Weapons.KSP58_Benstod,
-        else => Weapons.invalid,
+        0 => Models.AK5,
+        1 => Models.KSP58,
+        2 => Models.KSP58_Benstod,
+        else => Models.Invalid,
     };
 }
 
 pub const names: [*:0]const u8 = "AK5C;KSP58;KSP58_Benstod";
 
-pub const Weapons = struct {
+pub const Models = struct {
     pub const Model = struct {
         Dmax: i32,
         v_still: f32,
@@ -21,7 +35,7 @@ pub const Weapons = struct {
         id: i8,
     };
 
-    pub var invalid: Model = Model{
+    pub var Invalid: Model = Model{
         .Dmax = 0,
         .v_still = 0.0,
         .v_moveable = 0.0,
