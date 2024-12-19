@@ -1,5 +1,32 @@
 pub const weapon = @import("weapon.zig").Models;
 
+pub const Caliber2 = struct {
+    Dmax: f32,
+    y: f32,
+    c: f32,
+    id: i32,
+};
+
+pub const CaliberEnum = enum(Caliber2) {
+    invalid = Caliber2{ .Dmax = undefined, .y = undefined, .c = undefined, .id = -1 },
+    hagelptr,
+    long_rifle_22,
+    ptr556_sk_prj_slprj,
+    ptr65_sk_prj_m41,
+    ptr762_sk_10b_prj_slprj,
+    ptr762_sk_10_pprj,
+    ptr762_sk_prick_lh,
+    ptr762_sk_prick,
+    ptr762_sk_39_prj,
+    ptr762_sk_95_prj_slprj,
+    ptr9_sk_39b,
+    ptr9_9_39_ovnprj_11,
+    ptr9_sk_67_slprj,
+    ptr127_sk_45_nprj_slnprj,
+    ptr27_sk_nprj_prick_slprj_prick,
+    ptr127_sk_45_pbrsprj_brsprj_slbrsprj,
+};
+
 pub fn getAmmunitionType(value: i32) Caliber {
     return switch (value) {
         0 => Caliber.hagelptr,
