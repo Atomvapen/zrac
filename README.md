@@ -15,19 +15,29 @@
 * GUI from [Raylib-ZIG] 
 * Compliant with and based upon [SÄKR EHV/PV]
   
+## Dependencies
+
+* [Raylib-ZIG] 
+
+## Roadmap
+
+* [ ] Save/load function
+* [ ] Remove dependencies
+* [ ] Whole area implementation
+
 
 ## License
 
-This project is licensed under the [MIT license].
+This project is licensed under the [GPL-3.0 license].
 
 ### Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in Limbo by you, shall be licensed as MIT, without any additional
+for inclusion in ZRAC by you, shall be licensed as GPL-3.0 license, without any additional
 terms or conditions.
 
 [ZIG]:https://ziglang.org/
-[MIT license]:https://github.com/Atomvapen/ZRAC/blob/next/LICENSE
+[GPL-3.0 license]:https://github.com/Atomvapen/ZRAC/blob/next/LICENSE
 [Raylib-ZIG]:https://github.com/Not-Nik/raylib-zig
 [SÄKR EHV/PV]:https://www.forsvarsmakten.se/siteassets/2-om-forsvarsmakten/dokument/reglementen/sakr-ehv-pv.pdf
 

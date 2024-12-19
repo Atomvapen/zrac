@@ -1,3 +1,0 @@
-## Structural changes
-* DATA
-* MATH
