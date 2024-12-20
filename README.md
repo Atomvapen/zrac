@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="/docs/icon.png" alt="ZRAC" width="200"/>
+  <img src="/assets/icon.png" alt="ZRAC" width="200"/>
   <h1 align="center">ZRAC</h1>
 </p>
 
@@ -22,14 +22,18 @@
 ## Roadmap
 
 * [ ] Save/load function (JSON)
+* [ ] Config
 * [ ]  Weapon/Ammunition inprovement
   * [ ] Enum/Struct
   * [ ] Renaming
   * [ ] Better getName functions
+  * [ ] Amm in weapons
+  * [ ] Merge?
 * [ ] Remove dependencies -> move to own SDL2/3 lib
 * [ ] Whole area implementation
 * [ ] Redo MenuSystem
 * [ ] Better Validation
+* [ ] Documentation
 * [X] Restructure filesystem
 
 
