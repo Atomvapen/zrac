@@ -33,7 +33,7 @@ pub const riskState = struct {
     menu: menuPane,
 
     weaponSelected: dropdownBoxState,
-    weaponType: weapon.Models.Model,
+    weaponType: weapon.Model,
 
     ammunitionSelected: dropdownBoxState,
     weaponCaliber: amm.Caliber,
@@ -160,7 +160,7 @@ pub const riskState = struct {
         self.valid = true;
     }
 
-    pub fn getWeaponType(self: *riskState) weapon.Models.Model {
+    pub fn getWeaponType(self: *riskState) weapon.Model {
         return self.weaponType;
     }
 

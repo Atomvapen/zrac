@@ -22,12 +22,14 @@
 ## Roadmap
 
 * [ ] Save/load function (JSON)
-* [ ] Enum Weapon/Ammunition
+* [ ]  Weapon/Ammunition inprovement
+  * [ ] Enum/Struct
+  * [ ] Renaming
+  * [ ] Better getName functions
 * [ ] Remove dependencies -> move to own SDL2/3 lib
 * [ ] Whole area implementation
 * [ ] Redo MenuSystem
 * [ ] Better Validation
-* [ ] Better getName functions
 * [X] Restructure filesystem
 
 
