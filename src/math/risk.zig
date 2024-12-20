@@ -27,7 +27,7 @@ pub fn calculateC(self: *riskProfile) f32 {
 
 pub fn calculateQ1(self: *riskProfile) f32 {
     return switch (self.getFactor() + 1) {
-        1 => self.getWeaponType().c,
+        1 => self.getWeaponCaliber().c,
         2, 3 => 400.0,
         else => 0.0,
     };
