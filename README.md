@@ -29,13 +29,12 @@
   * [ ] Better getName functions
   * [ ] Amm in weapons
   * [ ] Merge?
-* [ ] Remove dependencies -> move to own SDL2/3 lib
+* [ ] Move from Raylib -> zgui (Remove dependencies? Move to own SDL2/3 lib)
 * [ ] Whole area implementation
 * [ ] Redo MenuSystem
 * [ ] Better Validation
 * [ ] Documentation
 * [X] Restructure filesystem
-
 
 ## License
 
