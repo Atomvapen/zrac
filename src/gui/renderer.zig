@@ -8,8 +8,9 @@ const zgui = @import("zgui");
 const window_title = "ZRAC";
 const window_size = .{ .width = 800, .height = 800 };
 
-const weapon = @import("../data/weapon.zig");
-const ammunition = @import("../data/ammunition.zig");
+// const weapon = @import("../data/weapon.zig");
+// const ammunition = @import("../data/ammunition.zig");
+const guiState = @import("state.zig");
 
 const State = struct {
     gctx: *zgpu.GraphicsContext,
@@ -105,22 +106,17 @@ pub fn main(
         draw(demo);
     }
 }
-const SimpleEnum = enum {
-    first,
-    second,
-    third,
-};
-const SparseEnum = enum(i32) {
-    first = 10,
-    second = 100,
-    third = 1000,
-};
-const NonExhaustiveEnum = enum(i32) {
-    first = 10,
-    second = 100,
-    third = 1000,
-    _,
-};
+
+// const factor = enum {
+//     I,
+//     II,
+//     III,
+// };
+
+// const targetType = enum {
+//     Fast,
+//     Flyttbart,
+// };
 
 fn update(
     demo: *State,
@@ -134,34 +130,55 @@ fn update(
     zgui.setNextWindowPos(.{ .x = 20.0, .y = 20.0, .cond = .first_use_ever });
     zgui.setNextWindowSize(.{ .w = -1.0, .h = -1.0, .cond = .first_use_ever });
 
-    if (zgui.begin("Riskprofil", .{ .flags = .{
-        .menu_bar = true,
-        .no_move = true,
-        .no_resize = true,
-        .always_auto_resize = true,
-    } })) {
-        zgui.bullet();
-        zgui.textUnformattedColored(.{ 0, 0.8, 0, 1 }, "Average :");
-        zgui.sameLine(.{});
-        zgui.text("Risk", .{});
-
-        zgui.separator();
-        if (zgui.button("Press me!", .{ .w = 200.0 })) {
-            std.debug.print("Button pressed\n", .{});
+    if (zgui.begin("Riskprofil", .{
+        .flags = .{
+            // .menu_bar = false,
+            .no_move = true,
+            .no_resize = true,
+            .always_auto_resize = true,
+        },
+    })) {
+        { // Save
+            // const static = struct {
+            //     var showLines: bool = true;
+            // };
+            _ = zgui.checkbox("Visa", .{ .v = &guiState.show.showLines });
         }
 
-        // Vapen & Amm
-        // if (zgui.collapsingHeader("Vapen", .{})) {
-        const static = struct {
-            var selection_index: u32 = 0;
-            var current_item: i32 = 0;
-            var weapon_enum_value: weapon.Models = .AK5;
-            var amm_enum_values: ammunition.Calibers = .hagelptr;
-        };
+        //if (zgui.collapsingHeader("Widgets: Input with Keyboard", .{}))
+        zgui.separatorText("Terrängvärden");
+        { // Values
+            // const static = struct {
+            //     var interceptingForest: bool = false;
+            //     var factor_enum_value: factor = .I;
+            //     var Amin: f32 = 0;
+            //     var Amax: f32 = 0;
+            //     var f: f32 = 0;
+            //     var forestDist: f32 = 0;
+            // };
+            _ = zgui.comboFromEnum("Faktor", &guiState.terrainValues.factor_enum_value);
+            _ = zgui.inputFloat("Amin", .{ .v = &guiState.terrainValues.Amin });
+            _ = zgui.inputFloat("Amax", .{ .v = &guiState.terrainValues.Amax });
+            _ = zgui.inputFloat("f", .{ .v = &guiState.terrainValues.f });
+            zgui.setNextItemWidth(90);
+            _ = zgui.inputFloat("Skogsavstånd", .{ .v = &guiState.terrainValues.forestDist });
+            zgui.sameLine(.{});
+            _ = zgui.checkbox("Uppfångande", .{ .v = &guiState.terrainValues.interceptingForest });
+        }
 
-        _ = zgui.comboFromEnum("Vapentyp", &static.weapon_enum_value);
-        _ = zgui.comboFromEnum("Ammunitionstyp", &static.amm_enum_values);
-        // }
+        zgui.separatorText("Vapenvärden");
+        //if (zgui.collapsingHeader("Vapen", .{}))
+        { // Weapons & Ammunition Comboboxes
+            // const static = struct {
+            //     var weapon_enum_value: weapon.Models = .AK5;
+            //     var amm_enum_values: ammunition.Calibers = .hagelptr;
+            //     var target_enum_value: targetType = .Fast;
+            // };
+
+            _ = zgui.comboFromEnum("Vapentyp", &guiState.weaponValues.weapon_enum_value);
+            _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values);
+            _ = zgui.comboFromEnum("Måltyp", &guiState.weaponValues.target_enum_value);
+        }
     }
 
     const draw_list = zgui.getBackgroundDrawList();

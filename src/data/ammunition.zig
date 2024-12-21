@@ -1,7 +1,28 @@
 pub const weapon = @import("weapon.zig").Model;
+pub const Models = @import("weapon.zig").Models;
+
+pub fn getEnum(model: Models) type {
+    return switch (model) {
+        Models.AK5 => ehvCalibers,
+        else => ksp58Calibers,
+    };
+}
+
+pub const ksp58Calibers = enum {
+    ptr762_sk_10b_prj_slprj,
+    ptr762_sk_10_pprj,
+    ptr762_sk_prick_lh,
+    ptr762_sk_prick,
+    ptr762_sk_39_prj,
+    ptr762_sk_95_prj_slprj,
+};
+
+pub const ehvCalibers = enum {
+    ptr556_sk_prj_slprj,
+    ptr65_sk_prj_m41,
+};
 
 pub const Calibers = enum {
-    invalid,
     hagelptr,
     long_rifle_22,
     ptr556_sk_prj_slprj,
@@ -46,7 +67,6 @@ pub const Caliber = struct {
     pub const ptr27_sk_nprj_prick_slprj_prick: Caliber = Caliber{ .Dmax = 7000, .y = undefined, .c = 400, .id = 14 };
     pub const ptr127_sk_45_pbrsprj_brsprj_slbrsprj: Caliber = Caliber{ .Dmax = 7000, .y = undefined, .c = 400, .id = 15 };
 };
-
 
 //union för att ge ut rätt enum?
 pub fn getValidNames(model: weapon) [*:0]const u8 {
