@@ -151,7 +151,8 @@ fn update(
             _ = zgui.comboFromEnum("Måltyp", &guiState.weaponValues.target_enum_value);
         }
     }
-    {
+
+    { // Lines
         const origin = .{ .x = 400, .y = 750 };
         const draw_list = zgui.getBackgroundDrawList();
 
