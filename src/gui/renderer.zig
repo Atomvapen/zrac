@@ -177,9 +177,7 @@ fn update(
         }
     }
 
-    if (!guiState.validate()) return;
-
-    { // Lines
+    if (guiState.validate()) { // Lines
         const origin = .{ .x = 400, .y = 750 };
         const draw_list = zgui.getBackgroundDrawList();
 
