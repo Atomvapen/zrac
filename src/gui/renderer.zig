@@ -5,7 +5,9 @@ const zgpu = @import("zgpu");
 const wgpu = zgpu.wgpu;
 const zgui = @import("zgui");
 
-pub const guiState = @import("../data/state.zig");
+pub const gui = @import("../data/state.zig");
+pub var guiState = gui.riskProfile.init();
+
 const geo = @import("../math/geo.zig");
 const math = @import("../math/risk.zig");
 
@@ -107,10 +109,10 @@ pub fn main(
 fn update(
     app: *State,
 ) !void {
-    // guiState.update();
+    guiState.update();
 
-    guiState.terrainValues.h = math.calculateH(guiState);
-    std.debug.print("{any}\n", .{guiState.terrainValues.h});
+    // guiState.terrainValues.h = math.calculateH(guiState);
+    // std.debug.print("{any}\n", .{guiState.terrainValues.h});
 
     zgui.backend.newFrame(
         app.gctx.swapchain_descriptor.width,
@@ -151,6 +153,8 @@ fn update(
             _ = zgui.comboFromEnum("Måltyp", &guiState.weaponValues.target_enum_value);
         }
     }
+
+    // if (!guiState.validate()) return;
 
     { // Lines
         const origin = .{ .x = 400, .y = 750 };
