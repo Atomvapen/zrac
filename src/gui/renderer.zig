@@ -5,12 +5,12 @@ const zgpu = @import("zgpu");
 const wgpu = zgpu.wgpu;
 const zgui = @import("zgui");
 
+pub const guiState = @import("../data/state.zig");
+const geo = @import("../math/geo.zig");
+const math = @import("../math/risk.zig");
+
 const window_title = "ZRAC";
 const window_size = .{ .width = 800, .height = 800 };
-
-// const weapon = @import("../data/weapon.zig");
-// const ammunition = @import("../data/ammunition.zig");
-const guiState = @import("state.zig");
 
 const State = struct {
     gctx: *zgpu.GraphicsContext,
@@ -44,7 +44,6 @@ fn create(
     };
 
     zgui.init(allocator);
-    // defer zgui.deinit();
 
     zgui.backend.init(
         window,
@@ -52,31 +51,29 @@ fn create(
         @intFromEnum(zgpu.GraphicsContext.swapchain_format),
         @intFromEnum(wgpu.TextureFormat.undef),
     );
-    // defer zgui.backend.deinit();
 
     zgui.getStyle().scaleAllSizes(scale_factor);
 
     const draw_list = zgui.createDrawList();
 
-    const demo = try allocator.create(State);
-    demo.* = .{
+    const app = try allocator.create(State);
+    app.* = .{
         .gctx = gctx,
         .draw_list = draw_list,
     };
 
-    return demo;
+    return app;
 }
 
 fn destroy(
     allocator: std.mem.Allocator,
-    demo: *State,
+    app: *State,
 ) void {
     zgui.backend.deinit();
-    // zgui.plot.deinit();
-    zgui.destroyDrawList(demo.draw_list);
+    zgui.destroyDrawList(app.draw_list);
     zgui.deinit();
-    demo.gctx.destroy(allocator);
-    allocator.destroy(demo);
+    app.gctx.destroy(allocator);
+    allocator.destroy(app);
 }
 
 pub fn main(
@@ -97,33 +94,27 @@ pub fn main(
     defer window.destroy();
     window.setSizeLimits(800, 800, 800, 800);
 
-    const demo = try create(allocator, window);
-    defer destroy(allocator, demo);
+    const app = try create(allocator, window);
+    defer destroy(allocator, app);
 
     while (!window.shouldClose() and window.getKey(.escape) != .press) {
         zglfw.pollEvents();
-        try update(demo);
-        draw(demo);
+        try update(app);
+        draw(app);
     }
 }
 
-// const factor = enum {
-//     I,
-//     II,
-//     III,
-// };
-
-// const targetType = enum {
-//     Fast,
-//     Flyttbart,
-// };
-
 fn update(
-    demo: *State,
+    app: *State,
 ) !void {
+    // guiState.update();
+
+    guiState.terrainValues.h = math.calculateH(guiState);
+    std.debug.print("{any}\n", .{guiState.terrainValues.h});
+
     zgui.backend.newFrame(
-        demo.gctx.swapchain_descriptor.width,
-        demo.gctx.swapchain_descriptor.height,
+        app.gctx.swapchain_descriptor.width,
+        app.gctx.swapchain_descriptor.height,
     );
 
     // Set the starting window position and size to custom values
@@ -132,30 +123,17 @@ fn update(
 
     if (zgui.begin("Riskprofil", .{
         .flags = .{
-            // .menu_bar = false,
             .no_move = true,
             .no_resize = true,
             .always_auto_resize = true,
         },
     })) {
-        { // Save
-            // const static = struct {
-            //     var showLines: bool = true;
-            // };
+        { // Show
             _ = zgui.checkbox("Visa", .{ .v = &guiState.show.showLines });
         }
 
-        //if (zgui.collapsingHeader("Widgets: Input with Keyboard", .{}))
         zgui.separatorText("Terrängvärden");
         { // Values
-            // const static = struct {
-            //     var interceptingForest: bool = false;
-            //     var factor_enum_value: factor = .I;
-            //     var Amin: f32 = 0;
-            //     var Amax: f32 = 0;
-            //     var f: f32 = 0;
-            //     var forestDist: f32 = 0;
-            // };
             _ = zgui.comboFromEnum("Faktor", &guiState.terrainValues.factor_enum_value);
             _ = zgui.inputFloat("Amin", .{ .v = &guiState.terrainValues.Amin });
             _ = zgui.inputFloat("Amax", .{ .v = &guiState.terrainValues.Amax });
@@ -167,33 +145,33 @@ fn update(
         }
 
         zgui.separatorText("Vapenvärden");
-        //if (zgui.collapsingHeader("Vapen", .{}))
         { // Weapons & Ammunition Comboboxes
-            // const static = struct {
-            //     var weapon_enum_value: weapon.Models = .AK5;
-            //     var amm_enum_values: ammunition.Calibers = .hagelptr;
-            //     var target_enum_value: targetType = .Fast;
-            // };
-
             _ = zgui.comboFromEnum("Vapentyp", &guiState.weaponValues.weapon_enum_value);
             _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values);
             _ = zgui.comboFromEnum("Måltyp", &guiState.weaponValues.target_enum_value);
         }
     }
+    {
+        const origin = .{ .x = 400, .y = 750 };
+        const draw_list = zgui.getBackgroundDrawList();
 
-    const draw_list = zgui.getBackgroundDrawList();
-    draw_list.addPolyline(
-        &.{ .{ 100, 700 }, .{ 200, 600 }, .{ 300, 700 }, .{ 400, 600 } },
-        .{ .col = zgui.colorConvertFloat3ToU32([_]f32{ 0x11.0 / 0xff.0, 0xaa.0 / 0xff.0, 0 }), .thickness = 7 },
-    );
-
+        var h: geo.Line = try geo.Line.init(geo.Vector2{
+            .x = origin.x,
+            .y = origin.y,
+        }, geo.Vector2{
+            .x = origin.x,
+            .y = origin.y - guiState.terrainValues.h,
+        }, false, undefined);
+        h.drawLine(draw_list);
+        h.drawText("h", -25, 0, 0xff_00_00_ff, draw_list);
+    }
     zgui.end();
 }
 
 fn draw(
-    demo: *State,
+    app: *State,
 ) void {
-    const gctx = demo.gctx;
+    const gctx = app.gctx;
 
     const swapchain_texv = gctx.swapchain.getCurrentTextureView();
     defer swapchain_texv.release();
