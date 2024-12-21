@@ -84,7 +84,7 @@ pub const Line = struct {
             .p1 = .{ self.start.x, self.start.y },
             .p2 = .{ self.end.x, self.end.y },
             .col = zgui.colorConvertFloat3ToU32([_]f32{ 1, 0, 1 }),
-            .thickness = 2.0,
+            .thickness = 1.0,
         });
     }
 };

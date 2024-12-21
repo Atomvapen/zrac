@@ -9,7 +9,7 @@ pub const gui = @import("../data/state.zig");
 pub var guiState = gui.riskProfile.init();
 
 const geo = @import("../math/geo.zig");
-const math = @import("../math/risk.zig");
+// const math = @import("../math/risk.zig");
 
 const window_title = "ZRAC";
 const window_size = .{ .width = 800, .height = 800 };
@@ -106,73 +106,6 @@ pub fn main(
     }
 }
 
-fn update(
-    app: *State,
-) !void {
-    guiState.update();
-
-    // guiState.terrainValues.h = math.calculateH(guiState);
-    // std.debug.print("{any}\n", .{guiState.terrainValues.h});
-
-    zgui.backend.newFrame(
-        app.gctx.swapchain_descriptor.width,
-        app.gctx.swapchain_descriptor.height,
-    );
-
-    // Set the starting window position and size to custom values
-    zgui.setNextWindowPos(.{ .x = 20.0, .y = 20.0, .cond = .first_use_ever });
-    zgui.setNextWindowSize(.{ .w = -1.0, .h = -1.0, .cond = .first_use_ever });
-
-    if (zgui.begin("Riskprofil", .{
-        .flags = .{
-            .no_move = true,
-            .no_resize = true,
-            .always_auto_resize = true,
-        },
-    })) {
-        { // Show
-            _ = zgui.checkbox("Visa", .{ .v = &guiState.show.showLines });
-        }
-
-        zgui.separatorText("Terrängvärden");
-        { // Values
-            _ = zgui.comboFromEnum("Faktor", &guiState.terrainValues.factor_enum_value);
-            _ = zgui.inputFloat("Amin", .{ .v = &guiState.terrainValues.Amin });
-            _ = zgui.inputFloat("Amax", .{ .v = &guiState.terrainValues.Amax });
-            _ = zgui.inputFloat("f", .{ .v = &guiState.terrainValues.f });
-            zgui.setNextItemWidth(90);
-            _ = zgui.inputFloat("Skogsavstånd", .{ .v = &guiState.terrainValues.forestDist });
-            zgui.sameLine(.{});
-            _ = zgui.checkbox("Uppfångande", .{ .v = &guiState.terrainValues.interceptingForest });
-        }
-
-        zgui.separatorText("Vapenvärden");
-        { // Weapons & Ammunition Comboboxes
-            _ = zgui.comboFromEnum("Vapentyp", &guiState.weaponValues.weapon_enum_value);
-            _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values);
-            _ = zgui.comboFromEnum("Måltyp", &guiState.weaponValues.target_enum_value);
-        }
-    }
-
-    // if (!guiState.validate()) return;
-
-    { // Lines
-        const origin = .{ .x = 400, .y = 750 };
-        const draw_list = zgui.getBackgroundDrawList();
-
-        var h: geo.Line = try geo.Line.init(geo.Vector2{
-            .x = origin.x,
-            .y = origin.y,
-        }, geo.Vector2{
-            .x = origin.x,
-            .y = origin.y - guiState.terrainValues.h,
-        }, false, undefined);
-        h.drawLine(draw_list);
-        h.drawText("h", -25, 0, 0xff_00_00_ff, draw_list);
-    }
-    zgui.end();
-}
-
 fn draw(
     app: *State,
 ) void {
@@ -197,4 +130,78 @@ fn draw(
 
     gctx.submit(&.{commands});
     _ = gctx.present();
+}
+
+fn update(
+    app: *State,
+) !void {
+    guiState.update();
+
+    zgui.backend.newFrame(
+        app.gctx.swapchain_descriptor.width,
+        app.gctx.swapchain_descriptor.height,
+    );
+
+    // Set the starting window position and size to custom values
+    zgui.setNextWindowPos(.{ .x = 20.0, .y = 20.0, .cond = .first_use_ever });
+    zgui.setNextWindowSize(.{ .w = -1.0, .h = -1.0, .cond = .first_use_ever });
+
+    if (zgui.begin("Riskprofil", .{
+        .flags = .{
+            .no_move = true,
+            .no_resize = true,
+            .always_auto_resize = true,
+        },
+    })) {
+        { // Show
+            _ = zgui.checkbox("Visa", .{ .v = &guiState.show });
+        }
+
+        zgui.separatorText("Terrängvärden");
+        { // Values
+            _ = zgui.comboFromEnum("Faktor", &guiState.terrainValues.factor_enum_value);
+            _ = zgui.inputFloat("Amin", .{ .v = &guiState.terrainValues.Amin });
+            _ = zgui.inputFloat("Amax", .{ .v = &guiState.terrainValues.Amax });
+            _ = zgui.inputFloat("f", .{ .v = &guiState.terrainValues.f });
+            zgui.setNextItemWidth(90);
+            _ = zgui.inputFloat("Skogsavstånd", .{ .v = &guiState.terrainValues.forestDist });
+            zgui.sameLine(.{});
+            _ = zgui.checkbox("Uppfångande", .{ .v = &guiState.terrainValues.interceptingForest });
+        }
+
+        zgui.separatorText("Vapenvärden");
+        { // Weapons & Ammunition Comboboxes
+            _ = zgui.comboFromEnum("Vapentyp", &guiState.weaponValues.weapon_enum_value);
+            _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values);
+            _ = zgui.comboFromEnum("Måltyp", &guiState.weaponValues.target_enum_value);
+        }
+    }
+
+    if (!guiState.validate()) return;
+
+    { // Lines
+        const origin = .{ .x = 400, .y = 750 };
+        const draw_list = zgui.getBackgroundDrawList();
+
+        var h: geo.Line = try geo.Line.init(geo.Vector2{
+            .x = origin.x,
+            .y = origin.y,
+        }, geo.Vector2{
+            .x = origin.x,
+            .y = origin.y - guiState.terrainValues.h,
+        }, false, undefined);
+        h.drawLine(draw_list);
+        h.drawText("h", -10, 0, 0xff_00_00_ff, draw_list);
+
+        var v: geo.Line = try geo.Line.init(geo.Vector2{
+            .x = origin.x,
+            .y = origin.y,
+        }, geo.Vector2{
+            .x = origin.x,
+            .y = origin.y - guiState.terrainValues.h,
+        }, true, 100);
+        v.drawLine(draw_list);
+        v.drawText("v", -10, 0, 0xff_00_00_ff, draw_list);
+    }
+    zgui.end();
 }
