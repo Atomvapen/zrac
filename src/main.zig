@@ -1,9 +1,9 @@
 const std = @import("std");
-const gui = @import("gui/render.zig");
+const renderer = @import("gui/renderer.zig");
 
-pub const std_options = std.Options{
-    .log_level = .debug,
-};
+// pub const std_options = std.Options{
+//     .log_level = .debug,
+// };
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -11,8 +11,5 @@ pub fn main() !void {
 
     const allocator = gpa.allocator();
 
-    try gui.init();
-    defer gui.deinit();
-
-    try gui.main(allocator);
+    try renderer.main(allocator);
 }

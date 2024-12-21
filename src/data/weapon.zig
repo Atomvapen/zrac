@@ -1,5 +1,13 @@
 const std = @import("std");
 
+pub const Models = enum {
+    AK5,
+    AG90,
+    KSP58,
+    KSP88,
+    KSP90,
+};
+
 pub const names: [*:0]const u8 = "AK5C;KSP58;KSP58_Benstod";
 
 pub const Model = struct {

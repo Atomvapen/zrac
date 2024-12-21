@@ -1,5 +1,25 @@
 pub const weapon = @import("weapon.zig").Model;
 
+pub const Calibers = enum {
+    invalid,
+    hagelptr,
+    long_rifle_22,
+    ptr556_sk_prj_slprj,
+    ptr65_sk_prj_m41,
+    ptr762_sk_10b_prj_slprj,
+    ptr762_sk_10_pprj,
+    ptr762_sk_prick_lh,
+    ptr762_sk_prick,
+    ptr762_sk_39_prj,
+    ptr762_sk_95_prj_slprj,
+    ptr9_sk_39b,
+    ptr9_9_39_ovnprj_11,
+    ptr9_sk_67_slprj,
+    ptr127_sk_45_nprj_slnprj,
+    ptr27_sk_nprj_prick_slprj_prick,
+    ptr127_sk_45_pbrsprj_brsprj_slbrsprj,
+};
+
 pub const names: [*:0]const u8 = "Hagelptr; 22 long rifle;5,56 mm sk ptr 5/5B prj/slprj;6,5 mm sk ptr prj m/41;7,62 mm sk ptr 10(B) prj/slprj;7,62 mm sk ptr 10 PPRJ;7,62 mm sk ptr PRICK LH;7,62 mm sk ptr PRICK;7,62 mm sk ptr 39 prj;7,62 mm sk ptr 95 prj/slprj;9 mm sk ptr m/39B;9 mm 9/39 övnprj 11;9 mm sk ptr m/67 slprj;12,7 mm sk ptr m/45 nprj och slnprj;12,7 mm sk ptr nprj prick och slprj prick;12,7 mm sk ptr m/45 pbrsprj, brsprj och slbrsprj";
 
 pub const Caliber = struct {
@@ -27,6 +47,8 @@ pub const Caliber = struct {
     pub const ptr127_sk_45_pbrsprj_brsprj_slbrsprj: Caliber = Caliber{ .Dmax = 7000, .y = undefined, .c = 400, .id = 15 };
 };
 
+
+//union för att ge ut rätt enum?
 pub fn getValidNames(model: weapon) [*:0]const u8 {
     return switch (model.id) {
         0 => "5,56 mm sk ptr 5/5B prj/slprj",

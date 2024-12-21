@@ -12,15 +12,20 @@
 ## Features
 
 * 100% written in [ZIG] (0.14.0-dev.2183+ee9f00d67)
-* GUI from [Raylib-ZIG] 
+* GUI from [zgui] 
 * Compliant with and based upon [SÄKR EHV/PV]
-  
+
+---
+
 ## Dependencies
 
-* [Raylib-ZIG] 
+* [zgui] 
+
+---
 
 ## Roadmap
 
+### Future
 * [ ] Save/load function (JSON)
 * [ ] Config
 * [ ]  Weapon/Ammunition inprovement
@@ -29,16 +34,25 @@
   * [ ] Better getName functions
   * [ ] Amm in weapons
   * [ ] Merge?
-* [ ] Move from Raylib -> zgui (Remove dependencies? Move to own SDL2/3 lib)
+
 * [ ] Whole area implementation
 * [ ] Redo MenuSystem
 * [ ] Better Validation
 * [ ] Documentation
+
+### Ongoing
+* [X] Move from Raylib to zgui
+
+### Completed
 * [X] Restructure filesystem
+
+---
 
 ## License
 
 This project is licensed under the [GPL-3.0 license].
+
+---
 
 ### Contribution
 
@@ -48,6 +62,6 @@ terms or conditions.
 
 [ZIG]:https://ziglang.org/
 [GPL-3.0 license]:https://github.com/Atomvapen/ZRAC/blob/next/LICENSE
-[Raylib-ZIG]:https://github.com/Not-Nik/raylib-zig
+[zgui]:https://github.com/zig-gamedev/zgui
 [SÄKR EHV/PV]:https://www.forsvarsmakten.se/siteassets/2-om-forsvarsmakten/dokument/reglementen/sakr-ehv-pv.pdf
 
