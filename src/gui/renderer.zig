@@ -1,15 +1,10 @@
 const std = @import("std");
-
 const zglfw = @import("zglfw");
 const zgpu = @import("zgpu");
-const wgpu = zgpu.wgpu;
 const zgui = @import("zgui");
-
-pub const gui = @import("../data/state.zig");
-pub var guiState = gui.riskProfile.init();
-
 const geo = @import("../math/geo.zig");
-// const math = @import("../math/risk.zig");
+
+var guiState = @import("../data/state.zig").riskProfile.init();
 
 const window_title = "ZRAC";
 const window_size = .{ .width = 800, .height = 800 };
@@ -51,7 +46,7 @@ fn create(
         window,
         gctx.device,
         @intFromEnum(zgpu.GraphicsContext.swapchain_format),
-        @intFromEnum(wgpu.TextureFormat.undef),
+        @intFromEnum(zgpu.wgpu.TextureFormat.undef),
     );
 
     zgui.getStyle().scaleAllSizes(scale_factor);
@@ -118,7 +113,7 @@ fn draw(
         const encoder = gctx.device.createCommandEncoder(null);
         defer encoder.release();
 
-        { // Gui pass.
+        { // GUI pass
             const pass = zgpu.beginRenderPassSimple(encoder, .load, swapchain_texv, null, null, null);
             defer zgpu.endReleasePass(pass);
             zgui.backend.draw(pass);
@@ -235,7 +230,8 @@ fn update(
             .x = v.end.x,
             .y = v.end.y,
         }, false, undefined);
-        hv.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
+        // hv.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
+        hv.drawCircleSector(50, draw_list);
 
         // ch
         var ch: geo.Line = try geo.Line.init(geo.Vector2{
@@ -288,7 +284,7 @@ fn update(
 
             q2.endAtIntersection(c);
             q2.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
-            q2.drawText("q2", 25, 0, .{ 1.0, 1.0, 1.0 }, draw_list);
+            q2.drawText("q2", 10, 0, .{ 1.0, 1.0, 1.0 }, draw_list);
         } else {
             ch.endAtIntersection(q1);
             // ch.drawLine();

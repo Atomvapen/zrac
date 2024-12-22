@@ -1,6 +1,5 @@
 const weapon = @import("weapon.zig");
 const ammunition = @import("ammunition.zig");
-// const state = @import("../gui/renderer.zig").guiState;
 const math = @import("../math/risk.zig");
 const std = @import("std");
 

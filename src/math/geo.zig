@@ -44,12 +44,12 @@ pub const Line = struct {
     }
 
     pub fn drawCircleSector(self: *Line, radius: f32, draw_list: anytype) void {
-        draw_list.pathArcTo(.{
+        draw_list.addCircle(.{
             .p = .{ self.start.x, self.start.y },
             .r = radius,
-            .amin = 1,
-            .amax = 1,
-            .num_segments = 5,
+            .col = 1,
+            .num_segments = 0,
+            .thickness = 1.0,
         });
         // rl.drawRingLines(
         //     .{ .x = self.start.x, .y = self.start.y },
