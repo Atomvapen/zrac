@@ -4,6 +4,11 @@ const zgui = @import("zgui");
 pub const Vector2 = struct {
     x: f32,
     y: f32,
+
+    pub fn scale(self: *Vector2, factor: f32) void {
+        self.x *= factor;
+        self.y *= factor;
+    }
 };
 
 pub const Line = struct {
@@ -20,10 +25,8 @@ pub const Line = struct {
     }
 
     pub fn scale(self: *Line, factor: f32) void {
-        self.end.x *= factor;
-        self.end.y *= factor;
-        self.start.x *= factor;
-        self.start.y *= factor;
+        self.start.scale(factor);
+        self.end.scale(factor);
     }
 
     pub fn endAtIntersection(self: *Line, line: Line) void {

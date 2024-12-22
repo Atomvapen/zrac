@@ -172,7 +172,7 @@ fn update(
 
         zgui.separatorText("Vapenvärden");
         { // Weapons & Ammunition Comboboxes
-            // zgui.setNextItemWidth(90);
+            // zgui.setNextItemWidth(120);
             _ = zgui.comboFromEnum("Vapentyp", &guiState.weaponValues.weapon_enum_value);
             // zgui.sameLine(.{});
             // _ = zgui.checkbox("Benstöd", .{ .v = &guiState.weaponValues.stead });
@@ -237,15 +237,23 @@ fn update(
         }, false, undefined);
         hv.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
 
-        // // ch
-        // var ch: geo.Line = try geo.Line.init(geo.Vector2{
-        //     .x = v.end.x,
-        //     .y = v.end.y,
-        // }, geo.Vector2{
-        //     .x = v.end.x - 30.0,
-        //     .y = v.end.y - 30.0,
-        // }, true, guiState.ch);
-        // ch.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
+        // ch
+        var ch: geo.Line = try geo.Line.init(geo.Vector2{
+            .x = v.end.x,
+            .y = v.end.y,
+        }, geo.Vector2{
+            .x = v.end.x - 1,
+            .y = v.end.y - 100,
+        }, true, 3200 - 1000);
+
+        // q1
+        var q1: geo.Line = try geo.Line.init(geo.Vector2{
+            .x = geo.calculateXfromAngle(@intFromFloat(guiState.terrainValues.Amin - guiState.terrainValues.f), v.angle) + origin.x,
+            .y = origin.y - guiState.terrainValues.Amin + guiState.terrainValues.f,
+        }, geo.Vector2{
+            .x = v.end.x,
+            .y = v.end.y,
+        }, true, guiState.q1);
 
         if (guiState.terrainValues.forestDist > 0) {
             // forestMin
@@ -266,7 +274,46 @@ fn update(
                 .x = v.end.x,
                 .y = v.end.y,
             }, true, guiState.q2);
+
+            var c: geo.Line = try geo.getParallelLine(v, guiState.c);
+
+            c.startAtIntersection(q2);
+
+            ch.endAtIntersection(c);
+            ch.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
+            ch.drawText("ch", -5, -20, .{ 1.0, 1.0, 1.0 }, draw_list);
+
+            c.endAtIntersection(ch);
+            c.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
+
+            q2.endAtIntersection(c);
             q2.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
+            q2.drawText("q2", 25, 0, .{ 1.0, 1.0, 1.0 }, draw_list);
+        } else {
+            ch.endAtIntersection(q1);
+            // ch.drawLine();
+            // ch.drawText("ch", -5, -20, 30);
+
+            q1.endAtIntersection(ch);
+            // q1.drawLine();
+            // q1.drawText("q1", 15, 0, 30);
+
+            // c
+            var c: geo.Line = try geo.getParallelLine(v, guiState.c);
+            c.startAtIntersection(q1);
+            c.endAtIntersection(ch);
+            // c.drawLine();
+
+            // if (guiState.terrainValues.factor_enum_value > 0) {
+            q1.end = c.start;
+            ch.end = c.end;
+            c.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
+            // }
+
+            q1.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
+            q1.drawText("q1", 15, 0, .{ 1.0, 1.0, 1.0 }, draw_list);
+            ch.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
+            ch.drawText("ch", -5, -20, .{ 1.0, 1.0, 1.0 }, draw_list);
         }
     }
     zgui.end();
