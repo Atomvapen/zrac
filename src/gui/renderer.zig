@@ -188,8 +188,8 @@ fn update(
             .x = origin.x,
             .y = origin.y - guiState.terrainValues.h,
         }, false, undefined);
-        h.drawLine(draw_list);
-        h.drawText("h", -10, 0, 0xff_00_00_ff, draw_list);
+        h.drawLine(draw_list, [3]f32{ 1.0, 1.0, 1.0 });
+        h.drawText("h", -10, 0, [3]f32{ 1.0, 1.0, 1.0 }, draw_list);
 
         var v: geo.Line = try geo.Line.init(geo.Vector2{
             .x = origin.x,
@@ -197,9 +197,9 @@ fn update(
         }, geo.Vector2{
             .x = origin.x,
             .y = origin.y - guiState.terrainValues.h,
-        }, true, 100);
-        v.drawLine(draw_list);
-        v.drawText("v", -10, 0, 0xff_00_00_ff, draw_list);
+        }, true, guiState.weaponValues.v);
+        v.drawLine(draw_list, [3]f32{ 1.0, 1.0, 1.0 });
+        v.drawText("v", -10, 0, [3]f32{ 1.0, 1.0, 1.0 }, draw_list);
     }
     zgui.end();
 }

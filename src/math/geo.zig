@@ -57,33 +57,26 @@ pub const Line = struct {
         comptime text: []const u8,
         textOffsetX: f32,
         textOffsetY: f32,
-        color: u32,
+        color: [3]f32,
         draw_list: zgui.DrawList,
     ) void {
         draw_list.addText(
             .{ self.end.x + textOffsetX, self.end.y + textOffsetY },
-            color,
+            zgui.colorConvertFloat3ToU32(color),
             text,
             .{},
         );
-
-        // rl.drawText(
-        //     text,
-        //     @as(i32, @intFromFloat(self.end.x)) + textOffsetX,
-        //     @as(i32, @intFromFloat(self.end.y)) + textOffsetY,
-        //     fontSize,
-        //     rl.Color.black,
-        // );
     }
 
     pub fn drawLine(
         self: *Line,
         draw_list: zgui.DrawList,
+        color: [3]f32,
     ) void {
         draw_list.addLine(.{
             .p1 = .{ self.start.x, self.start.y },
             .p2 = .{ self.end.x, self.end.y },
-            .col = zgui.colorConvertFloat3ToU32([_]f32{ 1, 0, 1 }),
+            .col = zgui.colorConvertFloat3ToU32(color),
             .thickness = 1.0,
         });
     }
@@ -107,6 +100,7 @@ fn rotateEndVector(start: Vector2, end: Vector2, angle: f32) !Vector2 {
         .y = (dx * sinAngle) + (dy * cosAngle) + start.y,
     };
 }
+
 /// Calculates the intersection point of two line segments, if it exists.
 ///
 /// The function determines the point where two lines intersect, based on their

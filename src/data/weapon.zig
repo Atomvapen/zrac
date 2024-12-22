@@ -2,13 +2,11 @@ const std = @import("std");
 
 pub const Models = enum {
     AK5,
-    AG90,
+    KSPMBS,
     KSP58,
     KSP88,
     KSP90,
 };
-
-pub const names: [*:0]const u8 = "AK5C;KSP58;KSP58_Benstod";
 
 pub const Model = struct {
     v_still: f32,
@@ -25,11 +23,12 @@ pub const Model = struct {
     pub const KSP88MMS: Model = Model{ .v_still = 200.0, .v_moveable = 300.0, .id = 5 };
 };
 
-pub fn getWeaponType(value: i32) Model {
+pub fn getWeaponType(value: Models) Model {
     return switch (value) {
-        0 => Model.EHV,
-        1 => Model.KSP58,
-        2 => Model.KSPMBS,
-        else => Model.Invalid,
+        .AK5 => Model.EHV,
+        .KSPMBS => Model.KSPMBS,
+        .KSP58 => Model.KSP58,
+        .KSP88 => Model.KSP58,
+        .KSP90 => Model.KSP90,
     };
 }

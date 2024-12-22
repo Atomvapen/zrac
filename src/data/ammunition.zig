@@ -1,26 +1,26 @@
 pub const weapon = @import("weapon.zig").Model;
 pub const Models = @import("weapon.zig").Models;
 
-pub fn getEnum(model: Models) type {
-    return switch (model) {
-        Models.AK5 => ehvCalibers,
-        else => ksp58Calibers,
-    };
-}
+// pub fn getEnum(model: Models) type {
+//     return switch (model) {
+//         Models.AK5 => ehvCalibers,
+//         else => ksp58Calibers,
+//     };
+// }
 
-pub const ksp58Calibers = enum {
-    ptr762_sk_10b_prj_slprj,
-    ptr762_sk_10_pprj,
-    ptr762_sk_prick_lh,
-    ptr762_sk_prick,
-    ptr762_sk_39_prj,
-    ptr762_sk_95_prj_slprj,
-};
+// pub const ksp58Calibers = enum {
+//     ptr762_sk_10b_prj_slprj,
+//     ptr762_sk_10_pprj,
+//     ptr762_sk_prick_lh,
+//     ptr762_sk_prick,
+//     ptr762_sk_39_prj,
+//     ptr762_sk_95_prj_slprj,
+// };
 
-pub const ehvCalibers = enum {
-    ptr556_sk_prj_slprj,
-    ptr65_sk_prj_m41,
-};
+// pub const ehvCalibers = enum {
+//     ptr556_sk_prj_slprj,
+//     ptr65_sk_prj_m41,
+// };
 
 pub const Calibers = enum {
     hagelptr,
@@ -40,8 +40,6 @@ pub const Calibers = enum {
     ptr27_sk_nprj_prick_slprj_prick,
     ptr127_sk_45_pbrsprj_brsprj_slbrsprj,
 };
-
-pub const names: [*:0]const u8 = "Hagelptr; 22 long rifle;5,56 mm sk ptr 5/5B prj/slprj;6,5 mm sk ptr prj m/41;7,62 mm sk ptr 10(B) prj/slprj;7,62 mm sk ptr 10 PPRJ;7,62 mm sk ptr PRICK LH;7,62 mm sk ptr PRICK;7,62 mm sk ptr 39 prj;7,62 mm sk ptr 95 prj/slprj;9 mm sk ptr m/39B;9 mm 9/39 övnprj 11;9 mm sk ptr m/67 slprj;12,7 mm sk ptr m/45 nprj och slnprj;12,7 mm sk ptr nprj prick och slprj prick;12,7 mm sk ptr m/45 pbrsprj, brsprj och slbrsprj";
 
 pub const Caliber = struct {
     Dmax: f32,
@@ -68,33 +66,23 @@ pub const Caliber = struct {
     pub const ptr127_sk_45_pbrsprj_brsprj_slbrsprj: Caliber = Caliber{ .Dmax = 7000, .y = undefined, .c = 400, .id = 15 };
 };
 
-//union för att ge ut rätt enum?
-pub fn getValidNames(model: weapon) [*:0]const u8 {
-    return switch (model.id) {
-        0 => "5,56 mm sk ptr 5/5B prj/slprj",
-        1, 2 => "7,62 mm sk ptr 10(B) prj/slprj;7,62 mm sk ptr 10 PPRJ;7,62 mm sk ptr PRICK LH;7,62 mm sk ptr PRICK;7,62 mm sk ptr 39 prj;7,62 mm sk ptr 95 prj/slprj",
-        else => "",
-    };
-}
-
-pub fn getAmmunitionType(value: i32) Caliber {
+pub fn getAmmunitionType(value: Calibers) Caliber {
     return switch (value) {
-        0 => Caliber.hagelptr,
-        1 => Caliber.long_rifle_22,
-        2 => Caliber.ptr556_sk_prj_slprj,
-        3 => Caliber.ptr65_sk_prj_m41,
-        4 => Caliber.ptr762_sk_10b_prj_slprj,
-        5 => Caliber.ptr762_sk_10_pprj,
-        6 => Caliber.ptr762_sk_prick_lh,
-        7 => Caliber.ptr762_sk_prick,
-        8 => Caliber.ptr762_sk_39_prj,
-        9 => Caliber.ptr762_sk_95_prj_slprj,
-        10 => Caliber.ptr9_sk_39b,
-        11 => Caliber.ptr9_9_39_ovnprj_11,
-        12 => Caliber.ptr9_sk_67_slprj,
-        13 => Caliber.ptr127_sk_45_nprj_slnprj,
-        14 => Caliber.ptr27_sk_nprj_prick_slprj_prick,
-        15 => Caliber.ptr127_sk_45_pbrsprj_brsprj_slbrsprj,
-        else => unreachable,
+        .hagelptr => Caliber.hagelptr,
+        .long_rifle_22 => Caliber.long_rifle_22,
+        .ptr556_sk_prj_slprj => Caliber.ptr556_sk_prj_slprj,
+        .ptr65_sk_prj_m41 => Caliber.ptr65_sk_prj_m41,
+        .ptr762_sk_10b_prj_slprj => Caliber.ptr762_sk_10b_prj_slprj,
+        .ptr762_sk_10_pprj => Caliber.ptr762_sk_10_pprj,
+        .ptr762_sk_prick_lh => Caliber.ptr762_sk_prick_lh,
+        .ptr762_sk_prick => Caliber.ptr762_sk_prick,
+        .ptr762_sk_39_prj => Caliber.ptr762_sk_39_prj,
+        .ptr762_sk_95_prj_slprj => Caliber.ptr762_sk_95_prj_slprj,
+        .ptr9_sk_39b => Caliber.ptr9_sk_39b,
+        .ptr9_9_39_ovnprj_11 => Caliber.ptr9_9_39_ovnprj_11,
+        .ptr9_sk_67_slprj => Caliber.ptr9_sk_67_slprj,
+        .ptr127_sk_45_nprj_slnprj => Caliber.ptr127_sk_45_nprj_slnprj,
+        .ptr27_sk_nprj_prick_slprj_prick => Caliber.ptr27_sk_nprj_prick_slprj_prick,
+        .ptr127_sk_45_pbrsprj_brsprj_slbrsprj => Caliber.ptr127_sk_45_pbrsprj_brsprj_slbrsprj,
     };
 }
