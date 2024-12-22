@@ -1,5 +1,3 @@
-const std = @import("std");
-
 pub const Models = enum {
     AK5,
     KSPMBS,
@@ -28,7 +26,7 @@ pub fn getWeaponType(value: Models) Model {
         .AK5 => Model.EHV,
         .KSPMBS => Model.KSPMBS,
         .KSP58 => Model.KSP58,
-        .KSP88 => Model.KSP58,
+        .KSP88 => Model.KSP88MMS,
         .KSP90 => Model.KSP90,
     };
 }

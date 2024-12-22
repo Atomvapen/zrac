@@ -1,5 +1,5 @@
-pub const weapon = @import("weapon.zig").Model;
-pub const Models = @import("weapon.zig").Models;
+// pub const weapon = @import("weapon.zig").Model;
+// pub const Models = @import("weapon.zig").Models;
 
 // pub fn getEnum(model: Models) type {
 //     return switch (model) {

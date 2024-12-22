@@ -151,6 +151,7 @@ fn update(
             .no_move = true,
             .no_resize = true,
             .always_auto_resize = true,
+            // .no_collapse = true,
         },
     })) {
         { // Show
@@ -171,7 +172,10 @@ fn update(
 
         zgui.separatorText("Vapenvärden");
         { // Weapons & Ammunition Comboboxes
+            // zgui.setNextItemWidth(90);
             _ = zgui.comboFromEnum("Vapentyp", &guiState.weaponValues.weapon_enum_value);
+            // zgui.sameLine(.{});
+            // _ = zgui.checkbox("Benstöd", .{ .v = &guiState.weaponValues.stead });
             _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values);
             _ = zgui.comboFromEnum("Måltyp", &guiState.weaponValues.target_enum_value);
         }
@@ -181,6 +185,7 @@ fn update(
         const origin = .{ .x = 400, .y = 750 };
         const draw_list = zgui.getBackgroundDrawList();
 
+        // h
         var h: geo.Line = try geo.Line.init(geo.Vector2{
             .x = origin.x,
             .y = origin.y,
@@ -188,9 +193,10 @@ fn update(
             .x = origin.x,
             .y = origin.y - guiState.terrainValues.h,
         }, false, undefined);
-        h.drawLine(draw_list, [3]f32{ 1.0, 1.0, 1.0 });
-        h.drawText("h", -10, 0, [3]f32{ 1.0, 1.0, 1.0 }, draw_list);
+        h.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
+        h.drawText("h", -10, 0, .{ 1.0, 1.0, 1.0 }, draw_list);
 
+        // v
         var v: geo.Line = try geo.Line.init(geo.Vector2{
             .x = origin.x,
             .y = origin.y,
@@ -198,8 +204,70 @@ fn update(
             .x = origin.x,
             .y = origin.y - guiState.terrainValues.h,
         }, true, guiState.weaponValues.v);
-        v.drawLine(draw_list, [3]f32{ 1.0, 1.0, 1.0 });
-        v.drawText("v", -10, 0, [3]f32{ 1.0, 1.0, 1.0 }, draw_list);
+        v.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
+        v.drawText("v", -10, 0, .{ 1.0, 1.0, 1.0 }, draw_list);
+
+        // Amin
+        var Amin: geo.Line = try geo.Line.init(geo.Vector2{
+            .x = undefined,
+            .y = undefined,
+        }, geo.Vector2{
+            .x = origin.x,
+            .y = origin.y - guiState.terrainValues.Amin,
+        }, false, undefined);
+        Amin.drawText("Amin", -40, 0, .{ 1.0, 1.0, 1.0 }, draw_list);
+
+        //f
+        var f: geo.Line = try geo.Line.init(geo.Vector2{
+            .x = origin.x,
+            .y = origin.y - guiState.terrainValues.Amin + guiState.terrainValues.f,
+        }, geo.Vector2{
+            .x = origin.x,
+            .y = Amin.end.y + guiState.terrainValues.f,
+        }, false, undefined);
+        f.drawText("f", -20, 0, .{ 1.0, 1.0, 1.0 }, draw_list);
+
+        // h -> v
+        var hv: geo.Line = try geo.Line.init(geo.Vector2{
+            .x = h.end.x,
+            .y = h.end.y,
+        }, geo.Vector2{
+            .x = v.end.x,
+            .y = v.end.y,
+        }, false, undefined);
+        hv.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
+
+        // // ch
+        // var ch: geo.Line = try geo.Line.init(geo.Vector2{
+        //     .x = v.end.x,
+        //     .y = v.end.y,
+        // }, geo.Vector2{
+        //     .x = v.end.x - 30.0,
+        //     .y = v.end.y - 30.0,
+        // }, true, guiState.ch);
+        // ch.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
+
+        if (guiState.terrainValues.forestDist > 0) {
+            // forestMin
+            var forestMin: geo.Line = try geo.Line.init(geo.Vector2{
+                .x = undefined,
+                .y = undefined,
+            }, geo.Vector2{
+                .x = origin.x,
+                .y = origin.y - guiState.terrainValues.forestDist,
+            }, false, undefined);
+            forestMin.drawText("forestMin", -65, -70, .{ 1.0, 1.0, 1.0 }, draw_list);
+
+            // q2
+            var q2: geo.Line = try geo.Line.init(geo.Vector2{
+                .x = geo.calculateXfromAngle(@intFromFloat(guiState.terrainValues.forestDist), v.angle) + origin.x,
+                .y = origin.y - guiState.terrainValues.forestDist,
+            }, geo.Vector2{
+                .x = v.end.x,
+                .y = v.end.y,
+            }, true, guiState.q2);
+            q2.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
+        }
     }
     zgui.end();
 }

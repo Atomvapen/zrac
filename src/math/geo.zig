@@ -40,17 +40,24 @@ pub const Line = struct {
         };
     }
 
-    // pub fn drawCircleSector(self: *Line, radius: f32, draw_list: anytype) void {
-    // rl.drawRingLines(
-    //     .{ .x = self.start.x, .y = self.start.y },
-    //     radius,
-    //     radius,
-    //     -90,
-    //     -90 + milsToDegree(self.angle),
-    //     50,
-    //     rl.Color.maroon,
-    // );
-    // }
+    pub fn drawCircleSector(self: *Line, radius: f32, draw_list: anytype) void {
+        draw_list.pathArcTo(.{
+            .p = .{ self.start.x, self.start.y },
+            .r = radius,
+            .amin = 1,
+            .amax = 1,
+            .num_segments = 5,
+        });
+        // rl.drawRingLines(
+        //     .{ .x = self.start.x, .y = self.start.y },
+        //     radius,
+        //     radius,
+        //     -90,
+        //     -90 + milsToDegree(self.angle),
+        //     50,
+        //     rl.Color.maroon,
+        // );
+    }
 
     pub fn drawText(
         self: *Line,

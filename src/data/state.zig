@@ -9,6 +9,10 @@ pub const riskProfile = struct {
     weaponValues: weaponValues2,
 
     show: bool = true,
+    ch: f32 = 1000,
+    q1: f32 = 0,
+    q2: f32 = 0,
+    c: f32 = 0,
 
     pub fn init() riskProfile {
         return riskProfile{
@@ -31,10 +35,10 @@ pub const riskProfile = struct {
     pub const terrainValues2 = struct {
         interceptingForest: bool = false,
         factor_enum_value: factor = .I,
-        Amin: f32 = 0,
-        Amax: f32 = 0,
-        f: f32 = 0,
-        forestDist: f32 = 0,
+        Amin: f32 = 100,
+        Amax: f32 = 200,
+        f: f32 = 50,
+        forestDist: f32 = 100,
         l: f32 = 0,
         h: f32 = 0,
     };
@@ -46,11 +50,15 @@ pub const riskProfile = struct {
         model: weapon.Model = .EHV, //weapon.Model.EHV,
         caliber: ammunition.Caliber = .hagelptr, //ammunition.Caliber.ptr556_sk_prj_slpr
         v: f32 = 0,
+        // stead: bool = false,
     };
 
     pub fn update(self: *riskProfile) void {
         self.terrainValues.l = math.calculateL(self);
         self.terrainValues.h = math.calculateH(self);
+        self.q1 = math.calculateQ1(self);
+        self.q2 = math.calculateQ2(self);
+        self.c = math.calculateC(self);
         self.weaponValues.model = weapon.getWeaponType(self.weaponValues.weapon_enum_value);
         self.weaponValues.caliber = ammunition.getAmmunitionType(self.weaponValues.amm_enum_values);
         self.weaponValues.v = if (self.weaponValues.target_enum_value == .Fast) self.weaponValues.model.v_still else self.weaponValues.model.v_moveable;
@@ -71,12 +79,15 @@ pub const riskProfile = struct {
         if (self.terrainValues.Amin > self.terrainValues.Amax or self.terrainValues.f > self.terrainValues.Amax or self.terrainValues.f > self.terrainValues.Amin) {
             return false;
         }
-        //     if (self.getAmin() > self.getAmax() or self.getAmin() > self.getDmax() or self.getAmax() > self.getDmax()) {
-        //         return false;
-        //     }
+        if (self.terrainValues.forestDist > self.terrainValues.Amax) {
+            return false;
+        }
 
         // Check for negative values
         if (self.terrainValues.Amax < 0 or self.terrainValues.Amin < 0 or self.terrainValues.f < 0 or self.terrainValues.l < 0 or self.terrainValues.h < 0) {
+            return false;
+        }
+        if (self.terrainValues.forestDist < 0) {
             return false;
         }
         //     if (self.getDmax() < 0 or self.getAmax() < 0 or self.getAmin() < 0 or self.getF() < 0 or self.q1 < 0 or self.c < 0 or self.l < 0 or self.h < 0) {
@@ -87,6 +98,10 @@ pub const riskProfile = struct {
         if (self.terrainValues.Amax > std.math.floatMax(f32) or self.terrainValues.Amin > std.math.floatMax(f32) or self.terrainValues.f > std.math.floatMax(f32)) {
             return false;
         }
+        if (self.terrainValues.forestDist > std.math.floatMax(f32)) {
+            return false;
+        }
+
         //     if (self.getAmax() > std.math.floatMax(f32) or self.getAmin() > std.math.floatMax(f32) or self.getDmax() > std.math.floatMax(f32) or self.getF() > std.math.floatMax(f32)) {
         //         return false;
         //     }
