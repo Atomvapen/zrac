@@ -4,6 +4,16 @@ const math = @import("../math/risk.zig");
 const std = @import("std");
 
 pub const riskProfile = struct {
+    const factor = enum {
+        I,
+        II,
+        III,
+    };
+    const targetType = enum {
+        Fast,
+        Flyttbart,
+    };
+
     terrainValues: terrainValues2,
     weaponValues: weaponValues2,
 
@@ -19,17 +29,6 @@ pub const riskProfile = struct {
             .weaponValues = weaponValues2{},
         };
     }
-
-    const factor = enum {
-        I,
-        II,
-        III,
-    };
-
-    const targetType = enum {
-        Fast,
-        Flyttbart,
-    };
 
     pub const terrainValues2 = struct {
         interceptingForest: bool = false,
@@ -49,7 +48,6 @@ pub const riskProfile = struct {
         model: weapon.Model = .EHV, //weapon.Model.EHV,
         caliber: ammunition.Caliber = .hagelptr, //ammunition.Caliber.ptr556_sk_prj_slpr
         v: f32 = 0,
-        // stead: bool = false,
     };
 
     pub fn update(self: *riskProfile) void {
