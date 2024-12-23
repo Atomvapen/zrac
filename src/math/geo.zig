@@ -59,22 +59,6 @@ pub const Line = struct {
         draw_list.addPolyline(points, .{ .col = zgui.colorConvertFloat3ToU32(color), .thickness = 1 });
     }
 
-    fn calculateArcPoints(origin: Vector2, radius: f32, startAngle: f32, endAngle: f32, n: usize) ![]const [2]f32 {
-        var allocator = std.heap.page_allocator;
-        var points = try allocator.alloc([2]f32, n);
-        const step = (startAngle - endAngle) / (@as(f32, @floatFromInt(n - 1)));
-
-        for (0..n) |i| {
-            const angle = startAngle + step * (@as(f32, @floatFromInt(i)));
-            points[i] = .{
-                origin.x + radius * std.math.cos(angle),
-                origin.y - radius * std.math.sin(angle),
-            };
-        }
-
-        return points[0..];
-    }
-
     pub fn drawText(
         self: *Line,
         comptime text: []const u8,
@@ -217,4 +201,20 @@ pub fn calculateXfromAngle(width: i32, angle: f32) f32 {
     const a: f32 = @tan(milsToRadians(angle));
 
     return (b * a);
+}
+
+fn calculateArcPoints(origin: Vector2, radius: f32, startAngle: f32, endAngle: f32, n: usize) ![]const [2]f32 {
+    var allocator = std.heap.page_allocator;
+    var points = try allocator.alloc([2]f32, n);
+    const step = (startAngle - endAngle) / (@as(f32, @floatFromInt(n - 1)));
+
+    for (0..n) |i| {
+        const angle = startAngle + step * (@as(f32, @floatFromInt(i)));
+        points[i] = .{
+            origin.x + radius * std.math.cos(angle),
+            origin.y - radius * std.math.sin(angle),
+        };
+    }
+
+    return points[0..];
 }
