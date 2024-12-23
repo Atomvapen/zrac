@@ -231,7 +231,11 @@ fn update(
             .y = v.end.y,
         }, false, undefined);
         // hv.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
-        hv.drawCircleSector(50, draw_list);
+        try hv.drawCircleSector(
+            guiState.terrainValues.h,
+            draw_list,
+            .{ 1.0, 1.0, 1.0 },
+        );
 
         // ch
         var ch: geo.Line = try geo.Line.init(geo.Vector2{
