@@ -2,6 +2,7 @@ const weapon = @import("weapon.zig");
 const ammunition = @import("ammunition.zig");
 const math = @import("../math/risk.zig");
 const std = @import("std");
+const validation = @import("validation.zig");
 
 pub const riskProfile = struct {
     const factor = enum {
@@ -23,14 +24,7 @@ pub const riskProfile = struct {
     q2: f32 = 0,
     c: f32 = 0,
 
-    pub fn init() riskProfile {
-        return riskProfile{
-            .terrainValues = terrainValues2{},
-            .weaponValues = weaponValues2{},
-        };
-    }
-
-    pub const terrainValues2 = struct {
+    const terrainValues2 = struct {
         interceptingForest: bool = false,
         factor_enum_value: factor = .I,
         Amin: f32 = 100,
@@ -41,7 +35,7 @@ pub const riskProfile = struct {
         h: f32 = 0,
     };
 
-    pub const weaponValues2 = struct {
+    const weaponValues2 = struct {
         weapon_enum_value: weapon.Models = .AK5,
         amm_enum_values: ammunition.Calibers = .hagelptr,
         target_enum_value: targetType = .Fast,
@@ -49,6 +43,13 @@ pub const riskProfile = struct {
         caliber: ammunition.Caliber = .hagelptr, //ammunition.Caliber.ptr556_sk_prj_slpr
         v: f32 = 0,
     };
+
+    pub fn init() riskProfile {
+        return riskProfile{
+            .terrainValues = terrainValues2{},
+            .weaponValues = weaponValues2{},
+        };
+    }
 
     pub fn update(self: *riskProfile) void {
         self.terrainValues.l = math.calculateL(self);
@@ -62,48 +63,6 @@ pub const riskProfile = struct {
     }
 
     pub fn validate(self: *riskProfile) bool {
-        //
-        if (!self.show) {
-            return false;
-        }
-
-        // Check for zero values in Amax
-        if (self.terrainValues.Amax == 0) {
-            return false;
-        }
-
-        // Check for invalid range conditions
-        if (self.terrainValues.Amin > self.terrainValues.Amax or self.terrainValues.f > self.terrainValues.Amax or self.terrainValues.f > self.terrainValues.Amin) {
-            return false;
-        }
-        if (self.terrainValues.forestDist > self.terrainValues.Amax) {
-            return false;
-        }
-
-        // Check for negative values
-        if (self.terrainValues.Amax < 0 or self.terrainValues.Amin < 0 or self.terrainValues.f < 0 or self.terrainValues.l < 0 or self.terrainValues.h < 0) {
-            return false;
-        }
-        if (self.terrainValues.forestDist < 0) {
-            return false;
-        }
-        //     if (self.getDmax() < 0 or self.getAmax() < 0 or self.getAmin() < 0 or self.getF() < 0 or self.q1 < 0 or self.c < 0 or self.l < 0 or self.h < 0) {
-        //         return Rfalse;
-        //     }
-
-        // Check for integer overflow (example check - you can adjust based on your logic)
-        if (self.terrainValues.Amax > std.math.floatMax(f32) or self.terrainValues.Amin > std.math.floatMax(f32) or self.terrainValues.f > std.math.floatMax(f32)) {
-            return false;
-        }
-        if (self.terrainValues.forestDist > std.math.floatMax(f32)) {
-            return false;
-        }
-
-        //     if (self.getAmax() > std.math.floatMax(f32) or self.getAmin() > std.math.floatMax(f32) or self.getDmax() > std.math.floatMax(f32) or self.getF() > std.math.floatMax(f32)) {
-        //         return false;
-        //     }
-
-        // If all checks pass, set the valid flag
-        return true;
+        return validation.validate(self);
     }
 };
