@@ -25,26 +25,7 @@
 
 ## Roadmap
 
-### Future
-* [ ] Save/load function (JSON)
-* [ ] Config
-* [ ]  Weapon/Ammunition inprovement
-  * [ ] Enum/Struct
-  * [ ] Renaming
-  * [ ] Better getName functions
-  * [ ] Amm in weapons
-  * [ ] Merge?
-
-* [ ] Whole area implementation
-* [ ] Redo MenuSystem
-* [ ] Better Validation
-* [ ] Documentation
-
-### Ongoing
-* [X] Move from Raylib to zgui
-
-### Completed
-* [X] Restructure filesystem
+[Roadmap]
 
 ---
 
@@ -60,6 +41,7 @@ Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in ZRAC by you, shall be licensed as GPL-3.0 license, without any additional
 terms or conditions.
 
+[Roadmap]:https://github.com/users/Atomvapen/projects/15/views/1
 [ZIG]:https://ziglang.org/
 [GPL-3.0 license]:https://github.com/Atomvapen/ZRAC/blob/next/LICENSE
 [zgui]:https://github.com/zig-gamedev/zgui
