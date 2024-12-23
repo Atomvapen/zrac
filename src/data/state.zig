@@ -5,12 +5,12 @@ const std = @import("std");
 const validation = @import("validation.zig");
 
 pub const riskProfile = struct {
-    const factor = enum {
+    const factorEnum = enum {
         I,
         II,
         III,
     };
-    const targetType = enum {
+    const targetEnum = enum {
         Fast,
         Flyttbart,
     };
@@ -26,7 +26,7 @@ pub const riskProfile = struct {
 
     const terrainValues2 = struct {
         interceptingForest: bool = false,
-        factor_enum_value: factor = .I,
+        factor: factorEnum = .I,
         Amin: f32 = 100,
         Amax: f32 = 200,
         f: f32 = 50,
@@ -38,7 +38,7 @@ pub const riskProfile = struct {
     const weaponValues2 = struct {
         weapon_enum_value: weapon.Models = .AK5,
         amm_enum_values: ammunition.Calibers = .hagelptr,
-        target_enum_value: targetType = .Fast,
+        target: targetEnum = .Fast,
         model: weapon.Model = .EHV, //weapon.Model.EHV,
         caliber: ammunition.Caliber = .hagelptr, //ammunition.Caliber.ptr556_sk_prj_slpr
         v: f32 = 0,
@@ -59,7 +59,7 @@ pub const riskProfile = struct {
         self.c = math.calculateC(self);
         self.weaponValues.model = weapon.getWeaponType(self.weaponValues.weapon_enum_value);
         self.weaponValues.caliber = ammunition.getAmmunitionType(self.weaponValues.amm_enum_values);
-        self.weaponValues.v = if (self.weaponValues.target_enum_value == .Fast) self.weaponValues.model.v_still else self.weaponValues.model.v_moveable;
+        self.weaponValues.v = if (self.weaponValues.target == .Fast) self.weaponValues.model.v_still else self.weaponValues.model.v_moveable;
     }
 
     pub fn validate(self: *riskProfile) bool {

@@ -155,7 +155,7 @@ fn update(
 
         zgui.separatorText("Terrängvärden");
         { // Values
-            _ = zgui.comboFromEnum("Faktor", &guiState.terrainValues.factor_enum_value);
+            _ = zgui.comboFromEnum("Faktor", &guiState.terrainValues.factor);
             _ = zgui.inputFloat("Amin", .{ .v = &guiState.terrainValues.Amin });
             _ = zgui.inputFloat("Amax", .{ .v = &guiState.terrainValues.Amax });
             _ = zgui.inputFloat("f", .{ .v = &guiState.terrainValues.f });
@@ -172,7 +172,7 @@ fn update(
             // zgui.sameLine(.{});
             // _ = zgui.checkbox("Benstöd", .{ .v = &guiState.weaponValues.stead });
             _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values);
-            _ = zgui.comboFromEnum("Måltyp", &guiState.weaponValues.target_enum_value);
+            _ = zgui.comboFromEnum("Måltyp", &guiState.weaponValues.target);
         }
     }
 
