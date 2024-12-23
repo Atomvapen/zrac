@@ -177,7 +177,7 @@ fn update(
     }
 
     if (guiState.validate()) { // Lines
-        const origin = .{ .x = 400, .y = 750 };
+        const origin = geo.Vector2{ .x = 400, .y = 750 };
         const draw_list = zgui.getBackgroundDrawList();
 
         // h
@@ -230,11 +230,12 @@ fn update(
             .x = v.end.x,
             .y = v.end.y,
         }, false, undefined);
-        // hv.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
         try hv.drawCircleSector(
             guiState.terrainValues.h,
             draw_list,
             .{ 1.0, 1.0, 1.0 },
+            origin,
+            v.angle,
         );
 
         // ch

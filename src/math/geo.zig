@@ -48,50 +48,31 @@ pub const Line = struct {
         radius: f32,
         draw_list: zgui.DrawList,
         color: [3]f32,
+        origin: Vector2,
+        endAngle: f32,
     ) !void {
-        const points = try semicirclePoints(self.start.x, self.start.y, self.end.x, self.end.y, 16, radius);
+        _ = self;
+        const n = 10; // Number of points
+        const startAngle = std.math.pi / 2.0; // Start angle in radians
 
+        const points = try calculateArcPoints(origin, radius, startAngle, startAngle + milsToRadians(endAngle), n);
         draw_list.addPolyline(points, .{ .col = zgui.colorConvertFloat3ToU32(color), .thickness = 1 });
     }
 
-    fn semicirclePoints(x1: f32, y1: f32, x2: f32, y2: f32, n: usize, radius: f32) ![]const [2]f32 {
-        const allocator = std.heap.page_allocator;
-
-        const dx = x2 - x1;
-        const dy = y2 - y1;
-        const distance = std.math.sqrt(dx * dx + dy * dy);
-
-        // Midpoint of the line segment
-        const mx = (x1 + x2) / 2.0;
-        const my = (y1 + y2) / 2.0;
-
-        // Normal vector to the line segment
-        const nx = -dy / distance;
-        const ny = dx / distance;
-
-        // Center of the semicircle
-        // const cx = mx + nx * distance / 2.0;
-        // const cy = my + ny * distance / 2.0;
-        const cx = mx + nx * radius;
-        const cy = my + ny * radius;
-
-        // Allocate space for n points
+    fn calculateArcPoints(origin: Vector2, radius: f32, startAngle: f32, endAngle: f32, n: usize) ![]const [2]f32 {
+        var allocator = std.heap.page_allocator;
         var points = try allocator.alloc([2]f32, n);
-        // const angleStep = 2.0 * std.math.pi / @as(f32, @floatFromInt(n));
-        const angleStep = std.math.pi / @as(f32, @floatFromInt(n - 1));
+        const step = (startAngle - endAngle) / (@as(f32, @floatFromInt(n - 1)));
 
         for (0..n) |i| {
-            const angle = angleStep * @as(f32, @floatFromInt(i));
-            // const px = cx + (x1 - cx) * std.math.cos(angle) + (y1 - cy) * std.math.sin(angle);
-            // const py = cy + (y1 - cy) * std.math.cos(angle) - (x1 - cx) * std.math.sin(angle);
-            // const px = cx + (x1 - cx) * std.math.cos(angle) - (y1 - cy) * std.math.sin(angle);
-            // const py = cy + (x1 - cx) * std.math.sin(angle) + (y1 - cy) * std.math.cos(angle);
-            const px = cx + radius * std.math.cos(angle) - radius * std.math.sin(angle) * nx;
-            const py = cy + radius * std.math.sin(angle) + radius * std.math.cos(angle) * ny;
-            points[i] = .{ px, py };
+            const angle = startAngle + step * (@as(f32, @floatFromInt(i)));
+            points[i] = .{
+                origin.x + radius * std.math.cos(angle),
+                origin.y - radius * std.math.sin(angle),
+            };
         }
 
-        return points;
+        return points[0..];
     }
 
     pub fn drawText(
