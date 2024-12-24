@@ -6,10 +6,10 @@ const renderer = @import("gui/renderer.zig");
 // };
 
 pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
+    // var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    // defer _ = gpa.deinit();
 
-    const allocator = gpa.allocator();
+    // const allocator = gpa.allocator();
 
-    try renderer.main(allocator);
+    try renderer.main();
 }

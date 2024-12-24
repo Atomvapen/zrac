@@ -1,343 +1,286 @@
+// Taken from raylib-extras rlImGui examples
+// https://github.com/raylib-extras/rlImGui/tree/main/examples
+
 const std = @import("std");
-const zglfw = @import("zglfw");
-const zgpu = @import("zgpu");
+const rl = @import("raylib");
 const zgui = @import("zgui");
-const geo = @import("../math/geo.zig");
+
+var quit = false;
+
+const Config = struct {
+    var show: bool = false;
+};
 
 var guiState = @import("../data/state.zig").RiskProfile.init();
 
-const window_title = "ZRAC";
-const window_size = .{ .width = 800, .height = 800 };
+const ImageViewerWindow = struct {
+    const Self = @This();
 
-// const math = std.math;
-// const zm = @import("zmath");
-// const zwindows = @import("zwindows");
-// const windows = zwindows.windows;
+    open: bool = false,
 
-const State = struct {
-    gctx: *zgpu.GraphicsContext,
-    draw_list: zgui.DrawList,
+    fn show(self: *Self) !void {
+        zgui.pushStyleVar2f(.{ .idx = .window_padding, .v = .{ 10, 10 } });
+        zgui.setNextWindowSize(.{ .w = 800, .h = 800, .cond = .once });
+        zgui.setNextWindowPos(.{ .x = 20.0, .y = 40.0, .cond = .once });
+
+        if (zgui.begin("Riskprofil", .{
+            .popen = &self.open,
+            .flags = .{
+                .no_scrollbar = true,
+                .no_scroll_with_mouse = true,
+                // .no_move = true,
+                .no_resize = true,
+                .always_auto_resize = true,
+                .no_collapse = true,
+            },
+        })) {
+            { // Show
+                _ = zgui.checkbox("Visa", .{ .v = &Config.show });
+            }
+
+            zgui.separatorText("Terrängvärden");
+            { // Values
+                _ = zgui.comboFromEnum("Faktor", &guiState.terrainValues.factor);
+                _ = zgui.inputFloat("Amin", .{ .v = &guiState.terrainValues.Amin });
+                _ = zgui.inputFloat("Amax", .{ .v = &guiState.terrainValues.Amax });
+                _ = zgui.inputFloat("f", .{ .v = &guiState.terrainValues.f });
+                zgui.setNextItemWidth(93);
+                _ = zgui.inputFloat("Skogsavstånd", .{ .v = &guiState.terrainValues.forestDist });
+                zgui.sameLine(.{});
+                _ = zgui.checkbox("Uppfångande", .{ .v = &guiState.terrainValues.interceptingForest });
+            }
+
+            zgui.separatorText("Vapenvärden");
+            { // Weapons & Ammunition Comboboxes
+                zgui.setNextItemWidth(121);
+                _ = zgui.comboFromEnum("Vapentyp", &guiState.weaponValues.weapon_enum_value);
+                zgui.sameLine(.{});
+                _ = zgui.checkbox("Benstöd", .{ .v = &guiState.weaponValues.stead });
+
+                // _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values);
+                // TODO fixa
+
+                // _ = zgui.comboFromEnum("Ammunitionstyp", switch (guiState.weaponValues.weapon_enum_value) {
+                //     .AK5, .KSP90 => &guiState.amm556,
+                //     .KSP58 => &guiState.ammK762,
+                //     .KSP88 => &guiState.amm127,
+                //     // else => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values),
+                // });
+
+                switch (guiState.weaponValues.weapon_enum_value) {
+                    .AK5, .KSP90 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm556),
+                    .KSP58 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm762),
+                    .KSP88 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm127),
+                    // else => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values),
+                }
+                _ = zgui.comboFromEnum("Måltyp", &guiState.weaponValues.target);
+            }
+
+            zgui.end();
+            zgui.popStyleVar(.{});
+
+            rl.drawLine(
+                100,
+                100,
+                400,
+                400,
+                rl.Color.maroon,
+            );
+        }
+    }
+
+    fn update(self: *Self) void {
+        if (!self.open) return;
+
+        // if (rl.isWindowResized()) {
+        //     self.view_texture.unload();
+        //     self.view_texture = rl.loadRenderTexture(rl.getScreenWidth(), rl.getScreenWidth());
+        //     const widthf: f32 = @floatFromInt(rl.getScreenWidth());
+        //     const heightf: f32 = @floatFromInt(rl.getScreenHeight());
+        //     self.camera.offset.x = widthf / 2.0;
+        //     self.camera.offset.y = heightf / 2.0;
+        // }
+
+        // const mouse_pos = rl.getMousePosition();
+
+        // if (self.focused) {
+        //     if (self.current_tool_mode == .move) {
+        //         // only when in content area
+        //         if (rl.isMouseButtonDown(.mouse_button_left) and rl.checkCollisionPointRec(mouse_pos, self.content_rect)) {
+        //             if (!self.dragging) {
+        //                 self.last_mouse_pos = mouse_pos;
+        //                 self.last_target = self.camera.target;
+        //             }
+        //             self.dragging = true;
+        //             var mouse_delta = self.last_mouse_pos.subtract(mouse_pos);
+
+        //             mouse_delta.x /= self.camera.zoom;
+        //             mouse_delta.y /= self.camera.zoom;
+        //             self.camera.target = self.last_target.add(mouse_delta);
+
+        //             self.dirty_scene = true;
+        //         } else {
+        //             self.dragging = false;
+        //         }
+        //     }
+        // } else {
+        //     self.dragging = false;
+        // }
+
+        // if (self.dirty_scene) {
+        //     self.dirty_scene = false;
+        //     self.updateRenderTexture();
+        // }
+    }
+
+    // fn updateRenderTexture(self: Self) void {
+    //     self.view_texture.begin();
+    //     rl.clearBackground(rl.Color.blue);
+
+    //     self.camera.begin();
+
+    //     self.image_texture.draw(@divTrunc(self.image_texture.width, -2), @divTrunc(self.image_texture.height, -2), rl.Color.white);
+
+    //     self.camera.end();
+    //     self.view_texture.end();
+    // }
+
+    // fn shutdown(self: *Self) void {
+    //     self.view_texture.unload();
+    //     self.image_texture.unload();
+    // }
 };
 
-fn create(
-    allocator: std.mem.Allocator,
-    window: *zglfw.Window,
-) !*State {
-    const gctx = try zgpu.GraphicsContext.create(
-        allocator,
-        .{
-            .window = window,
-            .fn_getTime = @ptrCast(&zglfw.getTime),
-            .fn_getFramebufferSize = @ptrCast(&zglfw.Window.getFramebufferSize),
-            .fn_getWin32Window = @ptrCast(&zglfw.getWin32Window),
-            .fn_getX11Display = @ptrCast(&zglfw.getX11Display),
-            .fn_getX11Window = @ptrCast(&zglfw.getX11Window),
-            .fn_getWaylandDisplay = @ptrCast(&zglfw.getWaylandDisplay),
-            .fn_getWaylandSurface = @ptrCast(&zglfw.getWaylandWindow),
-            .fn_getCocoaWindow = @ptrCast(&zglfw.getCocoaWindow),
-        },
-        .{},
-    );
-    errdefer gctx.destroy(allocator);
+// const SceneViewWindow = struct {
+//     const Self = @This();
 
-    const scale_factor = scale_factor: {
-        const scale = window.getContentScale();
-        break :scale_factor @max(scale[0], scale[1]);
-    };
+//     open: bool = false,
+//     focused: bool = false,
+//     view_texture: rl.RenderTexture,
+//     content_rect: rl.Rectangle = std.mem.zeroes(rl.Rectangle),
 
-    zgui.init(allocator);
+//     camera: rl.Camera3D = std.mem.zeroes(rl.Camera3D),
+//     grid_texture: rl.Texture = std.mem.zeroes(rl.Texture),
 
-    zgui.backend.init(
-        window,
-        gctx.device,
-        @intFromEnum(zgpu.GraphicsContext.swapchain_format),
-        @intFromEnum(zgpu.wgpu.TextureFormat.undef),
-    );
+//     fn setup(self: *Self) void {
+//         self.view_texture = rl.loadRenderTexture(rl.getScreenWidth(), rl.getScreenHeight());
 
-    zgui.getStyle().scaleAllSizes(scale_factor);
+//         self.camera.fovy = 45;
+//         self.camera.up.y = 1;
+//         self.camera.position.y = 3;
+//         self.camera.position.z = -25;
 
-    const draw_list = zgui.createDrawList();
+//         const img = rl.genImageChecked(256, 256, 32, 32, rl.Color.dark_gray, rl.Color.white);
+//         var grid_texture = rl.loadTextureFromImage(img);
+//         img.unload();
+//         rl.genTextureMipmaps(&grid_texture);
+//         rl.setTextureFilter(grid_texture, .texture_filter_anisotropic_16x);
+//         rl.setTextureWrap(grid_texture, .texture_wrap_clamp);
+//     }
 
-    const app = try allocator.create(State);
-    app.* = .{
-        .gctx = gctx,
-        .draw_list = draw_list,
-    };
+//     fn shutdown(self: *Self) void {
+//         self.view_texture.unload();
+//         self.grid_texture.unload();
+//     }
 
-    return app;
+//     fn show(self: *Self) void {
+//         zgui.pushStyleVar2f(.{ .idx = .window_padding, .v = .{ 0, 0 } });
+//         zgui.setNextWindowSize(.{ .w = 400, .h = 400, .cond = .once });
+
+//         if (zgui.begin("3D View", .{ .popen = &self.open, .flags = .{ .no_scrollbar = true } })) {
+//             self.focused = zgui.isWindowFocused(.{ .child_windows = true });
+//             zgui.rlimgui.imageRenderTextureFit(&self.view_texture, true);
+//         }
+//         zgui.end();
+//         zgui.popStyleVar(.{});
+//     }
+
+//     fn update(self: *Self) void {
+//         if (!self.open) return;
+
+//         if (rl.isWindowResized()) {
+//             self.view_texture.unload();
+//             self.view_texture = rl.loadRenderTexture(rl.getScreenWidth(), rl.getScreenHeight());
+//         }
+
+//         const period = 10.0;
+//         const magnitude = 25.0;
+//         const timef: f32 = @floatCast(rl.getTime());
+
+//         self.camera.position.x = @sin(timef / period) * magnitude;
+
+//         self.view_texture.begin();
+//         rl.clearBackground(rl.Color.sky_blue);
+
+//         self.camera.begin();
+
+//         // draw world
+//         rl.drawPlane(rl.Vector3.zero(), .{ .x = 50, .y = 50 }, rl.Color.beige);
+//         const spacing = 4;
+//         const count = 5;
+
+//         var x: f32 = -count * spacing;
+//         while (x <= count * spacing) : (x += spacing) {
+//             var z: f32 = -count * spacing;
+//             while (z <= count * spacing) : (z += spacing) {
+//                 rl.drawCube(.{ .x = x, .y = 1.5, .z = z }, 1, 1, 1, rl.Color.green);
+//                 rl.drawCube(.{ .x = x, .y = 0.5, .z = z }, 0.25, 1, 0.25, rl.Color.brown);
+//             }
+//         }
+
+//         self.camera.end();
+//         self.view_texture.end();
+//     }
+// };
+
+var image_viewer: ImageViewerWindow = undefined;
+// var scene_view: SceneViewWindow = undefined;
+
+fn doMainMenu() void {
+    if (zgui.beginMainMenuBar()) {
+        if (zgui.beginMenu("Fil", true)) {
+            if (zgui.menuItem("Avsluta", .{})) quit = true;
+
+            zgui.endMenu();
+        }
+
+        if (zgui.beginMenu("Fönster", true)) {
+            if (zgui.menuItem("Riskprofil", .{})) image_viewer.open = !image_viewer.open;
+
+            zgui.endMenu();
+        }
+        zgui.endMainMenuBar();
+    }
 }
 
-fn destroy(
-    allocator: std.mem.Allocator,
-    app: *State,
-) void {
-    zgui.backend.deinit();
-    zgui.destroyDrawList(app.draw_list);
-    zgui.deinit();
-    app.gctx.destroy(allocator);
-    allocator.destroy(app);
-}
+pub fn main() !void {
+    const screen_width = 1280;
+    const screen_height = 800;
 
-pub fn main(
-    allocator: std.mem.Allocator,
-) !void {
-    try zglfw.init();
-    defer zglfw.terminate();
+    rl.setConfigFlags(.{ .msaa_4x_hint = true, .vsync_hint = true });
+    rl.initWindow(screen_width, screen_height, "ZRAC");
+    defer rl.closeWindow();
+    rl.setTargetFPS(144);
+    zgui.rlimgui.setup(true);
+    defer zgui.rlimgui.shutdown();
+    zgui.io.setConfigWindowsMoveFromTitleBarOnly(true);
 
-    { // Change current working directory to where the executable is located.
-        var buffer: [1024]u8 = undefined;
-        const path = std.fs.selfExeDirPath(buffer[0..]) catch ".";
-        std.posix.chdir(path) catch {};
+    image_viewer.open = true;
+
+    while (!rl.windowShouldClose() and !quit) {
+        image_viewer.update();
+        // scene_view.update();
+
+        rl.beginDrawing();
+        rl.clearBackground(rl.Color.dark_gray);
+
+        zgui.rlimgui.begin();
+        doMainMenu();
+
+        if (image_viewer.open) try image_viewer.show();
+
+        zgui.rlimgui.end();
+
+        rl.endDrawing();
     }
-
-    zglfw.windowHintTyped(.client_api, .no_api);
-
-    const window = try zglfw.Window.create(window_size.width, window_size.height, window_title, null);
-    defer window.destroy();
-    window.setSizeLimits(800, 800, 800, 800);
-
-    const app = try create(allocator, window);
-    defer destroy(allocator, app);
-
-    while (!window.shouldClose() and window.getKey(.escape) != .press) {
-        zglfw.pollEvents();
-        try update(app);
-        draw(app);
-    }
-}
-
-fn draw(
-    app: *State,
-) void {
-    const gctx = app.gctx;
-
-    const swapchain_texv = gctx.swapchain.getCurrentTextureView();
-    defer swapchain_texv.release();
-
-    const commands = commands: {
-        const encoder = gctx.device.createCommandEncoder(null);
-        defer encoder.release();
-
-        { // GUI pass
-            const pass = zgpu.beginRenderPassSimple(encoder, .load, swapchain_texv, null, null, null);
-            defer zgpu.endReleasePass(pass);
-            zgui.backend.draw(pass);
-        }
-
-        break :commands encoder.finish(null);
-    };
-    defer commands.release();
-
-    gctx.submit(&.{commands});
-    _ = gctx.present();
-}
-
-fn update(
-    app: *State,
-) !void {
-    guiState.update();
-
-    zgui.backend.newFrame(
-        app.gctx.swapchain_descriptor.width,
-        app.gctx.swapchain_descriptor.height,
-    );
-
-    // Set the starting window position and size to custom values
-    zgui.setNextWindowPos(.{ .x = 20.0, .y = 20.0, .cond = .first_use_ever });
-    zgui.setNextWindowSize(.{ .w = -1.0, .h = -1.0, .cond = .first_use_ever });
-
-    if (zgui.begin("Riskprofil", .{
-        .flags = .{
-            .no_move = true,
-            .no_resize = true,
-            .always_auto_resize = true,
-            // .no_collapse = true,
-        },
-    })) {
-        { // Show
-            _ = zgui.checkbox("Visa", .{ .v = &guiState.config.show });
-        }
-
-        zgui.separatorText("Terrängvärden");
-        { // Values
-            _ = zgui.comboFromEnum("Faktor", &guiState.terrainValues.factor);
-            _ = zgui.inputFloat("Amin", .{ .v = &guiState.terrainValues.Amin });
-            _ = zgui.inputFloat("Amax", .{ .v = &guiState.terrainValues.Amax });
-            _ = zgui.inputFloat("f", .{ .v = &guiState.terrainValues.f });
-            zgui.setNextItemWidth(90);
-            _ = zgui.inputFloat("Skogsavstånd", .{ .v = &guiState.terrainValues.forestDist });
-            zgui.sameLine(.{});
-            _ = zgui.checkbox("Uppfångande", .{ .v = &guiState.terrainValues.interceptingForest });
-        }
-
-        zgui.separatorText("Vapenvärden");
-        { // Weapons & Ammunition Comboboxes
-            zgui.setNextItemWidth(118);
-            _ = zgui.comboFromEnum("Vapentyp", &guiState.weaponValues.weapon_enum_value);
-            zgui.sameLine(.{});
-            _ = zgui.checkbox("Benstöd", .{ .v = &guiState.weaponValues.stead });
-
-            // _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values);
-            // TODO fixa
-
-            // _ = zgui.comboFromEnum("Ammunitionstyp", switch (guiState.weaponValues.weapon_enum_value) {
-            //     .AK5, .KSP90 => &guiState.amm556,
-            //     .KSP58 => &guiState.ammK762,
-            //     .KSP88 => &guiState.amm127,
-            //     // else => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values),
-            // });
-
-            //
-            switch (guiState.weaponValues.weapon_enum_value) {
-                .AK5, .KSP90 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm556),
-                .KSP58 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.ammK762),
-                .KSP88 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm127),
-                // else => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values),
-            }
-            _ = zgui.comboFromEnum("Måltyp", &guiState.weaponValues.target);
-        }
-    }
-
-    if (guiState.validate()) { // Lines
-        const origin = geo.Vector2{ .x = 400, .y = 750 };
-        const draw_list = zgui.getBackgroundDrawList();
-
-        // h
-        var h: geo.Line = try geo.Line.init(geo.Vector2{
-            .x = origin.x,
-            .y = origin.y,
-        }, geo.Vector2{
-            .x = origin.x,
-            .y = origin.y - guiState.terrainValues.h,
-        }, false, undefined);
-        h.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
-        h.drawText("h", -10, 0, .{ 1.0, 1.0, 1.0 }, draw_list);
-
-        // v
-        var v: geo.Line = try geo.Line.init(geo.Vector2{
-            .x = origin.x,
-            .y = origin.y,
-        }, geo.Vector2{
-            .x = origin.x,
-            .y = origin.y - guiState.terrainValues.h,
-        }, true, guiState.weaponValues.v);
-        v.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
-        v.drawText("v", -10, 0, .{ 1.0, 1.0, 1.0 }, draw_list);
-
-        // Amin
-        var Amin: geo.Line = try geo.Line.init(geo.Vector2{
-            .x = undefined,
-            .y = undefined,
-        }, geo.Vector2{
-            .x = origin.x,
-            .y = origin.y - guiState.terrainValues.Amin,
-        }, false, undefined);
-        Amin.drawText("Amin", -40, 0, .{ 1.0, 1.0, 1.0 }, draw_list);
-
-        //f
-        var f: geo.Line = try geo.Line.init(geo.Vector2{
-            .x = origin.x,
-            .y = origin.y - guiState.terrainValues.Amin + guiState.terrainValues.f,
-        }, geo.Vector2{
-            .x = origin.x,
-            .y = Amin.end.y + guiState.terrainValues.f,
-        }, false, undefined);
-        f.drawText("f", -20, 0, .{ 1.0, 1.0, 1.0 }, draw_list);
-
-        // h -> v
-        var hv: geo.Line = try geo.Line.init(geo.Vector2{
-            .x = h.end.x,
-            .y = h.end.y,
-        }, geo.Vector2{
-            .x = v.end.x,
-            .y = v.end.y,
-        }, false, undefined);
-        try hv.drawCircleSector(
-            guiState.terrainValues.h,
-            draw_list,
-            .{ 1.0, 1.0, 1.0 },
-            origin,
-            v.angle,
-        );
-
-        // ch
-        var ch: geo.Line = try geo.Line.init(geo.Vector2{
-            .x = v.end.x,
-            .y = v.end.y,
-        }, geo.Vector2{
-            .x = v.end.x - 1,
-            .y = v.end.y - 100,
-        }, true, 3200 - 1000);
-
-        // q1
-        var q1: geo.Line = try geo.Line.init(geo.Vector2{
-            .x = geo.calculateXfromAngle(@intFromFloat(guiState.terrainValues.Amin - guiState.terrainValues.f), v.angle) + origin.x,
-            .y = origin.y - guiState.terrainValues.Amin + guiState.terrainValues.f,
-        }, geo.Vector2{
-            .x = v.end.x,
-            .y = v.end.y,
-        }, true, guiState.q1);
-
-        if (guiState.terrainValues.forestDist > 0) {
-            // forestMin
-            var forestMin: geo.Line = try geo.Line.init(geo.Vector2{
-                .x = undefined,
-                .y = undefined,
-            }, geo.Vector2{
-                .x = origin.x,
-                .y = origin.y - guiState.terrainValues.forestDist,
-            }, false, undefined);
-            forestMin.drawText("forestMin", -65, -70, .{ 1.0, 1.0, 1.0 }, draw_list);
-
-            // q2
-            var q2: geo.Line = try geo.Line.init(geo.Vector2{
-                .x = geo.calculateXfromAngle(@intFromFloat(guiState.terrainValues.forestDist), v.angle) + origin.x,
-                .y = origin.y - guiState.terrainValues.forestDist,
-            }, geo.Vector2{
-                .x = v.end.x,
-                .y = v.end.y,
-            }, true, guiState.q2);
-
-            var c: geo.Line = try geo.getParallelLine(v, guiState.c);
-
-            c.startAtIntersection(q2);
-
-            ch.endAtIntersection(c);
-            ch.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
-            ch.drawText("ch", -5, -20, .{ 1.0, 1.0, 1.0 }, draw_list);
-
-            c.endAtIntersection(ch);
-            c.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
-
-            q2.endAtIntersection(c);
-            q2.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
-            q2.drawText("q2", 10, 0, .{ 1.0, 1.0, 1.0 }, draw_list);
-        } else {
-            ch.endAtIntersection(q1);
-            // ch.drawLine();
-            // ch.drawText("ch", -5, -20, 30);
-
-            q1.endAtIntersection(ch);
-            // q1.drawLine();
-            // q1.drawText("q1", 15, 0, 30);
-
-            // c
-            var c: geo.Line = try geo.getParallelLine(v, guiState.c);
-            c.startAtIntersection(q1);
-            c.endAtIntersection(ch);
-            // c.drawLine();
-
-            // if (guiState.terrainValues.factor_enum_value > 0) {
-            q1.end = c.start;
-            ch.end = c.end;
-            c.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
-            // }
-
-            q1.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
-            q1.drawText("q1", 15, 0, .{ 1.0, 1.0, 1.0 }, draw_list);
-            ch.drawLine(draw_list, .{ 1.0, 1.0, 1.0 });
-            ch.drawText("ch", -5, -20, .{ 1.0, 1.0, 1.0 }, draw_list);
-        }
-    }
-    zgui.end();
 }
