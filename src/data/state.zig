@@ -31,21 +31,20 @@ pub const RiskProfile = struct {
     };
     const WeaponValues = struct {
         weapon_enum_value: weapon.Models = .AK5,
-        amm_enum_values: ammunition.Calibers.ptr556 = .hagelptr,
         target: Target = .Fast,
         model: weapon.Model = .EHV,
         caliber: ammunition.Caliber = .hagelptr,
         v: f32 = 0,
+        amm556: ammunition.Calibers.ptr556 = .hagelptr_test,
+        ammK762: ammunition.Calibers.ptr762 = .ptr762_sk_10_pprj,
+        amm9: ammunition.Calibers.ptr9 = .ptr9_9_39_ovnprj_11,
+        amm127: ammunition.Calibers.ptr127 = .ptr127_sk_45_nprj_slnprj,
+        stead: bool = false,
     };
 
     terrainValues: TerrainValues,
     weaponValues: WeaponValues,
     config: Config,
-
-    amm556: ammunition.Calibers.ptr556 = .hagelptr,
-    ammK762: ammunition.Calibers.ptr762 = .ptr762_sk_10_pprj,
-    amm9: ammunition.Calibers.ptr9 = .ptr9_9_39_ovnprj_11,
-    amm127: ammunition.Calibers.ptr127 = .ptr127_sk_45_nprj_slnprj,
 
     ch: f32 = 1000,
     q1: f32 = 0,
@@ -72,15 +71,13 @@ pub const RiskProfile = struct {
         self.c = math.calculateC(self);
         self.weaponValues.model = weapon.getWeaponType(self.weaponValues.weapon_enum_value);
 
-        //TODO fixa så att caliber går efter den enum som är aktiv genom switch (guiState.weaponValues.weapon_enum_value) {
+        //TODO fixa alla vapen
         switch (self.weaponValues.weapon_enum_value) {
-            .AK5, .KSP90 => self.weaponValues.caliber = ammunition.getAmmunitionType2(self.amm556),
-            .KSP58 => self.weaponValues.caliber = ammunition.getAmmunitionType2(self.ammK762),
-            .KSP88 => self.weaponValues.caliber = ammunition.getAmmunitionType2(self.amm127),
-            // else => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values),
+            .AK5, .KSP90 => self.weaponValues.caliber = ammunition.getAmmunitionType2(self.weaponValues.amm556),
+            .KSP58 => self.weaponValues.caliber = ammunition.getAmmunitionType2(self.weaponValues.ammK762),
+            .KSP88 => self.weaponValues.caliber = ammunition.getAmmunitionType2(self.weaponValues.amm127),
         }
-        // self.weaponValues.caliber = ammunition.getAmmunitionType2(self.weaponValues.amm_enum_values);
-        std.debug.print("{any}\n", .{self.weaponValues.caliber});
+
         self.weaponValues.v = if (self.weaponValues.target == .Fast) self.weaponValues.model.v_still else self.weaponValues.model.v_moveable;
     }
 };

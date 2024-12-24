@@ -16,7 +16,7 @@
 
 * Be exlusively written in [ZIG], mostly as a learning excersice.
 * Use as little dependencies as possible.
-* Compliant with and based upon [SÄKR EHV/PV]
+* Compliant with and based upon [SÄKR EHV/PV].
 
 A project meant to kickstart my zig-language learning while being a fun project at the same time.
 

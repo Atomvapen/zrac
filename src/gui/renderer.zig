@@ -167,10 +167,10 @@ fn update(
 
         zgui.separatorText("Vapenvärden");
         { // Weapons & Ammunition Comboboxes
-            // zgui.setNextItemWidth(120);
+            zgui.setNextItemWidth(118);
             _ = zgui.comboFromEnum("Vapentyp", &guiState.weaponValues.weapon_enum_value);
-            // zgui.sameLine(.{});
-            // _ = zgui.checkbox("Benstöd", .{ .v = &guiState.weaponValues.stead });
+            zgui.sameLine(.{});
+            _ = zgui.checkbox("Benstöd", .{ .v = &guiState.weaponValues.stead });
 
             // _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values);
             // TODO fixa
@@ -184,9 +184,9 @@ fn update(
 
             //
             switch (guiState.weaponValues.weapon_enum_value) {
-                .AK5, .KSP90 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.amm556),
-                .KSP58 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.ammK762),
-                .KSP88 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.amm127),
+                .AK5, .KSP90 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm556),
+                .KSP58 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.ammK762),
+                .KSP88 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm127),
                 // else => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values),
             }
             _ = zgui.comboFromEnum("Måltyp", &guiState.weaponValues.target);

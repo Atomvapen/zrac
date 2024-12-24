@@ -14,8 +14,8 @@ pub fn calculateL(self: *riskProfilerofile) f32 {
 
 pub fn calculateC(self: *riskProfilerofile) f32 {
     return switch (self.terrainValues.interceptingForest) {
-        false => self.weaponValues.caliber.c,
-        true => switch (self.terrainValues.factor) {
+        true => self.weaponValues.caliber.c,
+        false => switch (self.terrainValues.factor) {
             .I => 0.2 * (self.weaponValues.caliber.Dmax - self.terrainValues.Amin),
             .II => 0.15 * (self.weaponValues.caliber.Dmax - self.terrainValues.Amin),
             .III => 0.08 * (self.weaponValues.caliber.Dmax - self.terrainValues.Amin),
