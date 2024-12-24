@@ -1,19 +1,5 @@
 const std = @import("std");
-// const zgui = @import("zgui");
 const rl = @import("raylib");
-
-// pub const Vector2 = struct {
-//     x: f32,
-//     y: f32,
-
-//     pub fn scale(
-//         self: *Vector2,
-//         factor: f32,
-//     ) void {
-//         self.x *= factor;
-//         self.y *= factor;
-//     }
-// };
 
 pub const Line = struct {
     start: rl.Vector2,
@@ -72,21 +58,6 @@ pub const Line = struct {
             rl.Color.maroon,
         );
     }
-    // pub fn drawCircleSector(
-    //     self: *Line,
-    //     radius: f32,
-    //     draw_list: zgui.DrawList,
-    //     color: [3]f32,
-    //     origin: rl.Vector2,
-    //     endAngle: f32,
-    // ) !void {
-    //     _ = self;
-    //     const n = 10; // Number of points
-    //     const startAngle = std.math.pi / 2.0; // Start angle in radians
-
-    //     const points = try calculateArcPoints(origin, radius, startAngle, startAngle + milsToRadians(endAngle), n);
-    //     draw_list.addPolyline(points, .{ .col = zgui.colorConvertFloat3ToU32(color), .thickness = 1 });
-    // }
 
     pub fn drawText(self: *Line, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32) void {
         rl.drawText(
@@ -97,21 +68,7 @@ pub const Line = struct {
             rl.Color.black,
         );
     }
-    // pub fn drawText(
-    //     self: *Line,
-    //     comptime text: []const u8,
-    //     textOffsetX: f32,
-    //     textOffsetY: f32,
-    //     color: [3]f32,
-    //     draw_list: zgui.DrawList,
-    // ) void {
-    //     draw_list.addText(
-    //         .{ self.end.x + textOffsetX, self.end.y + textOffsetY },
-    //         zgui.colorConvertFloat3ToU32(color),
-    //         text,
-    //         .{},
-    //     );
-    // }
+
     pub fn drawLine(self: *Line) void {
         rl.drawLine(
             @as(i32, @intFromFloat(self.start.x)),
@@ -121,18 +78,6 @@ pub const Line = struct {
             rl.Color.maroon,
         );
     }
-    // pub fn drawLine(
-    //     self: *Line,
-    //     draw_list: zgui.DrawList,
-    //     color: [3]f32,
-    // ) void {
-    //     draw_list.addLine(.{
-    //         .p1 = .{ self.start.x, self.start.y },
-    //         .p2 = .{ self.end.x, self.end.y },
-    //         .col = zgui.colorConvertFloat3ToU32(color),
-    //         .thickness = 1.0,
-    //     });
-    // }
 };
 
 /// Rotates the endpoint of a `Line` around its starting point by the specified angle.
@@ -265,25 +210,3 @@ pub fn calculateXfromAngle(
 
     return (b * a);
 }
-
-// fn calculateArcPoints(
-//     origin: rl.Vector2,
-//     radius: f32,
-//     startAngle: f32,
-//     endAngle: f32,
-//     n: usize,
-// ) ![]const [2]f32 {
-//     var allocator = std.heap.page_allocator;
-//     var points = try allocator.alloc([2]f32, n);
-//     const step = (startAngle - endAngle) / (@as(f32, @floatFromInt(n - 1)));
-
-//     for (0..n) |i| {
-//         const angle = startAngle + step * (@as(f32, @floatFromInt(i)));
-//         points[i] = .{
-//             origin.x + radius * std.math.cos(angle),
-//             origin.y - radius * std.math.sin(angle),
-//         };
-//     }
-
-//     return points[0..];
-// }

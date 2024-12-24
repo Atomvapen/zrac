@@ -1,11 +1,20 @@
 const std = @import("std");
 const rl = @import("raylib");
 const zgui = @import("zgui");
+
 const draw = @import("draw.zig");
+const camera_fn = @import("camera.zig");
 
 var guiState = @import("../data/state.zig").RiskProfile.init();
 
-const ImageViewerWindow = struct {
+var camera = rl.Camera2D{
+    .target = .{ .x = 0, .y = 0 },
+    .offset = .{ .x = 0, .y = 0 },
+    .zoom = 1.0,
+    .rotation = 0,
+};
+
+const RiskEditorViewerWindow = struct {
     const Self = @This();
 
     open: bool = false,
@@ -14,8 +23,6 @@ const ImageViewerWindow = struct {
         zgui.pushStyleVar2f(.{ .idx = .window_padding, .v = .{ 10, 10 } });
         zgui.setNextWindowSize(.{ .w = 100, .h = 100, .cond = .once });
         zgui.setNextWindowPos(.{ .x = 20.0, .y = 40.0, .cond = .once });
-
-        guiState.update();
 
         if (zgui.begin("Riskprofil", .{
             .popen = &self.open,
@@ -63,85 +70,41 @@ const ImageViewerWindow = struct {
             zgui.end();
             zgui.popStyleVar(.{});
 
+
+        { // Moveable UI
+            camera.begin();
+            defer camera.end();
+
+            rl.gl.rlPushMatrix();
+            rl.gl.rlTranslatef(0, 50 * 50, 0);
+            rl.gl.rlRotatef(90, 1, 0, 0);
+            rl.drawGrid(200, 100);
+            rl.gl.rlPopMatrix();
+
             draw.drawLines(guiState);
+        }
         }
     }
 
     fn update(self: *Self) void {
         if (!self.open) return;
-
-        // if (rl.isWindowResized()) {
-        //     self.view_texture.unload();
-        //     self.view_texture = rl.loadRenderTexture(rl.getScreenWidth(), rl.getScreenWidth());
-        //     const widthf: f32 = @floatFromInt(rl.getScreenWidth());
-        //     const heightf: f32 = @floatFromInt(rl.getScreenHeight());
-        //     self.camera.offset.x = widthf / 2.0;
-        //     self.camera.offset.y = heightf / 2.0;
-        // }
-
-        // const mouse_pos = rl.getMousePosition();
-
-        // if (self.focused) {
-        //     if (self.current_tool_mode == .move) {
-        //         // only when in content area
-        //         if (rl.isMouseButtonDown(.mouse_button_left) and rl.checkCollisionPointRec(mouse_pos, self.content_rect)) {
-        //             if (!self.dragging) {
-        //                 self.last_mouse_pos = mouse_pos;
-        //                 self.last_target = self.camera.target;
-        //             }
-        //             self.dragging = true;
-        //             var mouse_delta = self.last_mouse_pos.subtract(mouse_pos);
-
-        //             mouse_delta.x /= self.camera.zoom;
-        //             mouse_delta.y /= self.camera.zoom;
-        //             self.camera.target = self.last_target.add(mouse_delta);
-
-        //             self.dirty_scene = true;
-        //         } else {
-        //             self.dragging = false;
-        //         }
-        //     }
-        // } else {
-        //     self.dragging = false;
-        // }
-
-        // if (self.dirty_scene) {
-        //     self.dirty_scene = false;
-        //     self.updateRenderTexture();
-        // }
+        guiState.update();
     }
-
-    // fn updateRenderTexture(self: Self) void {
-    //     self.view_texture.begin();
-    //     rl.clearBackground(rl.Color.blue);
-
-    //     self.camera.begin();
-
-    //     self.image_texture.draw(@divTrunc(self.image_texture.width, -2), @divTrunc(self.image_texture.height, -2), rl.Color.white);
-
-    //     self.camera.end();
-    //     self.view_texture.end();
-    // }
-
-    // fn shutdown(self: *Self) void {
-    //     self.view_texture.unload();
-    //     self.image_texture.unload();
-    // }
 };
 
-var image_viewer: ImageViewerWindow = undefined;
+var risk_editor_viewer: RiskEditorViewerWindow = undefined;
 
 fn doMainMenu() void {
     if (zgui.beginMainMenuBar()) {
         if (zgui.beginMenu("Fil", true)) {
+            if (zgui.menuItem("Spara", .{})) std.debug.print("Save",.{});
+            if (zgui.menuItem("Ladda", .{})) std.debug.print("Load",.{});
             if (zgui.menuItem("Avsluta", .{})) guiState.config.quit = true;
-
             zgui.endMenu();
         }
 
         if (zgui.beginMenu("Fönster", true)) {
-            if (zgui.menuItem("Riskprofil", .{})) image_viewer.open = !image_viewer.open;
-
+            if (zgui.menuItem("Riskprofil", .{})) risk_editor_viewer.open = !risk_editor_viewer.open;
             zgui.endMenu();
         }
         zgui.endMainMenuBar();
@@ -160,18 +123,19 @@ pub fn main() !void {
     defer zgui.rlimgui.shutdown();
     zgui.io.setConfigWindowsMoveFromTitleBarOnly(true);
 
-    image_viewer.open = true;
+    risk_editor_viewer.open = true;
 
     while (!rl.windowShouldClose() and !guiState.config.quit) {
-        image_viewer.update();
+        camera_fn.handleCamera(&camera);
+        risk_editor_viewer.update();
 
         rl.beginDrawing();
-        rl.clearBackground(rl.Color.dark_gray);
+        rl.clearBackground(rl.Color.ray_white);
 
         zgui.rlimgui.begin();
         doMainMenu();
 
-        if (image_viewer.open) try image_viewer.show();
+        if (risk_editor_viewer.open) try risk_editor_viewer.show();
 
         zgui.rlimgui.end();
 
