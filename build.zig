@@ -33,6 +33,20 @@ pub fn build(b: *std.Build) void {
     exe.root_module.addImport("zgui", zgui.module("root"));
     exe.linkLibrary(zgui.artifact("imgui"));
 
+    //
+    const zmath = b.dependency("zmath", .{
+        .target = options.target,
+    });
+    exe.root_module.addImport("zmath", zmath.module("root"));
+
+    const zwindows = b.dependency("zwindows", .{});
+    const zwindows_module = zwindows.module("zwindows");
+    const zd3d12_module = zwindows.module("zd3d12");
+
+    exe.root_module.addImport("zwindows", zwindows_module);
+    exe.root_module.addImport("zd3d12", zd3d12_module);
+    //
+
     const install_exe = b.addInstallArtifact(exe, .{});
     b.getInstallStep().dependOn(&install_exe.step);
     b.step("buildd", "Build").dependOn(&install_exe.step);
