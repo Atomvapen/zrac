@@ -4,7 +4,7 @@ const zgpu = @import("zgpu");
 const zgui = @import("zgui");
 const geo = @import("../math/geo.zig");
 
-var guiState = @import("../data/state.zig").riskProfile.init();
+var guiState = @import("../data/state.zig").RiskProfile.init();
 
 const window_title = "ZRAC";
 const window_size = .{ .width = 800, .height = 800 };
@@ -150,7 +150,7 @@ fn update(
         },
     })) {
         { // Show
-            _ = zgui.checkbox("Visa", .{ .v = &guiState.show });
+            _ = zgui.checkbox("Visa", .{ .v = &guiState.config.show });
         }
 
         zgui.separatorText("Terrängvärden");
@@ -171,7 +171,15 @@ fn update(
             _ = zgui.comboFromEnum("Vapentyp", &guiState.weaponValues.weapon_enum_value);
             // zgui.sameLine(.{});
             // _ = zgui.checkbox("Benstöd", .{ .v = &guiState.weaponValues.stead });
-            _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values);
+
+            // _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values);
+            // TODO fixa
+            switch (guiState.weaponValues.weapon_enum_value) {
+                .AK5, .KSP90 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.amm556),
+                .KSP58 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.ammK762),
+                .KSP88 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.amm127),
+                // else => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values),
+            }
             _ = zgui.comboFromEnum("Måltyp", &guiState.weaponValues.target);
         }
     }

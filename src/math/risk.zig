@@ -1,10 +1,10 @@
-const state = @import("../data/state.zig").riskProfile;
+const riskProfilerofile = @import("../data/state.zig").RiskProfile;
 
-pub fn calculateH(self: *state) f32 {
+pub fn calculateH(self: *riskProfilerofile) f32 {
     return self.terrainValues.Amax + self.terrainValues.l;
 }
 
-pub fn calculateL(self: *state) f32 {
+pub fn calculateL(self: *riskProfilerofile) f32 {
     return switch (self.terrainValues.factor) {
         .I => 0.8 * self.weaponValues.caliber.Dmax - 0.7 * self.terrainValues.Amax,
         .II => 0.6 * self.weaponValues.caliber.Dmax - 0.5 * self.terrainValues.Amax,
@@ -12,7 +12,7 @@ pub fn calculateL(self: *state) f32 {
     };
 }
 
-pub fn calculateC(self: *state) f32 {
+pub fn calculateC(self: *riskProfilerofile) f32 {
     return switch (self.terrainValues.interceptingForest) {
         false => self.weaponValues.caliber.c,
         true => switch (self.terrainValues.factor) {
@@ -23,13 +23,13 @@ pub fn calculateC(self: *state) f32 {
     };
 }
 
-pub fn calculateQ1(self: *state) f32 {
+pub fn calculateQ1(self: *riskProfilerofile) f32 {
     return switch (self.terrainValues.factor) {
         .I => self.weaponValues.caliber.c,
         .II, .III => 400.0,
     };
 }
 
-pub fn calculateQ2(self: *state) f32 {
+pub fn calculateQ2(self: *riskProfilerofile) f32 {
     return if (self.terrainValues.forestDist < 0) 0.0 else 1000.0;
 }

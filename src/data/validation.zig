@@ -1,5 +1,5 @@
 const std = @import("std");
-const riskProfile = @import("state.zig").riskProfile;
+const RiskProfile = @import("state.zig").RiskProfile;
 
 const ValidationError = error{
     NoValue,
@@ -10,8 +10,8 @@ const ValidationError = error{
     InvadlidCharacter,
 };
 
-pub fn validate(self: *riskProfile) bool {
-    if (!self.show) return false;
+pub fn validate(self: *RiskProfile) bool {
+    if (!self.config.show) return false;
     if (!validateZeroValues(self)) return false;
     if (!validateRangeConditions(self)) return false;
     if (!validateNegativeValues(self)) return false;
@@ -20,21 +20,21 @@ pub fn validate(self: *riskProfile) bool {
     return true;
 }
 
-fn validateZeroValues(self: *riskProfile) bool {
+fn validateZeroValues(self: *RiskProfile) bool {
     return !(self.terrainValues.Amax == 0 or
         self.terrainValues.h == 0 or
         self.terrainValues.l == 0 or
         self.weaponValues.v == 0);
 }
 
-fn validateRangeConditions(self: *riskProfile) bool {
+fn validateRangeConditions(self: *RiskProfile) bool {
     return !(self.terrainValues.Amin > self.terrainValues.Amax or
         self.terrainValues.f > self.terrainValues.Amax or
         self.terrainValues.f > self.terrainValues.Amin or
         self.terrainValues.forestDist > self.terrainValues.Amax);
 }
 
-fn validateNegativeValues(self: *riskProfile) bool {
+fn validateNegativeValues(self: *RiskProfile) bool {
     return !(self.terrainValues.Amax < 0 or
         self.terrainValues.Amin < 0 or
         self.terrainValues.f < 0 or
@@ -43,7 +43,7 @@ fn validateNegativeValues(self: *riskProfile) bool {
         self.terrainValues.forestDist < 0);
 }
 
-fn validateOverflow(self: *riskProfile) bool {
+fn validateOverflow(self: *RiskProfile) bool {
     const max = std.math.floatMax(f32);
     return !(self.terrainValues.Amax > max or
         self.terrainValues.Amin > max or
