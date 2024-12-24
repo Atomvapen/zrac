@@ -14,6 +14,8 @@ var camera = rl.Camera2D{
     .rotation = 0,
 };
 
+var risk_editor_viewer: RiskEditorViewerWindow = undefined;
+
 const RiskEditorViewerWindow = struct {
     const Self = @This();
 
@@ -70,19 +72,18 @@ const RiskEditorViewerWindow = struct {
             zgui.end();
             zgui.popStyleVar(.{});
 
+            { // Moveable UI
+                camera.begin();
+                defer camera.end();
 
-        { // Moveable UI
-            camera.begin();
-            defer camera.end();
+                rl.gl.rlPushMatrix();
+                rl.gl.rlTranslatef(0, 50 * 50, 0);
+                rl.gl.rlRotatef(90, 1, 0, 0);
+                rl.drawGrid(200, 100);
+                rl.gl.rlPopMatrix();
 
-            rl.gl.rlPushMatrix();
-            rl.gl.rlTranslatef(0, 50 * 50, 0);
-            rl.gl.rlRotatef(90, 1, 0, 0);
-            rl.drawGrid(200, 100);
-            rl.gl.rlPopMatrix();
-
-            draw.drawLines(guiState);
-        }
+                if (guiState.config.show) draw.drawLines(guiState);
+            }
         }
     }
 
@@ -92,13 +93,11 @@ const RiskEditorViewerWindow = struct {
     }
 };
 
-var risk_editor_viewer: RiskEditorViewerWindow = undefined;
-
 fn doMainMenu() void {
     if (zgui.beginMainMenuBar()) {
         if (zgui.beginMenu("Fil", true)) {
-            if (zgui.menuItem("Spara", .{})) std.debug.print("Save",.{});
-            if (zgui.menuItem("Ladda", .{})) std.debug.print("Load",.{});
+            if (zgui.menuItem("Spara", .{})) std.debug.print("Save\n", .{});
+            if (zgui.menuItem("Ladda", .{})) std.debug.print("Load\n", .{});
             if (zgui.menuItem("Avsluta", .{})) guiState.config.quit = true;
             zgui.endMenu();
         }
