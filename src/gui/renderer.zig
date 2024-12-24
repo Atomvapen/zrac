@@ -1,15 +1,7 @@
-// Taken from raylib-extras rlImGui examples
-// https://github.com/raylib-extras/rlImGui/tree/main/examples
-
 const std = @import("std");
 const rl = @import("raylib");
 const zgui = @import("zgui");
-
-var quit = false;
-
-const Config = struct {
-    var show: bool = false;
-};
+const draw = @import("draw.zig");
 
 var guiState = @import("../data/state.zig").RiskProfile.init();
 
@@ -20,8 +12,10 @@ const ImageViewerWindow = struct {
 
     fn show(self: *Self) !void {
         zgui.pushStyleVar2f(.{ .idx = .window_padding, .v = .{ 10, 10 } });
-        zgui.setNextWindowSize(.{ .w = 800, .h = 800, .cond = .once });
+        zgui.setNextWindowSize(.{ .w = 100, .h = 100, .cond = .once });
         zgui.setNextWindowPos(.{ .x = 20.0, .y = 40.0, .cond = .once });
+
+        guiState.update();
 
         if (zgui.begin("Riskprofil", .{
             .popen = &self.open,
@@ -35,7 +29,7 @@ const ImageViewerWindow = struct {
             },
         })) {
             { // Show
-                _ = zgui.checkbox("Visa", .{ .v = &Config.show });
+                _ = zgui.checkbox("Visa", .{ .v = &guiState.config.show });
             }
 
             zgui.separatorText("Terrängvärden");
@@ -57,16 +51,6 @@ const ImageViewerWindow = struct {
                 zgui.sameLine(.{});
                 _ = zgui.checkbox("Benstöd", .{ .v = &guiState.weaponValues.stead });
 
-                // _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values);
-                // TODO fixa
-
-                // _ = zgui.comboFromEnum("Ammunitionstyp", switch (guiState.weaponValues.weapon_enum_value) {
-                //     .AK5, .KSP90 => &guiState.amm556,
-                //     .KSP58 => &guiState.ammK762,
-                //     .KSP88 => &guiState.amm127,
-                //     // else => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values),
-                // });
-
                 switch (guiState.weaponValues.weapon_enum_value) {
                     .AK5, .KSP90 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm556),
                     .KSP58 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm762),
@@ -79,13 +63,7 @@ const ImageViewerWindow = struct {
             zgui.end();
             zgui.popStyleVar(.{});
 
-            rl.drawLine(
-                100,
-                100,
-                400,
-                400,
-                rl.Color.maroon,
-            );
+            draw.drawLines(guiState);
         }
     }
 
@@ -151,95 +129,12 @@ const ImageViewerWindow = struct {
     // }
 };
 
-// const SceneViewWindow = struct {
-//     const Self = @This();
-
-//     open: bool = false,
-//     focused: bool = false,
-//     view_texture: rl.RenderTexture,
-//     content_rect: rl.Rectangle = std.mem.zeroes(rl.Rectangle),
-
-//     camera: rl.Camera3D = std.mem.zeroes(rl.Camera3D),
-//     grid_texture: rl.Texture = std.mem.zeroes(rl.Texture),
-
-//     fn setup(self: *Self) void {
-//         self.view_texture = rl.loadRenderTexture(rl.getScreenWidth(), rl.getScreenHeight());
-
-//         self.camera.fovy = 45;
-//         self.camera.up.y = 1;
-//         self.camera.position.y = 3;
-//         self.camera.position.z = -25;
-
-//         const img = rl.genImageChecked(256, 256, 32, 32, rl.Color.dark_gray, rl.Color.white);
-//         var grid_texture = rl.loadTextureFromImage(img);
-//         img.unload();
-//         rl.genTextureMipmaps(&grid_texture);
-//         rl.setTextureFilter(grid_texture, .texture_filter_anisotropic_16x);
-//         rl.setTextureWrap(grid_texture, .texture_wrap_clamp);
-//     }
-
-//     fn shutdown(self: *Self) void {
-//         self.view_texture.unload();
-//         self.grid_texture.unload();
-//     }
-
-//     fn show(self: *Self) void {
-//         zgui.pushStyleVar2f(.{ .idx = .window_padding, .v = .{ 0, 0 } });
-//         zgui.setNextWindowSize(.{ .w = 400, .h = 400, .cond = .once });
-
-//         if (zgui.begin("3D View", .{ .popen = &self.open, .flags = .{ .no_scrollbar = true } })) {
-//             self.focused = zgui.isWindowFocused(.{ .child_windows = true });
-//             zgui.rlimgui.imageRenderTextureFit(&self.view_texture, true);
-//         }
-//         zgui.end();
-//         zgui.popStyleVar(.{});
-//     }
-
-//     fn update(self: *Self) void {
-//         if (!self.open) return;
-
-//         if (rl.isWindowResized()) {
-//             self.view_texture.unload();
-//             self.view_texture = rl.loadRenderTexture(rl.getScreenWidth(), rl.getScreenHeight());
-//         }
-
-//         const period = 10.0;
-//         const magnitude = 25.0;
-//         const timef: f32 = @floatCast(rl.getTime());
-
-//         self.camera.position.x = @sin(timef / period) * magnitude;
-
-//         self.view_texture.begin();
-//         rl.clearBackground(rl.Color.sky_blue);
-
-//         self.camera.begin();
-
-//         // draw world
-//         rl.drawPlane(rl.Vector3.zero(), .{ .x = 50, .y = 50 }, rl.Color.beige);
-//         const spacing = 4;
-//         const count = 5;
-
-//         var x: f32 = -count * spacing;
-//         while (x <= count * spacing) : (x += spacing) {
-//             var z: f32 = -count * spacing;
-//             while (z <= count * spacing) : (z += spacing) {
-//                 rl.drawCube(.{ .x = x, .y = 1.5, .z = z }, 1, 1, 1, rl.Color.green);
-//                 rl.drawCube(.{ .x = x, .y = 0.5, .z = z }, 0.25, 1, 0.25, rl.Color.brown);
-//             }
-//         }
-
-//         self.camera.end();
-//         self.view_texture.end();
-//     }
-// };
-
 var image_viewer: ImageViewerWindow = undefined;
-// var scene_view: SceneViewWindow = undefined;
 
 fn doMainMenu() void {
     if (zgui.beginMainMenuBar()) {
         if (zgui.beginMenu("Fil", true)) {
-            if (zgui.menuItem("Avsluta", .{})) quit = true;
+            if (zgui.menuItem("Avsluta", .{})) guiState.config.quit = true;
 
             zgui.endMenu();
         }
@@ -254,11 +149,11 @@ fn doMainMenu() void {
 }
 
 pub fn main() !void {
-    const screen_width = 1280;
-    const screen_height = 800;
+    const window_title = "ZRAC";
+    const window_size = .{ .width = 1200, .height = 800 };
 
     rl.setConfigFlags(.{ .msaa_4x_hint = true, .vsync_hint = true });
-    rl.initWindow(screen_width, screen_height, "ZRAC");
+    rl.initWindow(window_size.width, window_size.height, window_title);
     defer rl.closeWindow();
     rl.setTargetFPS(144);
     zgui.rlimgui.setup(true);
@@ -267,9 +162,8 @@ pub fn main() !void {
 
     image_viewer.open = true;
 
-    while (!rl.windowShouldClose() and !quit) {
+    while (!rl.windowShouldClose() and !guiState.config.quit) {
         image_viewer.update();
-        // scene_view.update();
 
         rl.beginDrawing();
         rl.clearBackground(rl.Color.dark_gray);

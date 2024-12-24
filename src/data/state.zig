@@ -18,6 +18,7 @@ pub const RiskProfile = struct {
     };
     const Config = struct {
         show: bool = true,
+        quit:bool=false,
     };
     const TerrainValues = struct {
         interceptingForest: bool = false,
@@ -74,7 +75,7 @@ pub const RiskProfile = struct {
         //TODO fixa alla vapen
         switch (self.weaponValues.weapon_enum_value) {
             .AK5, .KSP90 => self.weaponValues.caliber = ammunition.getAmmunitionType2(self.weaponValues.amm556),
-            .KSP58 => self.weaponValues.caliber = ammunition.getAmmunitionType2(self.weaponValues.ammK762),
+            .KSP58 => self.weaponValues.caliber = ammunition.getAmmunitionType2(self.weaponValues.amm762),
             .KSP88 => self.weaponValues.caliber = ammunition.getAmmunitionType2(self.weaponValues.amm127),
         }
 
