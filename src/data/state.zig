@@ -73,8 +73,14 @@ pub const RiskProfile = struct {
         self.weaponValues.model = weapon.getWeaponType(self.weaponValues.weapon_enum_value);
 
         //TODO fixa så att caliber går efter den enum som är aktiv genom switch (guiState.weaponValues.weapon_enum_value) {
-        self.weaponValues.caliber = ammunition.getAmmunitionType(self.weaponValues.amm_enum_values);
-
+        switch (self.weaponValues.weapon_enum_value) {
+            .AK5, .KSP90 => self.weaponValues.caliber = ammunition.getAmmunitionType2(self.amm556),
+            .KSP58 => self.weaponValues.caliber = ammunition.getAmmunitionType2(self.ammK762),
+            .KSP88 => self.weaponValues.caliber = ammunition.getAmmunitionType2(self.amm127),
+            // else => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values),
+        }
+        // self.weaponValues.caliber = ammunition.getAmmunitionType2(self.weaponValues.amm_enum_values);
+        std.debug.print("{any}\n", .{self.weaponValues.caliber});
         self.weaponValues.v = if (self.weaponValues.target == .Fast) self.weaponValues.model.v_still else self.weaponValues.model.v_moveable;
     }
 };

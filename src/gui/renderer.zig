@@ -174,6 +174,15 @@ fn update(
 
             // _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values);
             // TODO fixa
+
+            // _ = zgui.comboFromEnum("Ammunitionstyp", switch (guiState.weaponValues.weapon_enum_value) {
+            //     .AK5, .KSP90 => &guiState.amm556,
+            //     .KSP58 => &guiState.ammK762,
+            //     .KSP88 => &guiState.amm127,
+            //     // else => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values),
+            // });
+
+            //
             switch (guiState.weaponValues.weapon_enum_value) {
                 .AK5, .KSP90 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.amm556),
                 .KSP58 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.ammK762),
