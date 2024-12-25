@@ -23,6 +23,7 @@ const RiskEditorViewerWindow = struct {
     const Self = @This();
 
     open: bool = false,
+    quit: bool = false,
 
     fn show(self: *Self) !void {
         zgui.pushStyleVar2f(.{ .idx = .window_padding, .v = .{ 10, 10 } });
@@ -94,7 +95,7 @@ fn drawGrid() void {
         rl.drawGrid(200, 100);
         rl.gl.rlPopMatrix();
 
-        if (guiState.validate()) draw.drawLines(guiState);
+        if (guiState.config.valid) draw.drawLines(guiState);
     }
 }
 
@@ -103,7 +104,7 @@ fn doMainMenu() void {
         if (zgui.beginMenu("Fil", true)) {
             if (zgui.menuItem("Spara", .{})) std.debug.print("Save\n", .{});
             if (zgui.menuItem("Ladda", .{})) std.debug.print("Load\n", .{});
-            if (zgui.menuItem("Avsluta", .{})) guiState.config.quit = true;
+            if (zgui.menuItem("Avsluta", .{})) risk_editor_viewer.quit = true;
             zgui.endMenu();
         }
 
@@ -122,14 +123,18 @@ pub fn main() !void {
     rl.setConfigFlags(.{ .msaa_4x_hint = true, .vsync_hint = true });
     rl.initWindow(window_size.width, window_size.height, window_title);
     defer rl.closeWindow();
-    rl.setTargetFPS(144);
+
+    const icon: rl.Image = rl.loadImage("assets/icon.png");
+    icon.useAsWindowIcon();
+
+    rl.setTargetFPS(60);
     zgui.rlimgui.setup(true);
     defer zgui.rlimgui.shutdown();
     zgui.io.setConfigWindowsMoveFromTitleBarOnly(true);
 
     risk_editor_viewer.open = true;
 
-    while (!rl.windowShouldClose() and !guiState.config.quit) {
+    while (!rl.windowShouldClose() and !risk_editor_viewer.quit) {
         camera_fn.handleCamera(&camera);
         risk_editor_viewer.update();
 

@@ -64,7 +64,7 @@ pub fn drawLines(riskProfile: state) void {
     }, rl.Vector2{
         .x = v.end.x - 1.0,
         .y = v.end.y - 100.0,
-    }, true, 3200.0 - riskProfile.ch);
+    }, true, 3200.0 - riskProfile.terrainValues.ch);
 
     // q1
     var q1: geo.Line = try geo.Line.init(rl.Vector2{
@@ -73,7 +73,10 @@ pub fn drawLines(riskProfile: state) void {
     }, rl.Vector2{
         .x = v.end.x,
         .y = v.end.y,
-    }, true, riskProfile.q1);
+    }, true, riskProfile.terrainValues.q1);
+
+    //c
+    var c: geo.Line = try geo.getParallelLine(v, riskProfile.weaponValues.c);
 
     if (riskProfile.terrainValues.forestDist > 0) {
         // forestMin
@@ -93,9 +96,7 @@ pub fn drawLines(riskProfile: state) void {
         }, rl.Vector2{
             .x = v.end.x,
             .y = v.end.y,
-        }, true, riskProfile.q2);
-
-        var c: geo.Line = try geo.getParallelLine(v, riskProfile.c);
+        }, true, riskProfile.terrainValues.q2);
 
         c.startAtIntersection(q2);
 
@@ -111,18 +112,11 @@ pub fn drawLines(riskProfile: state) void {
         q2.drawText("q2", 25, 0, 40);
     } else {
         ch.endAtIntersection(q1);
-        // ch.drawLine();
-        // ch.drawText("ch", -5, -20, 30);
 
         q1.endAtIntersection(ch);
-        // q1.drawLine();
-        // q1.drawText("q1", 15, 0, 30);
 
-        // c
-        var c: geo.Line = try geo.getParallelLine(v, riskProfile.c);
         c.startAtIntersection(q1);
         c.endAtIntersection(ch);
-        // c.drawLine();
 
         if (riskProfile.terrainValues.factor != .I) {
             q1.end = c.start;
@@ -132,6 +126,7 @@ pub fn drawLines(riskProfile: state) void {
 
         q1.drawLine();
         q1.drawText("q1", 15, 0, 40);
+
         ch.drawLine();
         ch.drawText("ch", -5, -20, 40);
     }

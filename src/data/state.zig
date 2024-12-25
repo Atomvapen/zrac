@@ -18,7 +18,7 @@ pub const RiskProfile = struct {
     };
     const Config = struct {
         show: bool = true,
-        quit: bool = false,
+        valid: bool = false,
     };
     const TerrainValues = struct {
         interceptingForest: bool = false,
@@ -29,6 +29,9 @@ pub const RiskProfile = struct {
         forestDist: f32 = 100,
         l: f32 = 0,
         h: f32 = 0,
+        q1: f32 = 0,
+        q2: f32 = 0,
+        ch: f32 = 1000,
     };
     const WeaponValues = struct {
         weapon_enum_value: weapon.Models = .AK5,
@@ -41,16 +44,12 @@ pub const RiskProfile = struct {
         amm9: ammunition.Calibers.ptr9 = .ptr9_9_39_ovnprj_11,
         amm127: ammunition.Calibers.ptr127 = .ptr127_sk_45_nprj_slnprj,
         stead: bool = false,
+        c: f32 = 0,
     };
 
     terrainValues: TerrainValues,
     weaponValues: WeaponValues,
     config: Config,
-
-    ch: f32 = 1000,
-    q1: f32 = 0,
-    q2: f32 = 0,
-    c: f32 = 0,
 
     pub fn init() RiskProfile {
         return RiskProfile{
@@ -60,17 +59,14 @@ pub const RiskProfile = struct {
         };
     }
 
-    pub fn validate(self: *RiskProfile) bool {
-        return validation.validate(self);
-    }
-
     pub fn update(self: *RiskProfile) void {
         self.terrainValues.l = math.calculateL(self);
         self.terrainValues.h = math.calculateH(self);
-        self.q1 = math.calculateQ1(self);
-        self.q2 = math.calculateQ2(self);
-        self.c = math.calculateC(self);
+        self.terrainValues.q1 = math.calculateQ1(self);
+        self.terrainValues.q2 = math.calculateQ2(self);
+        self.weaponValues.c = math.calculateC(self);
         self.weaponValues.model = weapon.getWeaponType(self.weaponValues.weapon_enum_value);
+        self.weaponValues.v = if (self.weaponValues.target == .Fast) self.weaponValues.model.v_still else self.weaponValues.model.v_moveable;
 
         //TODO fixa alla vapen
         switch (self.weaponValues.weapon_enum_value) {
@@ -79,6 +75,6 @@ pub const RiskProfile = struct {
             .KSP88 => self.weaponValues.caliber = ammunition.getAmmunitionType2(self.weaponValues.amm127),
         }
 
-        self.weaponValues.v = if (self.weaponValues.target == .Fast) self.weaponValues.model.v_still else self.weaponValues.model.v_moveable;
+        self.config.valid = validation.validate(self);
     }
 };
