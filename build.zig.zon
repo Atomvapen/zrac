@@ -18,9 +18,7 @@
         "src",
         "assets",
         "docs",
-        "libs",
         "LICENSE",
         "README.md",
-        "imgui.ini",
     },
 }

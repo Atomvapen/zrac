@@ -8,9 +8,12 @@ const camera_fn = @import("camera.zig");
 var guiState = @import("../data/state.zig").RiskProfile.init();
 
 var camera = rl.Camera2D{
-    .target = .{ .x = 0, .y = 0 },
-    .offset = .{ .x = 0, .y = 0 },
-    .zoom = 1.0,
+    // .target = .{ .x = 0, .y = 0 },
+    .target = .{ .x = 8.5613525e2, .y = -3.2311963e2 },
+    // .offset = .{ .x = 0, .y = 0 },
+    .offset = .{ .x = 6.59e2, .y = 4.63e2 },
+    // .zoom = 1.0,
+    .zoom = 2.6214406e-1,
     .rotation = 0,
 };
 
@@ -71,19 +74,6 @@ const RiskEditorViewerWindow = struct {
 
             zgui.end();
             zgui.popStyleVar(.{});
-
-            { // Moveable UI
-                camera.begin();
-                defer camera.end();
-
-                rl.gl.rlPushMatrix();
-                rl.gl.rlTranslatef(0, 50 * 50, 0);
-                rl.gl.rlRotatef(90, 1, 0, 0);
-                rl.drawGrid(200, 100);
-                rl.gl.rlPopMatrix();
-
-                if (guiState.config.show) draw.drawLines(guiState);
-            }
         }
     }
 
@@ -92,6 +82,21 @@ const RiskEditorViewerWindow = struct {
         guiState.update();
     }
 };
+
+fn drawGrid() void {
+    { // Moveable UI
+        camera.begin();
+        defer camera.end();
+
+        rl.gl.rlPushMatrix();
+        rl.gl.rlTranslatef(0, 50 * 50, 0);
+        rl.gl.rlRotatef(90, 1, 0, 0);
+        rl.drawGrid(200, 100);
+        rl.gl.rlPopMatrix();
+
+        if (guiState.validate()) draw.drawLines(guiState);
+    }
+}
 
 fn doMainMenu() void {
     if (zgui.beginMainMenuBar()) {
@@ -129,9 +134,10 @@ pub fn main() !void {
         risk_editor_viewer.update();
 
         rl.beginDrawing();
-        rl.clearBackground(rl.Color.ray_white);
+        rl.clearBackground(rl.Color.white);
 
         zgui.rlimgui.begin();
+        drawGrid();
         doMainMenu();
 
         if (risk_editor_viewer.open) try risk_editor_viewer.show();

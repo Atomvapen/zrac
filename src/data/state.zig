@@ -18,7 +18,7 @@ pub const RiskProfile = struct {
     };
     const Config = struct {
         show: bool = true,
-        quit:bool=false,
+        quit: bool = false,
     };
     const TerrainValues = struct {
         interceptingForest: bool = false,
@@ -34,9 +34,9 @@ pub const RiskProfile = struct {
         weapon_enum_value: weapon.Models = .AK5,
         target: Target = .Fast,
         model: weapon.Model = .EHV,
-        caliber: ammunition.Caliber = .hagelptr,
+        caliber: ammunition.Caliber = .ptr556_sk_prj_slprj,
         v: f32 = 0,
-        amm556: ammunition.Calibers.ptr556 = .hagelptr_test,
+        amm556: ammunition.Calibers.ptr556 = .ptr556_sk_prj_slprj,
         amm762: ammunition.Calibers.ptr762 = .ptr762_sk_10_pprj,
         amm9: ammunition.Calibers.ptr9 = .ptr9_9_39_ovnprj_11,
         amm127: ammunition.Calibers.ptr127 = .ptr127_sk_45_nprj_slnprj,

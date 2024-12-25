@@ -5,12 +5,16 @@ const ValidationError = error{
     NoValue,
     NegativeValue,
     InvalidRange,
-    IntegerOverflow,
+    Overflow,
     UnknownError,
-    InvadlidCharacter,
 };
 
 pub fn validate(self: *RiskProfile) bool {
+    std.debug.print("zero: {any}\n", .{validateZeroValues(self)});
+    std.debug.print("range: {any}\n", .{validateRangeConditions(self)});
+    std.debug.print("negative: {any}\n", .{validateNegativeValues(self)});
+    std.debug.print("overflow: {any}\n", .{validateOverflow(self)});
+
     if (!self.config.show) return false;
     if (!validateZeroValues(self)) return false;
     if (!validateRangeConditions(self)) return false;
@@ -21,32 +25,32 @@ pub fn validate(self: *RiskProfile) bool {
 }
 
 fn validateZeroValues(self: *RiskProfile) bool {
-    return !(self.terrainValues.Amax == 0 or
-        self.terrainValues.h == 0 or
-        self.terrainValues.l == 0 or
-        self.weaponValues.v == 0);
+    return (self.terrainValues.Amax != 0 and
+        self.terrainValues.h != 0 and
+        self.terrainValues.l != 0 and
+        self.weaponValues.v != 0);
 }
 
 fn validateRangeConditions(self: *RiskProfile) bool {
-    return !(self.terrainValues.Amin > self.terrainValues.Amax or
-        self.terrainValues.f > self.terrainValues.Amax or
-        self.terrainValues.f > self.terrainValues.Amin or
-        self.terrainValues.forestDist > self.terrainValues.Amax);
+    return (self.terrainValues.Amin < self.terrainValues.Amax and
+        self.terrainValues.f < self.terrainValues.Amax and
+        self.terrainValues.f < self.terrainValues.Amin and
+        self.terrainValues.forestDist < self.terrainValues.h);
 }
 
 fn validateNegativeValues(self: *RiskProfile) bool {
-    return !(self.terrainValues.Amax < 0 or
-        self.terrainValues.Amin < 0 or
-        self.terrainValues.f < 0 or
-        self.terrainValues.l < 0 or
-        self.terrainValues.h < 0 or
-        self.terrainValues.forestDist < 0);
+    return (self.terrainValues.Amax >= 0 and
+        self.terrainValues.Amin >= 0 and
+        self.terrainValues.f >= 0 and
+        self.terrainValues.l >= 0 and
+        self.terrainValues.h >= 0 and
+        self.terrainValues.forestDist >= 0);
 }
 
 fn validateOverflow(self: *RiskProfile) bool {
     const max = std.math.floatMax(f32);
-    return !(self.terrainValues.Amax > max or
-        self.terrainValues.Amin > max or
-        self.terrainValues.f > max or
-        self.terrainValues.forestDist > max);
+    return (self.terrainValues.Amax < max and
+        self.terrainValues.Amin < max and
+        self.terrainValues.f < max and
+        self.terrainValues.forestDist < max);
 }

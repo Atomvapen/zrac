@@ -14,18 +14,19 @@
 
 ## Design
 
-* Be exlusively written in [ZIG], mostly as a learning excersice.
+* Exlusively written in [Zig], mostly as a learning excersice.
 * Use as little dependencies as possible.
-* Compliant with and based upon [SÄKR EHV/PV].
+* Compliant with, and based upon [SÄKR EHV/PV].
 
 A project meant to kickstart my zig-language learning while being a fun project at the same time.
 
 ## Dependencies
 
-* [zgui] 
+* [zgui-rl] 
+* [raylib-zig]
 
-
-[ZIG]:https://ziglang.org/
-[zgui]:https://github.com/zig-gamedev/zgui
+[raylib-zig]:https://github.com/Not-Nik/raylib-zig
+[Zig]:https://ziglang.org/
+[zgui-rl]:https://github.com/Atomvapen/zgui-rl
 [SÄKR EHV/PV]:https://www.forsvarsmakten.se/siteassets/2-om-forsvarsmakten/dokument/reglementen/sakr-ehv-pv.pdf
 

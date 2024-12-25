@@ -15,7 +15,7 @@ pub fn drawLines(riskProfile: state) void {
         .y = origin.y - riskProfile.terrainValues.h,
     }, false, undefined);
     h.drawLine();
-    h.drawText("h", -20, 0, 20);
+    h.drawText("h", -20, 0, 40);
 
     // Amin
     var Amin: geo.Line = try geo.Line.init(rl.Vector2{
@@ -25,7 +25,7 @@ pub fn drawLines(riskProfile: state) void {
         .x = origin.x,
         .y = origin.y - riskProfile.terrainValues.Amin,
     }, false, undefined);
-    Amin.drawText("Amin", -60, 0, 20);
+    Amin.drawText("Amin", -60, 0, 40);
 
     // v
     var v: geo.Line = try geo.Line.init(rl.Vector2{
@@ -36,7 +36,7 @@ pub fn drawLines(riskProfile: state) void {
         .y = origin.y - riskProfile.terrainValues.h,
     }, true, riskProfile.weaponValues.v);
     v.drawLine();
-    v.drawText("v", -5, -30, 20);
+    v.drawText("v", -5, -30, 40);
 
     var f: geo.Line = try geo.Line.init(rl.Vector2{
         .x = origin.x,
@@ -45,7 +45,7 @@ pub fn drawLines(riskProfile: state) void {
         .x = origin.x,
         .y = Amin.end.y + riskProfile.terrainValues.f,
     }, false, undefined);
-    f.drawText("f", -30, -70, 20);
+    f.drawText("f", -30, -70, 40);
 
     // h -> v
     var hv: geo.Line = try geo.Line.init(rl.Vector2{
@@ -84,7 +84,7 @@ pub fn drawLines(riskProfile: state) void {
             .x = origin.x,
             .y = origin.y - riskProfile.terrainValues.forestDist,
         }, false, undefined);
-        forestMin.drawText("forestMin", -65, -70, 20);
+        forestMin.drawText("forestMin", -65, -70, 40);
 
         // q2
         var q2: geo.Line = try geo.Line.init(rl.Vector2{
@@ -101,14 +101,14 @@ pub fn drawLines(riskProfile: state) void {
 
         ch.endAtIntersection(c);
         ch.drawLine();
-        ch.drawText("ch", -5, -20, 20);
+        ch.drawText("ch", -5, -20, 40);
 
         c.endAtIntersection(ch);
         c.drawLine();
 
         q2.endAtIntersection(c);
         q2.drawLine();
-        q2.drawText("q2", 25, 0, 20);
+        q2.drawText("q2", 25, 0, 40);
     } else {
         ch.endAtIntersection(q1);
         // ch.drawLine();
@@ -131,8 +131,8 @@ pub fn drawLines(riskProfile: state) void {
         }
 
         q1.drawLine();
-        q1.drawText("q1", 15, 0, 20);
+        q1.drawText("q1", 15, 0, 40);
         ch.drawLine();
-        ch.drawText("ch", -5, -20, 20);
+        ch.drawText("ch", -5, -20, 40);
     }
 }
