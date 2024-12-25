@@ -26,7 +26,7 @@ pub const RiskProfile = struct {
         Amin: f32 = 100,
         Amax: f32 = 200,
         f: f32 = 50,
-        forestDist: f32 = 100,
+        forestDist: f32 = 300,
         l: f32 = 0,
         h: f32 = 0,
         q1: f32 = 0,
@@ -34,14 +34,14 @@ pub const RiskProfile = struct {
         ch: f32 = 1000,
     };
     const WeaponValues = struct {
-        weapon_enum_value: weapon.Models = .AK5,
+        weapon_enum_value: weapon.Models = .P88,
         target: Target = .Fast,
         model: weapon.Model = .EHV,
-        caliber: ammunition.Caliber = .ptr556_sk_prj_slprj,
+        caliber: ammunition.Caliber = .ptr9_sk_39b,
         v: f32 = 0,
         amm556: ammunition.Calibers.ptr556 = .ptr556_sk_prj_slprj,
         amm762: ammunition.Calibers.ptr762 = .ptr762_sk_10_pprj,
-        amm9: ammunition.Calibers.ptr9 = .ptr9_9_39_ovnprj_11,
+        amm9: ammunition.Calibers.ptr9 = .ptr9_sk_39b,
         amm127: ammunition.Calibers.ptr127 = .ptr127_sk_45_nprj_slnprj,
         support: bool = false,
         c: f32 = 0,
@@ -63,6 +63,10 @@ pub const RiskProfile = struct {
         return weapon.getWeaponModel(self.weaponValues.weapon_enum_value, false).supportable;
     }
 
+    pub fn reset(self: *RiskProfile) void {
+        _ = self;
+    }
+
     pub fn update(self: *RiskProfile) void {
         self.terrainValues.l = math.calculateL(self);
         self.terrainValues.h = math.calculateH(self);
@@ -76,7 +80,8 @@ pub const RiskProfile = struct {
         switch (self.weaponValues.weapon_enum_value) {
             .AK5, .KSP90 => self.weaponValues.caliber = ammunition.getCaliber(self.weaponValues.amm556),
             .KSP58 => self.weaponValues.caliber = ammunition.getCaliber(self.weaponValues.amm762),
-            .KSP88 => self.weaponValues.caliber = ammunition.getCaliber(self.weaponValues.amm127),
+            .KSP88, .AG90 => self.weaponValues.caliber = ammunition.getCaliber(self.weaponValues.amm127),
+            .P88 => self.weaponValues.caliber = ammunition.getCaliber(self.weaponValues.amm9),
         }
 
         self.config.valid = validation.validate(self);

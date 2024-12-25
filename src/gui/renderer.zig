@@ -8,12 +8,9 @@ const camera_fn = @import("camera.zig");
 var guiState = @import("../data/state.zig").RiskProfile.init();
 
 var camera = rl.Camera2D{
-    // .target = .{ .x = 0, .y = 0 },
-    .target = .{ .x = 8.5613525e2, .y = -3.2311963e2 },
-    // .offset = .{ .x = 0, .y = 0 },
-    .offset = .{ .x = 6.59e2, .y = 4.63e2 },
-    // .zoom = 1.0,
-    .zoom = 2.6214406e-1,
+    .target = .{ .x = 9.785727e2, .y = -4.9193994e2 },
+    .offset = .{ .x = 7.23e2, .y = 2.23e2 },
+    .zoom = 4.0960002e-1,
     .rotation = 0,
 };
 
@@ -41,9 +38,11 @@ const RiskEditorViewerWindow = struct {
                 .no_collapse = true,
             },
         })) {
-            { // Show
-                _ = zgui.checkbox("Visa", .{ .v = &guiState.config.show });
+            if (zgui.button("Återställ", .{})) {
+                guiState.reset();
             }
+            zgui.sameLine(.{});
+            _ = zgui.checkbox("Visa", .{ .v = &guiState.config.show });
 
             zgui.separatorText("Terrängvärden");
             { // Values
@@ -61,18 +60,29 @@ const RiskEditorViewerWindow = struct {
             { // Weapons & Ammunition Comboboxes
                 zgui.setNextItemWidth(121);
                 _ = zgui.comboFromEnum("Vapentyp", &guiState.weaponValues.weapon_enum_value);
-                if (guiState.getHasSupport()) {
-                    zgui.sameLine(.{});
-                    _ = zgui.checkbox("Benstöd", .{ .v = &guiState.weaponValues.support });
+                zgui.sameLine(.{});
+
+                if (!guiState.getHasSupport()) {
+                    guiState.weaponValues.support = false;
+                    zgui.beginDisabled(.{ .disabled = true });
                 }
+                _ = zgui.checkbox("Benstöd", .{ .v = &guiState.weaponValues.support });
+                if (!guiState.getHasSupport()) zgui.endDisabled();
+
                 switch (guiState.weaponValues.weapon_enum_value) {
                     .AK5, .KSP90 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm556),
                     .KSP58 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm762),
-                    .KSP88 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm127),
-                    // else => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm_enum_values),
+                    .KSP88, .AG90 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm127),
+                    .P88 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm9),
                 }
                 _ = zgui.comboFromEnum("Måltyp", &guiState.weaponValues.target);
             }
+
+            zgui.newLine();
+            zgui.separator();
+            zgui.newLine();
+            zgui.textUnformatted("Flytta: Höger musknapp.");
+            zgui.textUnformatted(" Zooma: Scrollhjulet.");
 
             zgui.end();
             zgui.popStyleVar(.{});

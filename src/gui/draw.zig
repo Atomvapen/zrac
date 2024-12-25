@@ -25,7 +25,7 @@ pub fn drawLines(riskProfile: state) void {
         .x = origin.x,
         .y = origin.y - riskProfile.terrainValues.Amin,
     }, false, undefined);
-    Amin.drawText("Amin", -60, 0, 40);
+    Amin.drawText("Amin", -100, 0, 40);
 
     // v
     var v: geo.Line = try geo.Line.init(rl.Vector2{
@@ -87,7 +87,7 @@ pub fn drawLines(riskProfile: state) void {
             .x = origin.x,
             .y = origin.y - riskProfile.terrainValues.forestDist,
         }, false, undefined);
-        forestMin.drawText("forestMin", -65, -70, 40);
+        forestMin.drawText("forestMin", -220, 0, 40);
 
         // q2
         var q2: geo.Line = try geo.Line.init(rl.Vector2{
