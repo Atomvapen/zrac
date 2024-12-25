@@ -43,7 +43,7 @@ pub const RiskProfile = struct {
         amm762: ammunition.Calibers.ptr762 = .ptr762_sk_10_pprj,
         amm9: ammunition.Calibers.ptr9 = .ptr9_9_39_ovnprj_11,
         amm127: ammunition.Calibers.ptr127 = .ptr127_sk_45_nprj_slnprj,
-        stead: bool = false,
+        support: bool = false,
         c: f32 = 0,
     };
 
@@ -59,20 +59,24 @@ pub const RiskProfile = struct {
         };
     }
 
+    pub fn getHasSupport(self: *RiskProfile) bool {
+        return weapon.getWeaponModel(self.weaponValues.weapon_enum_value, false).supportable;
+    }
+
     pub fn update(self: *RiskProfile) void {
         self.terrainValues.l = math.calculateL(self);
         self.terrainValues.h = math.calculateH(self);
         self.terrainValues.q1 = math.calculateQ1(self);
         self.terrainValues.q2 = math.calculateQ2(self);
         self.weaponValues.c = math.calculateC(self);
-        self.weaponValues.model = weapon.getWeaponType(self.weaponValues.weapon_enum_value);
+        self.weaponValues.model = weapon.getWeaponModel(self.weaponValues.weapon_enum_value, self.weaponValues.support);
         self.weaponValues.v = if (self.weaponValues.target == .Fast) self.weaponValues.model.v_still else self.weaponValues.model.v_moveable;
 
         //TODO fixa alla vapen
         switch (self.weaponValues.weapon_enum_value) {
-            .AK5, .KSP90 => self.weaponValues.caliber = ammunition.getAmmunitionType2(self.weaponValues.amm556),
-            .KSP58 => self.weaponValues.caliber = ammunition.getAmmunitionType2(self.weaponValues.amm762),
-            .KSP88 => self.weaponValues.caliber = ammunition.getAmmunitionType2(self.weaponValues.amm127),
+            .AK5, .KSP90 => self.weaponValues.caliber = ammunition.getCaliber(self.weaponValues.amm556),
+            .KSP58 => self.weaponValues.caliber = ammunition.getCaliber(self.weaponValues.amm762),
+            .KSP88 => self.weaponValues.caliber = ammunition.getCaliber(self.weaponValues.amm127),
         }
 
         self.config.valid = validation.validate(self);

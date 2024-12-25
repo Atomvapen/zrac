@@ -61,9 +61,10 @@ const RiskEditorViewerWindow = struct {
             { // Weapons & Ammunition Comboboxes
                 zgui.setNextItemWidth(121);
                 _ = zgui.comboFromEnum("Vapentyp", &guiState.weaponValues.weapon_enum_value);
-                zgui.sameLine(.{});
-                _ = zgui.checkbox("Benstöd", .{ .v = &guiState.weaponValues.stead });
-
+                if (guiState.getHasSupport()) {
+                    zgui.sameLine(.{});
+                    _ = zgui.checkbox("Benstöd", .{ .v = &guiState.weaponValues.support });
+                }
                 switch (guiState.weaponValues.weapon_enum_value) {
                     .AK5, .KSP90 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm556),
                     .KSP58 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm762),
