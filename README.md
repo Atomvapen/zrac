@@ -1,13 +1,13 @@
 <h1 align="center">
-  <img src="/assets/icon.png" alt="Limbo" width="200"/>
-  <p align="center">ZRAC</p>
+  <img src="/assets/icon.png" alt="zrac" width="200"/>
+  <p align="center">zrac</p>
 </h1>
 <p align="center">
 <a target="_blank" href="https://ziglang.org"><img src="https://img.shields.io/badge/Language-ZIG-orange"/></a> 
 <a target="_blank" href="https://github.com/Atomvapen/ZRAC/blob/next/LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" /></a>
 </p>
 <p align="center">
-  ZRAC is a Risk Area Calculator.
+  zrac is a Risk Area Calculator.
 </p>
 
 ---
