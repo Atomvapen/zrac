@@ -64,7 +64,9 @@ pub const RiskProfile = struct {
     }
 
     pub fn reset(self: *RiskProfile) void {
-        _ = self;
+        self.terrainValues = TerrainValues{};
+        self.weaponValues = WeaponValues{};
+        self.config = Config{};
     }
 
     pub fn update(self: *RiskProfile) void {

@@ -35,7 +35,7 @@ const RiskEditorViewerWindow = struct {
                 // .no_move = true,
                 .no_resize = true,
                 .always_auto_resize = true,
-                .no_collapse = true,
+                .no_collapse = true, //TODO Fix crash at : .no_collapse = true
             },
         })) {
             if (zgui.button("Återställ", .{})) {

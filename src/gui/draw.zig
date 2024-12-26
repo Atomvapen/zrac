@@ -45,7 +45,7 @@ pub fn drawLines(riskProfile: state) void {
         .x = origin.x,
         .y = Amin.end.y + riskProfile.terrainValues.f,
     }, false, undefined);
-    f.drawText("f", -30, -70, 40);
+    f.drawText("f", -70, 0, 40);
 
     // h -> v
     var hv: geo.Line = try geo.Line.init(rl.Vector2{
