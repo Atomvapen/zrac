@@ -7,7 +7,7 @@
 <a target="_blank" href="https://github.com/Atomvapen/ZRAC/blob/next/LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" /></a>
 </p>
 <p align="center">
-  zrac is a Risk Area Calculator.
+  zrac is a risk area calculator.
 </p>
 
 ---
