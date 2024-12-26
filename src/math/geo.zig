@@ -1,27 +1,14 @@
 const std = @import("std");
-const zgui = @import("zgui");
-
-pub const Vector2 = struct {
-    x: f32,
-    y: f32,
-
-    pub fn scale(
-        self: *Vector2,
-        factor: f32,
-    ) void {
-        self.x *= factor;
-        self.y *= factor;
-    }
-};
+const rl = @import("raylib");
 
 pub const Line = struct {
-    start: Vector2,
-    end: Vector2,
+    start: rl.Vector2,
+    end: rl.Vector2,
     angle: f32,
 
     pub fn init(
-        start: Vector2,
-        end: Vector2,
+        start: rl.Vector2,
+        end: rl.Vector2,
         rotate: bool,
         angle: f32,
     ) !Line {
@@ -44,7 +31,7 @@ pub const Line = struct {
         self: *Line,
         line: Line,
     ) void {
-        self.*.end = getLineIntersectionPoint(self.*, line) orelse Vector2{
+        self.*.end = getLineIntersectionPoint(self.*, line) orelse rl.Vector2{
             .x = 0,
             .y = 0,
         };
@@ -54,68 +41,55 @@ pub const Line = struct {
         self: *Line,
         line: Line,
     ) void {
-        self.*.start = getLineIntersectionPoint(self.*, line) orelse Vector2{
+        self.*.start = getLineIntersectionPoint(self.*, line) orelse rl.Vector2{
             .x = 0,
             .y = 0,
         };
     }
 
-    pub fn drawCircleSector(
-        self: *Line,
-        radius: f32,
-        draw_list: zgui.DrawList,
-        color: [3]f32,
-        origin: Vector2,
-        endAngle: f32,
-    ) !void {
-        _ = self;
-        const n = 10; // Number of points
-        const startAngle = std.math.pi / 2.0; // Start angle in radians
-
-        const points = try calculateArcPoints(origin, radius, startAngle, startAngle + milsToRadians(endAngle), n);
-        draw_list.addPolyline(points, .{ .col = zgui.colorConvertFloat3ToU32(color), .thickness = 1 });
-    }
-
-    pub fn drawText(
-        self: *Line,
-        comptime text: []const u8,
-        textOffsetX: f32,
-        textOffsetY: f32,
-        color: [3]f32,
-        draw_list: zgui.DrawList,
-    ) void {
-        draw_list.addText(
-            .{ self.end.x + textOffsetX, self.end.y + textOffsetY },
-            zgui.colorConvertFloat3ToU32(color),
-            text,
-            .{},
+    pub fn drawCircleSector(self: *Line, radius: f32) void {
+        rl.drawRingLines(
+            .{ .x = self.start.x, .y = self.start.y },
+            radius,
+            radius,
+            -90,
+            -90 + milsToDegree(self.angle),
+            50,
+            rl.Color.maroon,
         );
     }
 
-    pub fn drawLine(
-        self: *Line,
-        draw_list: zgui.DrawList,
-        color: [3]f32,
-    ) void {
-        draw_list.addLine(.{
-            .p1 = .{ self.start.x, self.start.y },
-            .p2 = .{ self.end.x, self.end.y },
-            .col = zgui.colorConvertFloat3ToU32(color),
-            .thickness = 1.0,
-        });
+    pub fn drawText(self: *Line, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32) void {
+        rl.drawText(
+            text,
+            @as(i32, @intFromFloat(self.end.x)) + textOffsetX,
+            @as(i32, @intFromFloat(self.end.y)) + textOffsetY,
+            fontSize,
+            rl.Color.black,
+        );
+    }
+
+    pub fn drawLine(self: *Line) void {
+        rl.drawLine(
+            @as(i32, @intFromFloat(self.start.x)),
+            @as(i32, @intFromFloat(self.start.y)),
+            @as(i32, @intFromFloat(self.end.x)),
+            @as(i32, @intFromFloat(self.end.y)),
+            rl.Color.maroon,
+        );
     }
 };
 
 /// Rotates the endpoint of a `Line` around its starting point by the specified angle.
 ///
-/// This function returns a new rotated Vector2 with the new position of the endpoint.
+/// This function returns a new rotated rl.Vector2 with the new position of the endpoint.
 ///
 /// The rotation is performed using the formula for rotating points around an arbitrary center.
 fn rotateEndVector(
-    start: Vector2,
-    end: Vector2,
+    start: rl.Vector2,
+    end: rl.Vector2,
     angle: f32,
-) !Vector2 {
+) !rl.Vector2 {
     const dx = end.x - start.x;
     const dy = end.y - start.y;
     const rad = milsToRadians(angle);
@@ -123,7 +97,7 @@ fn rotateEndVector(
     const cosAngle = @cos(rad);
     const sinAngle = @sin(rad);
 
-    return Vector2{
+    return rl.Vector2{
         .x = (dx * cosAngle) - (dy * sinAngle) + start.x,
         .y = (dx * sinAngle) + (dy * cosAngle) + start.y,
     };
@@ -140,7 +114,7 @@ fn rotateEndVector(
 fn getLineIntersectionPoint(
     line1: Line,
     line2: Line,
-) ?Vector2 {
+) ?rl.Vector2 {
     // Line 1 points
     const line1_start_x: f32 = line1.start.x;
     const line1_start_y: f32 = line1.start.y;
@@ -164,7 +138,7 @@ fn getLineIntersectionPoint(
     const intersection_x = line1_start_x + t * (line1_end_x - line1_start_x);
     const intersection_y = line1_start_y + t * (line1_end_y - line1_start_y);
 
-    return Vector2{ .x = intersection_x, .y = intersection_y };
+    return rl.Vector2{ .x = intersection_x, .y = intersection_y };
 }
 
 /// Calculates a line parallel to the given line at a specified distance.
@@ -209,7 +183,7 @@ pub fn getParallelLine(
     const y2_parallel = end_y + offset_y;
 
     // Return the new start and end points of the parallel line
-    return Line{ .start = Vector2{ .x = x1_parallel, .y = y1_parallel }, .end = Vector2{ .x = x2_parallel, .y = y2_parallel }, .angle = undefined };
+    return Line{ .start = rl.Vector2{ .x = x1_parallel, .y = y1_parallel }, .end = rl.Vector2{ .x = x2_parallel, .y = y2_parallel }, .angle = undefined };
 }
 
 /// Converts a given angle in mils to degrees.
@@ -228,33 +202,11 @@ fn milsToRadians(
 
 /// Calculates the length of one leg of a right triangle given the other leg and an angle.
 pub fn calculateXfromAngle(
-    width: i32,
+    width: f32,
     angle: f32,
 ) f32 {
-    const b: f32 = @as(f32, @floatFromInt(width));
+    const b: f32 = width;
     const a: f32 = @tan(milsToRadians(angle));
 
     return (b * a);
-}
-
-fn calculateArcPoints(
-    origin: Vector2,
-    radius: f32,
-    startAngle: f32,
-    endAngle: f32,
-    n: usize,
-) ![]const [2]f32 {
-    var allocator = std.heap.page_allocator;
-    var points = try allocator.alloc([2]f32, n);
-    const step = (startAngle - endAngle) / (@as(f32, @floatFromInt(n - 1)));
-
-    for (0..n) |i| {
-        const angle = startAngle + step * (@as(f32, @floatFromInt(i)));
-        points[i] = .{
-            origin.x + radius * std.math.cos(angle),
-            origin.y - radius * std.math.sin(angle),
-        };
-    }
-
-    return points[0..];
 }
