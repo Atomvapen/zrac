@@ -12,7 +12,7 @@ pub fn handleCamera(self: *rl.Camera2D) void {
 }
 
 fn move(self: *rl.Camera2D) void {
-    const button = rl.isMouseButtonDown(.mouse_button_right);
+    const button = rl.isMouseButtonDown(.right);
     if (button) {
         var delta = rl.getMouseDelta();
         delta = rl.math.vector2Scale(delta, -1.0 / self.zoom);

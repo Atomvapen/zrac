@@ -1,53 +1,32 @@
+<h1 align="center">
+  <img src="/assets/icon.png" alt="zrac" width="200"/>
+  <p align="center">zrac</p>
+</h1>
 <p align="center">
-  <img src="/assets/icon.png" alt="ZRAC" width="200"/>
-  <h1 align="center">ZRAC</h1>
+<a target="_blank" href="https://ziglang.org"><img src="https://img.shields.io/badge/Language-ZIG-orange"/></a> 
+<a target="_blank" href="https://github.com/Atomvapen/ZRAC/blob/next/LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" /></a>
 </p>
-
 <p align="center">
-  ZRAC is a Risk Area Calculator.
+  zrac is a risk area calculator.
 </p>
-
 
 ---
-## Features
 
-* 100% written in [ZIG] (0.14.0-dev.2183+ee9f00d67)
-* GUI from [Raylib-ZIG] 
-* Compliant with and based upon [SÄKR EHV/PV]
-  
+## Design
+
+* Exlusively written in [Zig], mostly as a learning excersice.
+* Use as little dependencies as possible.
+* Compliant with, and based upon [SÄKR EHV/PV].
+
+A project meant to kickstart my zig-language learning while being a fun project at the same time.
+
 ## Dependencies
 
-* [Raylib-ZIG] 
+* [zgui-rl] 
+* [raylib-zig]
 
-## Roadmap
-
-* [ ] Save/load function (JSON)
-* [ ] Config
-* [ ]  Weapon/Ammunition inprovement
-  * [ ] Enum/Struct
-  * [ ] Renaming
-  * [ ] Better getName functions
-  * [ ] Amm in weapons
-  * [ ] Merge?
-* [ ] Move from Raylib -> zgui (Remove dependencies? Move to own SDL2/3 lib)
-* [ ] Whole area implementation
-* [ ] Redo MenuSystem
-* [ ] Better Validation
-* [ ] Documentation
-* [X] Restructure filesystem
-
-## License
-
-This project is licensed under the [GPL-3.0 license].
-
-### Contribution
-
-Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in ZRAC by you, shall be licensed as GPL-3.0 license, without any additional
-terms or conditions.
-
-[ZIG]:https://ziglang.org/
-[GPL-3.0 license]:https://github.com/Atomvapen/ZRAC/blob/next/LICENSE
-[Raylib-ZIG]:https://github.com/Not-Nik/raylib-zig
+[raylib-zig]:https://github.com/Not-Nik/raylib-zig
+[Zig]:https://ziglang.org/
+[zgui-rl]:https://github.com/Atomvapen/zgui-rl
 [SÄKR EHV/PV]:https://www.forsvarsmakten.se/siteassets/2-om-forsvarsmakten/dokument/reglementen/sakr-ehv-pv.pdf
 

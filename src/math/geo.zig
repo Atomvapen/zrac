@@ -1,27 +1,49 @@
 const std = @import("std");
 const rl = @import("raylib");
 
-/// Represents a 2D line segment with additional operations for transformations and rendering.
-///
-/// Methods:
-/// - init
-/// - drawCircleSector
-/// - drawText
-/// - drawLine
-/// - scale
-/// - rotateEndVector
-/// - endAtIntersection
-/// - startAtIntersection
 pub const Line = struct {
     start: rl.Vector2,
     end: rl.Vector2,
     angle: f32,
 
-    pub fn init(start: rl.Vector2, end: rl.Vector2, rotate: bool, angle: f32) !Line {
+    pub fn init(
+        start: rl.Vector2,
+        end: rl.Vector2,
+        rotate: bool,
+        angle: f32,
+    ) !Line {
         return Line{
             .start = start,
             .end = if (rotate) try rotateEndVector(start, end, angle) else end,
             .angle = angle,
+        };
+    }
+
+    pub fn scale(
+        self: *Line,
+        factor: f32,
+    ) void {
+        self.start.scale(factor);
+        self.end.scale(factor);
+    }
+
+    pub fn endAtIntersection(
+        self: *Line,
+        line: Line,
+    ) void {
+        self.*.end = getLineIntersectionPoint(self.*, line) orelse rl.Vector2{
+            .x = 0,
+            .y = 0,
+        };
+    }
+
+    pub fn startAtIntersection(
+        self: *Line,
+        line: Line,
+    ) void {
+        self.*.start = getLineIntersectionPoint(self.*, line) orelse rl.Vector2{
+            .x = 0,
+            .y = 0,
         };
     }
 
@@ -56,35 +78,18 @@ pub const Line = struct {
             rl.Color.maroon,
         );
     }
-
-    pub fn scale(self: *Line, factor: f32) void {
-        self.end.x *= factor;
-        self.end.y *= factor;
-        self.start.x *= factor;
-        self.start.y *= factor;
-    }
-
-    pub fn endAtIntersection(self: *Line, line: Line) void {
-        self.*.end = getLineIntersectionPoint(self.*, line) orelse rl.Vector2{
-            .x = 0,
-            .y = 0,
-        };
-    }
-
-    pub fn startAtIntersection(self: *Line, line: Line) void {
-        self.*.start = getLineIntersectionPoint(self.*, line) orelse rl.Vector2{
-            .x = 0,
-            .y = 0,
-        };
-    }
 };
 
 /// Rotates the endpoint of a `Line` around its starting point by the specified angle.
 ///
-/// This function returns a new rotated Vector2 with the new position of the endpoint.
+/// This function returns a new rotated rl.Vector2 with the new position of the endpoint.
 ///
 /// The rotation is performed using the formula for rotating points around an arbitrary center.
-fn rotateEndVector(start: rl.Vector2, end: rl.Vector2, angle: f32) !rl.Vector2 {
+fn rotateEndVector(
+    start: rl.Vector2,
+    end: rl.Vector2,
+    angle: f32,
+) !rl.Vector2 {
     const dx = end.x - start.x;
     const dy = end.y - start.y;
     const rad = milsToRadians(angle);
@@ -97,6 +102,7 @@ fn rotateEndVector(start: rl.Vector2, end: rl.Vector2, angle: f32) !rl.Vector2 {
         .y = (dx * sinAngle) + (dy * cosAngle) + start.y,
     };
 }
+
 /// Calculates the intersection point of two line segments, if it exists.
 ///
 /// The function determines the point where two lines intersect, based on their
@@ -105,7 +111,10 @@ fn rotateEndVector(start: rl.Vector2, end: rl.Vector2, angle: f32) !rl.Vector2 {
 ///
 /// The formula for finding the intersection is derived from solving the equations
 /// of the two lines in parametric form:
-fn getLineIntersectionPoint(line1: Line, line2: Line) ?rl.Vector2 {
+fn getLineIntersectionPoint(
+    line1: Line,
+    line2: Line,
+) ?rl.Vector2 {
     // Line 1 points
     const line1_start_x: f32 = line1.start.x;
     const line1_start_y: f32 = line1.start.y;
@@ -141,7 +150,10 @@ fn getLineIntersectionPoint(line1: Line, line2: Line) ?rl.Vector2 {
 /// The perpendicular direction is calculated by rotating the original direction vector
 /// of the line by 90 degrees, then normalizing it. The endpoints of the original line
 /// are then offset by the perpendicular vector scaled by the distance `c`.
-pub fn getParallelLine(line: Line, c: f32) !Line {
+pub fn getParallelLine(
+    line: Line,
+    c: f32,
+) !Line {
     const start_x: f32 = line.start.x;
     const start_y: f32 = line.start.y;
     const end_x: f32 = line.end.x;
@@ -175,18 +187,25 @@ pub fn getParallelLine(line: Line, c: f32) !Line {
 }
 
 /// Converts a given angle in mils to degrees.
-fn milsToDegree(mils: f32) f32 {
+fn milsToDegree(
+    mils: f32,
+) f32 {
     return mils * 0.05625;
 }
 
 /// Converts a given angle in mils to radians.
-fn milsToRadians(mils: f32) f32 {
+fn milsToRadians(
+    mils: f32,
+) f32 {
     return mils * 0.000982;
 }
 
 /// Calculates the length of one leg of a right triangle given the other leg and an angle.
-pub fn calculateXfromAngle(width: i32, angle: f32) f32 {
-    const b: f32 = @as(f32, @floatFromInt(width));
+pub fn calculateXfromAngle(
+    width: f32,
+    angle: f32,
+) f32 {
+    const b: f32 = width;
     const a: f32 = @tan(milsToRadians(angle));
 
     return (b * a);
