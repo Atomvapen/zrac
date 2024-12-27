@@ -47,13 +47,13 @@ pub const Line = struct {
         };
     }
 
-    pub fn drawCircleSector(self: *Line, radius: f32) void {
+    pub fn drawCircleSector(self: *Line, radius: f32, startAngle: f32) void {
         rl.drawRingLines(
             .{ .x = self.start.x, .y = self.start.y },
             radius,
             radius,
-            -90,
-            -90 + milsToDegree(self.angle),
+            startAngle,
+            startAngle + milsToDegree(self.angle),
             50,
             rl.Color.maroon,
         );
@@ -187,14 +187,14 @@ pub fn getParallelLine(
 }
 
 /// Converts a given angle in mils to degrees.
-fn milsToDegree(
+pub fn milsToDegree(
     mils: f32,
 ) f32 {
     return mils * 0.05625;
 }
 
 /// Converts a given angle in mils to radians.
-fn milsToRadians(
+pub fn milsToRadians(
     mils: f32,
 ) f32 {
     return mils * 0.000982;

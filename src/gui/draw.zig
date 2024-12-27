@@ -2,10 +2,63 @@ const rl = @import("raylib");
 const geo = @import("../math/geo.zig");
 const state = @import("../data/state.zig").RiskProfile;
 
-pub fn drawLines(riskProfile: state) void {
-    // Origin
-    const origin = rl.Vector2{ .x = 600, .y = 750 };
+// var origin: rl.Vector2 = .{ .x = 0, .y = 0 };
 
+pub fn drawBox(riskProfile: state) void {
+    // Box Origin point
+    const origin: rl.Vector2 = .{ .x = 600, .y = 750 };
+
+    // Width
+    var w_b: geo.Line = try geo.Line.init(.{
+        .x = origin.x - (riskProfile.box.width / 2),
+        .y = origin.y,
+    }, .{
+        .x = origin.x + (riskProfile.box.width / 2),
+        .y = origin.y,
+    }, false, undefined);
+    w_b.drawLine();
+
+    var w_t: geo.Line = try geo.Line.init(.{
+        .x = origin.x - (riskProfile.box.width / 2),
+        .y = origin.y - riskProfile.box.length,
+    }, .{
+        .x = origin.x + (riskProfile.box.width / 2),
+        .y = origin.y - riskProfile.box.length,
+    }, false, undefined);
+    w_t.drawLine();
+
+    // Length
+    var l_l: geo.Line = try geo.Line.init(.{
+        .x = origin.x - (riskProfile.box.width / 2),
+        .y = origin.y,
+    }, .{
+        .x = origin.x - (riskProfile.box.width / 2),
+        .y = origin.y - riskProfile.box.length,
+    }, false, undefined);
+    l_l.drawLine();
+
+    var l_r: geo.Line = try geo.Line.init(.{
+        .x = origin.x + (riskProfile.box.width / 2),
+        .y = origin.y,
+    }, .{
+        .x = origin.x + (riskProfile.box.width / 2),
+        .y = origin.y - riskProfile.box.length,
+    }, false, undefined);
+    l_r.drawLine();
+
+    // Draw
+    drawLines(riskProfile, .{
+        .x = origin.x + (riskProfile.box.width / 2),
+        .y = origin.y,
+    }, riskProfile.box.rightMils);
+
+    drawLines(riskProfile, .{
+        .x = origin.x + (riskProfile.box.width / 2),
+        .y = origin.y - riskProfile.box.length,
+    }, riskProfile.box.rightMils);
+}
+
+fn drawLines(riskProfile: state, origin: rl.Vector2, angle: f32) void {
     // h
     var h: geo.Line = try geo.Line.init(rl.Vector2{
         .x = origin.x,
@@ -13,19 +66,19 @@ pub fn drawLines(riskProfile: state) void {
     }, rl.Vector2{
         .x = origin.x,
         .y = origin.y - riskProfile.terrainValues.h,
-    }, false, undefined);
+    }, true, angle);
     h.drawLine();
-    h.drawText("h", -20, 0, 40);
+    if (riskProfile.config.showText) h.drawText("h", -20, 0, 40);
 
     // Amin
     var Amin: geo.Line = try geo.Line.init(rl.Vector2{
-        .x = undefined,
-        .y = undefined,
+        .x = origin.x,
+        .y = origin.y,
     }, rl.Vector2{
         .x = origin.x,
         .y = origin.y - riskProfile.terrainValues.Amin,
-    }, false, undefined);
-    Amin.drawText("Amin", -100, 0, 40);
+    }, true, angle);
+    if (riskProfile.config.showText) Amin.drawText("Amin", -100, 0, 40);
 
     // v
     var v: geo.Line = try geo.Line.init(rl.Vector2{
@@ -34,9 +87,9 @@ pub fn drawLines(riskProfile: state) void {
     }, rl.Vector2{
         .x = origin.x,
         .y = origin.y - riskProfile.terrainValues.h,
-    }, true, riskProfile.weaponValues.v);
+    }, true, angle + riskProfile.weaponValues.v);
     v.drawLine();
-    v.drawText("v", -5, -30, 40);
+    if (riskProfile.config.showText) v.drawText("v", -5, -30, 40);
 
     var f: geo.Line = try geo.Line.init(rl.Vector2{
         .x = origin.x,
@@ -45,7 +98,7 @@ pub fn drawLines(riskProfile: state) void {
         .x = origin.x,
         .y = Amin.end.y + riskProfile.terrainValues.f,
     }, false, undefined);
-    f.drawText("f", -70, 0, 40);
+    if (riskProfile.config.showText) f.drawText("f", -70, 0, 40);
 
     // h -> v
     var hv: geo.Line = try geo.Line.init(rl.Vector2{
@@ -54,8 +107,8 @@ pub fn drawLines(riskProfile: state) void {
     }, rl.Vector2{
         .x = undefined,
         .y = undefined,
-    }, false, riskProfile.weaponValues.v);
-    hv.drawCircleSector(riskProfile.terrainValues.h);
+    }, true, riskProfile.weaponValues.v);
+    hv.drawCircleSector(riskProfile.terrainValues.h, -90 + geo.milsToDegree(angle));
 
     // ch
     var ch: geo.Line = try geo.Line.init(rl.Vector2{
@@ -64,7 +117,7 @@ pub fn drawLines(riskProfile: state) void {
     }, rl.Vector2{
         .x = v.end.x - 1.0,
         .y = v.end.y - 100.0,
-    }, true, 3200.0 - riskProfile.terrainValues.ch);
+    }, true, angle + 3200.0 - riskProfile.terrainValues.ch);
 
     // q1
     var q1: geo.Line = try geo.Line.init(rl.Vector2{
@@ -87,7 +140,7 @@ pub fn drawLines(riskProfile: state) void {
             .x = origin.x,
             .y = origin.y - riskProfile.terrainValues.forestDist,
         }, false, undefined);
-        forestMin.drawText("forestMin", -220, 0, 40);
+        if (riskProfile.config.showText) forestMin.drawText("forestMin", -220, 0, 40);
 
         // q2
         var q2: geo.Line = try geo.Line.init(rl.Vector2{
@@ -102,14 +155,14 @@ pub fn drawLines(riskProfile: state) void {
 
         ch.endAtIntersection(c);
         ch.drawLine();
-        ch.drawText("ch", -5, -20, 40);
+        if (riskProfile.config.showText) ch.drawText("ch", -5, -20, 40);
 
         c.endAtIntersection(ch);
         c.drawLine();
 
         q2.endAtIntersection(c);
         q2.drawLine();
-        q2.drawText("q2", 25, 0, 40);
+        if (riskProfile.config.showText) q2.drawText("q2", 25, 0, 40);
     } else {
         ch.endAtIntersection(q1);
 
@@ -125,9 +178,9 @@ pub fn drawLines(riskProfile: state) void {
         }
 
         q1.drawLine();
-        q1.drawText("q1", 15, 0, 40);
+        if (riskProfile.config.showText) q1.drawText("q1", 15, 0, 40);
 
         ch.drawLine();
-        ch.drawText("ch", -5, -20, 40);
+        if (riskProfile.config.showText) ch.drawText("ch", -5, -20, 40);
     }
 }

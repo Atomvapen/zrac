@@ -38,14 +38,22 @@ const RiskEditorViewerWindow = struct {
                 .no_collapse = true, //TODO Fix crash at : .no_collapse = true
             },
         })) {
-            if (zgui.button("Återställ", .{})) {
-                guiState.reset();
-            }
-            zgui.sameLine(.{});
-            _ = zgui.checkbox("Visa", .{ .v = &guiState.config.show });
+            { // Config values
+                if (zgui.button("Återställ", .{})) guiState.reset();
+                zgui.sameLine(.{});
+                zgui.setNextItemWidth(70);
+                _ = zgui.comboFromEnum("Typ", &guiState.config.sort);
 
-            zgui.separatorText("Terrängvärden");
-            { // Values
+                _ = zgui.checkbox("Visa linjer", .{ .v = &guiState.config.show });
+                zgui.sameLine(.{});
+
+                if (!guiState.config.show) zgui.beginDisabled(.{ .disabled = true });
+                _ = zgui.checkbox("Visa text", .{ .v = &guiState.config.showText });
+                if (!guiState.config.show) zgui.endDisabled();
+            }
+
+            { // Terrain Values
+                zgui.separatorText("Terrängvärden");
                 _ = zgui.comboFromEnum("Faktor", &guiState.terrainValues.factor);
                 _ = zgui.inputFloat("Amin", .{ .v = &guiState.terrainValues.Amin });
                 _ = zgui.inputFloat("Amax", .{ .v = &guiState.terrainValues.Amax });
@@ -56,8 +64,8 @@ const RiskEditorViewerWindow = struct {
                 _ = zgui.checkbox("Uppfångande", .{ .v = &guiState.terrainValues.interceptingForest });
             }
 
-            zgui.separatorText("Vapenvärden");
-            { // Weapons & Ammunition Comboboxes
+            { // Weapons & Ammunition Values
+                zgui.separatorText("Vapenvärden");
                 zgui.setNextItemWidth(121);
                 _ = zgui.comboFromEnum("Vapentyp", &guiState.weaponValues.weapon_enum_value);
                 zgui.sameLine(.{});
@@ -78,11 +86,27 @@ const RiskEditorViewerWindow = struct {
                 _ = zgui.comboFromEnum("Måltyp", &guiState.weaponValues.target);
             }
 
-            zgui.newLine();
-            zgui.separator();
-            zgui.newLine();
-            zgui.textUnformatted("Flytta: Höger musknapp.");
-            zgui.textUnformatted(" Zooma: Scrollhjulet.");
+            { // Box values
+                if (guiState.config.sort == .Box) {
+                    zgui.separatorText("Övningsområde");
+                    _ = zgui.inputFloat("Bredd", .{ .v = &guiState.box.width });
+                    _ = zgui.inputFloat("Längd", .{ .v = &guiState.box.length });
+
+                    zgui.setNextItemWidth(80);
+                    _ = zgui.inputFloat("Höger", .{ .v = &guiState.box.rightMils });
+                    zgui.sameLine(.{});
+                    zgui.setNextItemWidth(80);
+                    _ = zgui.inputFloat("Vänster", .{ .v = &guiState.box.leftMils });
+                }
+            }
+
+            { // Information text
+                zgui.newLine();
+                zgui.separator();
+                zgui.newLine();
+                zgui.textUnformatted("Flytta: Höger musknapp.");
+                zgui.textUnformatted(" Zooma: Scrollhjulet.");
+            }
 
             zgui.end();
             zgui.popStyleVar(.{});
@@ -91,6 +115,7 @@ const RiskEditorViewerWindow = struct {
 
     fn update(self: *Self) void {
         if (!self.open) return;
+
         guiState.update();
     }
 };
@@ -106,7 +131,11 @@ fn drawGrid() void {
         rl.drawGrid(200, 100);
         rl.gl.rlPopMatrix();
 
-        if (guiState.config.valid) draw.drawLines(guiState);
+        if (guiState.config.valid) {
+            if (guiState.config.sort == .Box) draw.drawBox(guiState);
+
+            // draw.drawLines(guiState);
+        }
     }
 }
 

@@ -15,8 +15,14 @@ pub fn validate(profile: *Profile) bool {
     if (!validateRangeConditions(profile)) return false;
     if (!validateNegativeValues(profile)) return false;
     if (!validateOverflow(profile)) return false;
+    if (!validadeBox(profile)) return false;
 
     return true;
+}
+
+fn validadeBox(profile: *Profile) bool {
+    return (profile.box.length > 0 and
+        profile.box.width > 0);
 }
 
 fn validateZeroValues(profile: *Profile) bool {

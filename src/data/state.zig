@@ -7,6 +7,10 @@ const math = @import("../math/risk.zig");
 const validation = @import("validation.zig");
 
 pub const RiskProfile = struct {
+    const Sort = enum {
+        Box,
+        SST,
+    };
     const Factor = enum {
         I,
         II,
@@ -19,6 +23,8 @@ pub const RiskProfile = struct {
     const Config = struct {
         show: bool = true,
         valid: bool = false,
+        sort: Sort = .Box,
+        showText: bool = true,
     };
     const TerrainValues = struct {
         interceptingForest: bool = false,
@@ -46,16 +52,29 @@ pub const RiskProfile = struct {
         support: bool = false,
         c: f32 = 0,
     };
+    const Box = struct {
+        length: f32 = 100,
+        width: f32 = 50,
+        rightMils: f32 = 300,
+        leftMils: f32 = 300,
+    };
+    const SST = struct {
+        width: f32 = 50,
+    };
 
     terrainValues: TerrainValues,
     weaponValues: WeaponValues,
     config: Config,
+    box: Box,
+    sst: SST,
 
     pub fn init() RiskProfile {
         return RiskProfile{
             .terrainValues = TerrainValues{},
             .weaponValues = WeaponValues{},
             .config = Config{},
+            .box = Box{},
+            .sst = SST{},
         };
     }
 
@@ -67,6 +86,8 @@ pub const RiskProfile = struct {
         self.terrainValues = TerrainValues{};
         self.weaponValues = WeaponValues{};
         self.config = Config{};
+        self.box = Box{};
+        self.sst = SST{};
     }
 
     pub fn update(self: *RiskProfile) void {
