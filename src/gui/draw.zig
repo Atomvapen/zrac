@@ -4,8 +4,35 @@ const state = @import("../data/state.zig").RiskProfile;
 
 // var origin: rl.Vector2 = .{ .x = 0, .y = 0 };
 
+pub fn drawHalf(riskProfile: state) void {
+    const origin: rl.Vector2 = .{ .x = 600, .y = 750 };
+
+    drawLines(riskProfile, .{
+        .x = origin.x,
+        .y = origin.y,
+    }, 0);
+}
+
+pub fn drawSST(riskProfile: state) void {
+    const origin: rl.Vector2 = .{ .x = 600, .y = 750 };
+
+    // Width
+    var w_b: geo.Line = try geo.Line.init(.{
+        .x = origin.x - (riskProfile.sst.width / 2),
+        .y = origin.y,
+    }, .{
+        .x = origin.x + (riskProfile.sst.width / 2),
+        .y = origin.y,
+    }, false, undefined);
+    w_b.drawLine();
+
+    drawLines(riskProfile, .{
+        .x = origin.x + (riskProfile.sst.width / 2),
+        .y = origin.y,
+    }, riskProfile.sst.hh);
+}
+
 pub fn drawBox(riskProfile: state) void {
-    // Box Origin point
     const origin: rl.Vector2 = .{ .x = 600, .y = 750 };
 
     // Width
@@ -50,12 +77,12 @@ pub fn drawBox(riskProfile: state) void {
     drawLines(riskProfile, .{
         .x = origin.x + (riskProfile.box.width / 2),
         .y = origin.y,
-    }, riskProfile.box.rightMils);
+    }, riskProfile.box.h);
 
     drawLines(riskProfile, .{
         .x = origin.x + (riskProfile.box.width / 2),
         .y = origin.y - riskProfile.box.length,
-    }, riskProfile.box.rightMils);
+    }, riskProfile.box.h);
 }
 
 fn drawLines(riskProfile: state, origin: rl.Vector2, angle: f32) void {

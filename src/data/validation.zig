@@ -15,14 +15,28 @@ pub fn validate(profile: *Profile) bool {
     if (!validateRangeConditions(profile)) return false;
     if (!validateNegativeValues(profile)) return false;
     if (!validateOverflow(profile)) return false;
-    if (!validadeBox(profile)) return false;
+    switch (profile.config.sort) {
+        .Box => if (!validadeBox(profile)) return false,
+        .SST => if (!validadeSST(profile)) return false,
+        .Halva => return true,
+    }
 
     return true;
 }
 
 fn validadeBox(profile: *Profile) bool {
     return (profile.box.length > 0 and
-        profile.box.width > 0);
+        profile.box.width > 0 and
+        profile.box.v > 0 and
+        profile.box.h > 0);
+}
+
+fn validadeSST(profile: *Profile) bool {
+    return (profile.sst.width > 0 and
+        profile.sst.hh > 0 and
+        profile.sst.hv > 0 and
+        profile.sst.vv > 0 and
+        profile.sst.vh > 0);
 }
 
 fn validateZeroValues(profile: *Profile) bool {

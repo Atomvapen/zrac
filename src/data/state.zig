@@ -10,6 +10,7 @@ pub const RiskProfile = struct {
     const Sort = enum {
         Box,
         SST,
+        Halva,
     };
     const Factor = enum {
         I,
@@ -55,11 +56,15 @@ pub const RiskProfile = struct {
     const Box = struct {
         length: f32 = 100,
         width: f32 = 50,
-        rightMils: f32 = 300,
-        leftMils: f32 = 300,
+        h: f32 = 300,
+        v: f32 = 300,
     };
     const SST = struct {
         width: f32 = 50,
+        hh: f32 = 100,
+        hv: f32 = 100,
+        vv: f32 = 100,
+        vh: f32 = 100,
     };
 
     terrainValues: TerrainValues,

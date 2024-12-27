@@ -5,7 +5,7 @@ const zgui = @import("zgui");
 const draw = @import("draw.zig");
 const camera_fn = @import("camera.zig");
 
-var guiState = @import("../data/state.zig").RiskProfile.init();
+var riskProfile = @import("../data/state.zig").RiskProfile.init();
 
 var camera = rl.Camera2D{
     .target = .{ .x = 9.785727e2, .y = -4.9193994e2 },
@@ -39,65 +39,91 @@ const RiskEditorViewerWindow = struct {
             },
         })) {
             { // Config values
-                if (zgui.button("Återställ", .{})) guiState.reset();
-                zgui.sameLine(.{});
-                zgui.setNextItemWidth(70);
-                _ = zgui.comboFromEnum("Typ", &guiState.config.sort);
-
-                _ = zgui.checkbox("Visa linjer", .{ .v = &guiState.config.show });
+                _ = zgui.checkbox("Visa linjer", .{ .v = &riskProfile.config.show });
                 zgui.sameLine(.{});
 
-                if (!guiState.config.show) zgui.beginDisabled(.{ .disabled = true });
-                _ = zgui.checkbox("Visa text", .{ .v = &guiState.config.showText });
-                if (!guiState.config.show) zgui.endDisabled();
+                if (!riskProfile.config.show) zgui.beginDisabled(.{ .disabled = true });
+                _ = zgui.checkbox("Visa text", .{ .v = &riskProfile.config.showText });
+                if (!riskProfile.config.show) zgui.endDisabled();
+            }
+
+            { // Type value
+                zgui.separatorText("Typ");
+                _ = zgui.comboFromEnum("Typ", &riskProfile.config.sort);
             }
 
             { // Terrain Values
                 zgui.separatorText("Terrängvärden");
-                _ = zgui.comboFromEnum("Faktor", &guiState.terrainValues.factor);
-                _ = zgui.inputFloat("Amin", .{ .v = &guiState.terrainValues.Amin });
-                _ = zgui.inputFloat("Amax", .{ .v = &guiState.terrainValues.Amax });
-                _ = zgui.inputFloat("f", .{ .v = &guiState.terrainValues.f });
+                _ = zgui.comboFromEnum("Faktor", &riskProfile.terrainValues.factor);
+                _ = zgui.inputFloat("Amin", .{ .v = &riskProfile.terrainValues.Amin });
+                _ = zgui.inputFloat("Amax", .{ .v = &riskProfile.terrainValues.Amax });
+                _ = zgui.inputFloat("f", .{ .v = &riskProfile.terrainValues.f });
                 zgui.setNextItemWidth(93);
-                _ = zgui.inputFloat("Skogsavstånd", .{ .v = &guiState.terrainValues.forestDist });
+                _ = zgui.inputFloat("Skogsavstånd", .{ .v = &riskProfile.terrainValues.forestDist });
                 zgui.sameLine(.{});
-                _ = zgui.checkbox("Uppfångande", .{ .v = &guiState.terrainValues.interceptingForest });
+                _ = zgui.checkbox("Uppfångande", .{ .v = &riskProfile.terrainValues.interceptingForest });
             }
 
             { // Weapons & Ammunition Values
                 zgui.separatorText("Vapenvärden");
                 zgui.setNextItemWidth(121);
-                _ = zgui.comboFromEnum("Vapentyp", &guiState.weaponValues.weapon_enum_value);
+                _ = zgui.comboFromEnum("Vapentyp", &riskProfile.weaponValues.weapon_enum_value);
                 zgui.sameLine(.{});
 
-                if (!guiState.getHasSupport()) {
-                    guiState.weaponValues.support = false;
+                if (!riskProfile.getHasSupport()) {
+                    riskProfile.weaponValues.support = false;
                     zgui.beginDisabled(.{ .disabled = true });
                 }
-                _ = zgui.checkbox("Benstöd", .{ .v = &guiState.weaponValues.support });
-                if (!guiState.getHasSupport()) zgui.endDisabled();
+                _ = zgui.checkbox("Benstöd", .{ .v = &riskProfile.weaponValues.support });
+                if (!riskProfile.getHasSupport()) zgui.endDisabled();
 
-                switch (guiState.weaponValues.weapon_enum_value) {
-                    .AK5, .KSP90 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm556),
-                    .KSP58 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm762),
-                    .KSP88, .AG90 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm127),
-                    .P88 => _ = zgui.comboFromEnum("Ammunitionstyp", &guiState.weaponValues.amm9),
+                switch (riskProfile.weaponValues.weapon_enum_value) {
+                    .AK5, .KSP90 => _ = zgui.comboFromEnum("Ammunitionstyp", &riskProfile.weaponValues.amm556),
+                    .KSP58 => _ = zgui.comboFromEnum("Ammunitionstyp", &riskProfile.weaponValues.amm762),
+                    .KSP88, .AG90 => _ = zgui.comboFromEnum("Ammunitionstyp", &riskProfile.weaponValues.amm127),
+                    .P88 => _ = zgui.comboFromEnum("Ammunitionstyp", &riskProfile.weaponValues.amm9),
                 }
-                _ = zgui.comboFromEnum("Måltyp", &guiState.weaponValues.target);
+                _ = zgui.comboFromEnum("Måltyp", &riskProfile.weaponValues.target);
             }
 
             { // Box values
-                if (guiState.config.sort == .Box) {
+                if (riskProfile.config.sort == .Box) {
                     zgui.separatorText("Övningsområde");
-                    _ = zgui.inputFloat("Bredd", .{ .v = &guiState.box.width });
-                    _ = zgui.inputFloat("Längd", .{ .v = &guiState.box.length });
+                    _ = zgui.inputFloat("Bredd", .{ .v = &riskProfile.box.width });
+                    _ = zgui.inputFloat("Längd", .{ .v = &riskProfile.box.length });
 
                     zgui.setNextItemWidth(80);
-                    _ = zgui.inputFloat("Höger", .{ .v = &guiState.box.rightMils });
+                    _ = zgui.inputFloat("Höger", .{ .v = &riskProfile.box.h });
                     zgui.sameLine(.{});
                     zgui.setNextItemWidth(80);
-                    _ = zgui.inputFloat("Vänster", .{ .v = &guiState.box.leftMils });
+                    _ = zgui.inputFloat("Vänster", .{ .v = &riskProfile.box.v });
                 }
+            }
+
+            { // SST values
+                if (riskProfile.config.sort == .SST) {
+                    zgui.separatorText("Övningsområde");
+                    _ = zgui.inputFloat("Bredd", .{ .v = &riskProfile.sst.width });
+
+                    zgui.setNextItemWidth(91);
+                    _ = zgui.inputFloat("HH", .{ .v = &riskProfile.sst.hh });
+                    zgui.sameLine(.{});
+                    zgui.setNextItemWidth(91);
+                    _ = zgui.inputFloat("HV", .{ .v = &riskProfile.sst.hv });
+
+                    zgui.setNextItemWidth(91);
+                    _ = zgui.inputFloat("VV", .{ .v = &riskProfile.sst.vv });
+                    zgui.sameLine(.{});
+                    zgui.setNextItemWidth(91);
+                    _ = zgui.inputFloat("VH", .{ .v = &riskProfile.sst.vh });
+                }
+            }
+
+            { // Reset
+                zgui.newLine();
+                zgui.separator();
+                zgui.newLine();
+                if (zgui.button("Återställ", .{})) riskProfile.reset();
             }
 
             { // Information text
@@ -116,7 +142,7 @@ const RiskEditorViewerWindow = struct {
     fn update(self: *Self) void {
         if (!self.open) return;
 
-        guiState.update();
+        riskProfile.update();
     }
 };
 
@@ -131,11 +157,11 @@ fn drawGrid() void {
         rl.drawGrid(200, 100);
         rl.gl.rlPopMatrix();
 
-        if (guiState.config.valid) {
-            if (guiState.config.sort == .Box) draw.drawBox(guiState);
-
-            // draw.drawLines(guiState);
-        }
+        if (riskProfile.config.valid) switch (riskProfile.config.sort) {
+            .Box => draw.drawBox(riskProfile),
+            .SST => draw.drawSST(riskProfile),
+            .Halva => draw.drawHalf(riskProfile),
+        };
     }
 }
 
