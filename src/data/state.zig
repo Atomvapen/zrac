@@ -1,8 +1,5 @@
-const std = @import("std");
-
 const weapon = @import("weapon.zig");
 const ammunition = @import("ammunition.zig");
-
 const math = @import("../math/risk.zig");
 const validation = @import("validation.zig");
 

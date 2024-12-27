@@ -2,8 +2,6 @@ const rl = @import("raylib");
 const geo = @import("../math/geo.zig");
 const state = @import("../data/state.zig").RiskProfile;
 
-// var origin: rl.Vector2 = .{ .x = 0, .y = 0 };
-
 pub fn drawHalf(riskProfile: state) void {
     const origin: rl.Vector2 = .{ .x = 600, .y = 750 };
 
