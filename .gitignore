@@ -3,3 +3,4 @@ zig-out/
 bkp
 imgui.ini
 *.DS_Store
+test
