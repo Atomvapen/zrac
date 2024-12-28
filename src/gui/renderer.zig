@@ -134,6 +134,10 @@ const RiskEditorViewerWindow = struct {
                 zgui.textUnformatted(" Zooma: Scrollhjulet.");
             }
 
+            // const draw_list = zgui.getBackgroundDrawList();
+
+            // draw.drawTest(draw_list);
+
             zgui.end();
             zgui.popStyleVar(.{});
         }
@@ -162,6 +166,15 @@ fn drawGrid() void {
             .SST => draw.drawSST(riskProfile),
             .Halva => draw.drawHalf(riskProfile),
         };
+
+        // const points = [_]rl.Vector2{
+        //     rl.Vector2{ .x = 100, .y = 100 },
+        //     rl.Vector2{ .x = 50, .y = 150 },
+        //     rl.Vector2{ .x = 150, .y = 200 },
+        //     rl.Vector2{ .x = 100, .y = 250 },
+        // };
+        // const geo = @import("../math/geo.zig");
+        // geo.drawPolylineV(points[0..], rl.Color.green);
     }
 }
 

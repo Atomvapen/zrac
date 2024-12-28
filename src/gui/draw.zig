@@ -14,15 +14,22 @@ pub fn drawHalf(riskProfile: state) void {
 pub fn drawSST(riskProfile: state) void {
     const origin: rl.Vector2 = .{ .x = 600, .y = 750 };
 
-    // Width
-    var w_b: geo.Line = try geo.Line.init(.{
-        .x = origin.x - (riskProfile.sst.width / 2),
-        .y = origin.y,
-    }, .{
-        .x = origin.x + (riskProfile.sst.width / 2),
-        .y = origin.y,
-    }, false, undefined);
-    w_b.drawLine();
+    const sst = [_]rl.Vector2{
+        rl.Vector2{ .x = origin.x - (riskProfile.sst.width / 2), .y = origin.y },
+        rl.Vector2{ .x = origin.x + (riskProfile.sst.width / 2), .y = origin.y },
+    };
+
+    geo.drawPolylineV(sst[0..], rl.Color.maroon);
+
+    // // Width
+    // var w_b: geo.Line = try geo.Line.init(.{
+    //     .x = origin.x - (riskProfile.sst.width / 2),
+    //     .y = origin.y,
+    // }, .{
+    //     .x = origin.x + (riskProfile.sst.width / 2),
+    //     .y = origin.y,
+    // }, false, undefined);
+    // w_b.drawLineV();
 
     drawLines(riskProfile, .{
         .x = origin.x + (riskProfile.sst.width / 2),
@@ -33,43 +40,53 @@ pub fn drawSST(riskProfile: state) void {
 pub fn drawBox(riskProfile: state) void {
     const origin: rl.Vector2 = .{ .x = 600, .y = 750 };
 
-    // Width
-    var w_b: geo.Line = try geo.Line.init(.{
-        .x = origin.x - (riskProfile.box.width / 2),
-        .y = origin.y,
-    }, .{
-        .x = origin.x + (riskProfile.box.width / 2),
-        .y = origin.y,
-    }, false, undefined);
-    w_b.drawLine();
+    const box = [_]rl.Vector2{
+        rl.Vector2{ .x = origin.x - (riskProfile.box.width / 2), .y = origin.y },
+        rl.Vector2{ .x = origin.x + (riskProfile.box.width / 2), .y = origin.y },
+        rl.Vector2{ .x = origin.x + (riskProfile.box.width / 2), .y = origin.y - riskProfile.box.length },
+        rl.Vector2{ .x = origin.x - (riskProfile.box.width / 2), .y = origin.y - riskProfile.box.length },
+        rl.Vector2{ .x = origin.x - (riskProfile.box.width / 2), .y = origin.y },
+    };
 
-    var w_t: geo.Line = try geo.Line.init(.{
-        .x = origin.x - (riskProfile.box.width / 2),
-        .y = origin.y - riskProfile.box.length,
-    }, .{
-        .x = origin.x + (riskProfile.box.width / 2),
-        .y = origin.y - riskProfile.box.length,
-    }, false, undefined);
-    w_t.drawLine();
+    geo.drawPolylineV(box[0..], rl.Color.maroon);
 
-    // Length
-    var l_l: geo.Line = try geo.Line.init(.{
-        .x = origin.x - (riskProfile.box.width / 2),
-        .y = origin.y,
-    }, .{
-        .x = origin.x - (riskProfile.box.width / 2),
-        .y = origin.y - riskProfile.box.length,
-    }, false, undefined);
-    l_l.drawLine();
+    // // Width
+    // var w_b: geo.Line = try geo.Line.init(.{
+    //     .x = origin.x - (riskProfile.box.width / 2),
+    //     .y = origin.y,
+    // }, .{
+    //     .x = origin.x + (riskProfile.box.width / 2),
+    //     .y = origin.y,
+    // }, false, undefined);
+    // w_b.drawLineV();
 
-    var l_r: geo.Line = try geo.Line.init(.{
-        .x = origin.x + (riskProfile.box.width / 2),
-        .y = origin.y,
-    }, .{
-        .x = origin.x + (riskProfile.box.width / 2),
-        .y = origin.y - riskProfile.box.length,
-    }, false, undefined);
-    l_r.drawLine();
+    // var w_t: geo.Line = try geo.Line.init(.{
+    //     .x = origin.x - (riskProfile.box.width / 2),
+    //     .y = origin.y - riskProfile.box.length,
+    // }, .{
+    //     .x = origin.x + (riskProfile.box.width / 2),
+    //     .y = origin.y - riskProfile.box.length,
+    // }, false, undefined);
+    // w_t.drawLineV();
+
+    // // Length
+    // var l_l: geo.Line = try geo.Line.init(.{
+    //     .x = origin.x - (riskProfile.box.width / 2),
+    //     .y = origin.y,
+    // }, .{
+    //     .x = origin.x - (riskProfile.box.width / 2),
+    //     .y = origin.y - riskProfile.box.length,
+    // }, false, undefined);
+    // l_l.drawLineV();
+
+    // var l_r: geo.Line = try geo.Line.init(.{
+    //     .x = origin.x + (riskProfile.box.width / 2),
+    //     .y = origin.y,
+    // }, .{
+    //     .x = origin.x + (riskProfile.box.width / 2),
+    //     .y = origin.y - riskProfile.box.length,
+    // }, false, undefined);
+    // l_r.drawLineV();
 
     // Draw
     drawLines(riskProfile, .{
@@ -92,7 +109,7 @@ fn drawLines(riskProfile: state, origin: rl.Vector2, angle: f32) void {
         .x = origin.x,
         .y = origin.y - riskProfile.terrainValues.h,
     }, true, angle);
-    h.drawLine();
+    h.drawLineV();
     if (riskProfile.config.showText) h.drawText("h", -20, 0, 40);
 
     // Amin
@@ -113,7 +130,7 @@ fn drawLines(riskProfile: state, origin: rl.Vector2, angle: f32) void {
         .x = origin.x,
         .y = origin.y - riskProfile.terrainValues.h,
     }, true, angle + riskProfile.weaponValues.v);
-    v.drawLine();
+    v.drawLineV();
     if (riskProfile.config.showText) v.drawText("v", -5, -30, 40);
 
     var f: geo.Line = try geo.Line.init(rl.Vector2{
@@ -179,14 +196,14 @@ fn drawLines(riskProfile: state, origin: rl.Vector2, angle: f32) void {
         c.startAtIntersection(q2);
 
         ch.endAtIntersection(c);
-        ch.drawLine();
+        ch.drawLineV();
         if (riskProfile.config.showText) ch.drawText("ch", -5, -20, 40);
 
         c.endAtIntersection(ch);
-        c.drawLine();
+        c.drawLineV();
 
         q2.endAtIntersection(c);
-        q2.drawLine();
+        q2.drawLineV();
         if (riskProfile.config.showText) q2.drawText("q2", 25, 0, 40);
     } else {
         ch.endAtIntersection(q1);
@@ -199,13 +216,13 @@ fn drawLines(riskProfile: state, origin: rl.Vector2, angle: f32) void {
         if (riskProfile.terrainValues.factor != .I) {
             q1.end = c.start;
             ch.end = c.end;
-            c.drawLine();
+            c.drawLineV();
         }
 
-        q1.drawLine();
+        q1.drawLineV();
         if (riskProfile.config.showText) q1.drawText("q1", 15, 0, 40);
 
-        ch.drawLine();
+        ch.drawLineV();
         if (riskProfile.config.showText) ch.drawText("ch", -5, -20, 40);
     }
 }
