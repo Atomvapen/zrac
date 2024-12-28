@@ -58,7 +58,6 @@ pub fn getCaliber(value: anytype) Caliber {
     return switch (@TypeOf(value)) {
         Calibers.ptr556 => switch (value) {
             .ptr556_sk_prj_slprj => Caliber.ptr556_sk_prj_slprj,
-            // .hagelptr_test => Caliber.hagelptr,
         },
         Calibers.ptr65 => switch (value) {
             .ptr65_sk_prj_m41 => Caliber.ptr65_sk_prj_m41,

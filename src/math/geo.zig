@@ -1,6 +1,36 @@
 const std = @import("std");
 const rl = @import("raylib");
 
+pub const Point = struct {
+    pos: rl.Vector2 = .{ .x = 0, .y = 0 },
+    text: [*:0]const u8 = "",
+
+    pub fn init(
+        pos: rl.Vector2,
+        text: [*:0]const u8,
+    ) Point {
+        return Point{
+            .pos = pos,
+            .text = text,
+        };
+    }
+
+    pub fn drawText(
+        self: *const Point,
+        textOffsetX: i32,
+        textOffsetY: i32,
+        fontSize: i32,
+    ) void {
+        rl.drawText(
+            self.text,
+            @as(i32, @intFromFloat(self.pos.x)) + textOffsetX,
+            @as(i32, @intFromFloat(self.pos.y)) + textOffsetY,
+            fontSize,
+            rl.Color.black,
+        );
+    }
+};
+
 pub const Line = struct {
     start: rl.Vector2,
     end: rl.Vector2,
@@ -47,7 +77,11 @@ pub const Line = struct {
         };
     }
 
-    pub fn drawCircleSector(self: *Line, radius: f32, startAngle: f32) void {
+    pub fn drawCircleSector(
+        self: *Line,
+        radius: f32,
+        startAngle: f32,
+    ) void {
         rl.drawRingLines(
             .{ .x = self.start.x, .y = self.start.y },
             radius,
@@ -59,7 +93,13 @@ pub const Line = struct {
         );
     }
 
-    pub fn drawText(self: *Line, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32) void {
+    pub fn drawText(
+        self: *Line,
+        text: [*:0]const u8,
+        textOffsetX: i32,
+        textOffsetY: i32,
+        fontSize: i32,
+    ) void {
         rl.drawText(
             text,
             @as(i32, @intFromFloat(self.end.x)) + textOffsetX,
@@ -79,7 +119,9 @@ pub const Line = struct {
     //     );
     // }
 
-    pub fn drawLineV(self: *Line) void {
+    pub fn drawLineV(
+        self: *Line,
+    ) void {
         rl.drawLineV(
             self.start,
             self.end,
@@ -149,7 +191,7 @@ fn rotateEndVector(
 ///
 /// The formula for finding the intersection is derived from solving the equations
 /// of the two lines in parametric form:
-fn getLineIntersectionPoint(
+pub fn getLineIntersectionPoint(
     line1: Line,
     line2: Line,
 ) ?rl.Vector2 {
