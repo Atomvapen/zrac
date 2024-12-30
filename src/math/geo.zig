@@ -109,16 +109,6 @@ pub const Line = struct {
         );
     }
 
-    // pub fn drawLine(self: *Line) void {
-    //     rl.drawLine(
-    //         @as(i32, @intFromFloat(self.start.x)),
-    //         @as(i32, @intFromFloat(self.start.y)),
-    //         @as(i32, @intFromFloat(self.end.x)),
-    //         @as(i32, @intFromFloat(self.end.y)),
-    //         rl.Color.maroon,
-    //     );
-    // }
-
     pub fn drawLineV(
         self: *Line,
     ) void {
@@ -129,22 +119,6 @@ pub const Line = struct {
         );
     }
 };
-
-// pub fn drawPolylineV(points: []const rl.Vector2, color: rl.Color) void {
-//     if (points.len < 2) return; // Need at least two points to draw lines
-//     var i: usize = 0;
-
-//     rl.gl.rlBegin(rl.gl.rl_lines);
-//     while (points.len > i) : (i += 1) {
-//         if (i < points.len - 1) {
-//             rl.gl.rlColor4ub(color.r, color.g, color.b, color.a);
-//             rl.gl.rlVertex2f(points[i].x, points[i].y);
-//             rl.gl.rlVertex2f(points[i + 1].x, points[i + 1].y);
-//         }
-//     }
-
-//     rl.gl.rlEnd();
-// }
 
 pub fn drawPolylineV(buffer: []const rl.Vector2, colors: rl.Color) void {
     if (buffer.len < 2) return;
