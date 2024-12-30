@@ -7,18 +7,17 @@
 <a target="_blank" href="https://github.com/Atomvapen/ZRAC/blob/next/LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" /></a>
 </p>
 <p align="center">
-  zrac is a risk area calculator.
+  zrac is a risk area calculator and visualizer.
 </p>
 
 ---
 
 ## Design
 
-* Exlusively written in [Zig], mostly as a learning excersice.
+* Exlusively written in [Zig].
 * Use as little dependencies as possible.
 * Compliant with, and based upon [SÄKR EHV/PV].
-
-A project meant to kickstart my zig-language learning while being a fun project at the same time.
+* Be a good _learning experience_ - not a good _product_.
 
 ## Dependencies
 

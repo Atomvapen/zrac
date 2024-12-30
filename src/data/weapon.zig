@@ -15,7 +15,6 @@ pub const Model = struct {
 
     pub const Invalid: Model = Model{ .v_still = undefined, .v_moveable = undefined, .id = -1 };
     pub const EHV: Model = Model{ .v_still = 100.0, .v_moveable = 100.0, .id = 0 };
-    // pub const AG90: Model = Model{ .v_still = 100.0, .v_moveable = 100.0, .id = 1 };
     pub const KSP58: Model = Model{ .v_still = 200.0, .v_moveable = 300.0, .id = 2, .supportable = true };
     pub const KSP58MBS: Model = Model{ .v_still = 100.0, .v_moveable = 200.0, .id = 3, .supportable = true };
     pub const KSP58MMLVS: Model = Model{ .v_still = 100.0, .v_moveable = 200.0, .id = 4 };
