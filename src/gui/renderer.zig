@@ -2,7 +2,7 @@ const std = @import("std");
 const rl = @import("raylib");
 const zgui = @import("zgui");
 
-const draw = @import("draw.zig");
+const draw = @import("draw/draw.zig");
 const camera_fn = @import("camera.zig");
 
 var riskProfile = @import("../data/state.zig").RiskProfile.init();
@@ -150,7 +150,7 @@ const RiskEditorViewerWindow = struct {
     }
 };
 
-fn drawGrid() void {
+fn drawGrid(allocator: std.mem.Allocator) void {
     { // Moveable UI
         camera.begin();
         defer camera.end();
@@ -164,7 +164,7 @@ fn drawGrid() void {
         if (riskProfile.config.valid) switch (riskProfile.config.sort) {
             .Box => draw.drawBox(riskProfile),
             .SST => draw.drawSST(riskProfile),
-            .Halva => draw.drawHalf(riskProfile),
+            .Halva => draw.drawHalf(riskProfile, allocator),
         };
     }
 }
@@ -186,7 +186,7 @@ fn doMainMenu() void {
     }
 }
 
-pub fn main() !void {
+pub fn main(allocator: std.mem.Allocator) !void {
     const window_title = "ZRAC";
     const window_size = .{ .width = 1200, .height = 800 };
 
@@ -212,7 +212,7 @@ pub fn main() !void {
         rl.clearBackground(rl.Color.white);
 
         zgui.rlimgui.begin();
-        drawGrid();
+        drawGrid(allocator);
         doMainMenu();
 
         if (risk_editor_viewer.open) try risk_editor_viewer.show();

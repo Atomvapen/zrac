@@ -134,6 +134,21 @@ pub fn drawPolylineV(buffer: []const rl.Vector2, colors: rl.Color) void {
     rl.gl.rlEnd();
 }
 
+pub fn drawPolylineVectorArrayList(buffer: std.ArrayList(rl.Vector2), colors: rl.Color) void {
+    if (buffer.items.len < 2) return;
+
+    rl.gl.rlBegin(rl.gl.rl_lines);
+
+    var index: usize = 0;
+    while (index < buffer.items.len - 1) : (index += 1) {
+        rl.gl.rlColor4ub(colors.r, colors.g, colors.b, colors.a);
+        rl.gl.rlVertex2f(buffer.items[index].x, buffer.items[index].y);
+        rl.gl.rlVertex2f(buffer.items[index + 1].x, buffer.items[index + 1].y);
+    }
+
+    rl.gl.rlEnd();
+}
+
 /// Rotates the endpoint of a `Line` around its starting point by the specified angle.
 ///
 /// This function returns a new rotated rl.Vector2 with the new position of the endpoint.
@@ -193,6 +208,36 @@ pub fn getLineIntersectionPoint(
     const intersection_y = line1_start_y + t * (line1_end_y - line1_start_y);
 
     return rl.Vector2{ .x = intersection_x, .y = intersection_y };
+}
+
+pub fn calculateArcPoints(origin: rl.Vector2, radius: f32, startAngle: f32, endAngle: f32, n: usize) ![]rl.Vector2 {
+    var allocator = std.heap.page_allocator;
+    var points = try allocator.alloc(rl.Vector2, n);
+    const step = (startAngle - endAngle) / (@as(f32, @floatFromInt(n - 1)));
+    for (0..n) |i| {
+        const angle = startAngle + step * (@as(f32, @floatFromInt(i)));
+        points[i] = .{
+            .x = origin.x + radius * std.math.cos(angle),
+            .y = origin.y - radius * std.math.sin(angle),
+        };
+    }
+    return points[0..];
+}
+
+pub fn calculateArcPointsArrayList(origin: rl.Vector2, radius: f32, startAngle: f32, endAngle: f32, n: usize) !std.ArrayList(rl.Vector2) {
+    const allocator = std.heap.page_allocator;
+    var list = std.ArrayList(rl.Vector2).init(allocator);
+
+    // var points = try allocator.alloc(rl.Vector2, n);
+    const step = (startAngle - endAngle) / (@as(f32, @floatFromInt(n - 1)));
+    for (0..n) |i| {
+        const angle = startAngle + step * (@as(f32, @floatFromInt(i)));
+        try list.append(.{
+            .x = origin.x + radius * std.math.cos(angle),
+            .y = origin.y - radius * std.math.sin(angle),
+        });
+    }
+    return list;
 }
 
 /// Calculates a line parallel to the given line at a specified distance.

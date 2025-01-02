@@ -1,8 +1,10 @@
+const std = @import("std");
 const rl = @import("raylib");
-const geo = @import("../math/geo.zig");
-const state = @import("../data/state.zig").RiskProfile;
+const geo = @import("../../math/geo.zig");
+const state = @import("../../data/state.zig").RiskProfile;
+const drawBuffer = @import("drawBuffer.zig");
 
-fn drawLinesPoly(riskProfile: state, origin: rl.Vector2, angle: f32) void {
+fn draw(riskProfile: state, origin: rl.Vector2, angle: f32, allocator: std.mem.Allocator) !void {
     // h
     var h: geo.Line = try geo.Line.init(rl.Vector2{
         .x = origin.x,
@@ -43,14 +45,13 @@ fn drawLinesPoly(riskProfile: state, origin: rl.Vector2, angle: f32) void {
     if (riskProfile.config.showText) f.drawText("f", -70, 0, 40);
 
     // h -> v
-    var hv: geo.Line = try geo.Line.init(rl.Vector2{
-        .x = origin.x,
-        .y = origin.y,
-    }, rl.Vector2{
-        .x = undefined,
-        .y = undefined,
-    }, true, riskProfile.weaponValues.v);
-    // hv.drawCircleSector(riskProfile.terrainValues.h, -90 + geo.milsToDegree(angle));
+    // var hv: geo.Line = try geo.Line.init(rl.Vector2{
+    //     .x = origin.x,
+    //     .y = origin.y,
+    // }, rl.Vector2{
+    //     .x = undefined,
+    //     .y = undefined,
+    // }, true, riskProfile.weaponValues.v);
 
     // ch
     var ch: geo.Line = try geo.Line.init(rl.Vector2{
@@ -109,26 +110,51 @@ fn drawLinesPoly(riskProfile: state, origin: rl.Vector2, angle: f32) void {
         q = q1;
     }
 
-    const half = [_]rl.Vector2{
+    const hv = try geo.calculateArcPoints(
+        origin,
+        riskProfile.terrainValues.h,
+        std.math.pi / 2.0,
+        std.math.pi / 2.0 + geo.milsToRadians(v.angle),
+        20,
+    );
+
+    var semicircles = try drawBuffer.DrawBuffer.Buffer.init(
+        .Semicircle,
+        &hv,
+        rl.Color.red,
+    );
+
+    var points = [_]rl.Vector2{
         h.end,
         h.start,
         v.end,
-        geo.getLineIntersectionPoint(ch, c) orelse rl.Vector2{ .x = 0, .y = 0 },
-        geo.getLineIntersectionPoint(c, q) orelse rl.Vector2{ .x = 0, .y = 0 },
+        geo.getLineIntersectionPoint(ch, c).?,
+        geo.getLineIntersectionPoint(c, q).?,
         q.start,
     };
 
-    hv.drawCircleSector(riskProfile.terrainValues.h, -90 + geo.milsToDegree(angle));
-    geo.drawPolylineV(half[0..], rl.Color.maroon);
+    var lines = try drawBuffer.DrawBuffer.Buffer.init(
+        .Line,
+        &points[0..],
+        rl.Color.red,
+    );
+
+    var buffer = try drawBuffer.DrawBuffer.init(allocator);
+    defer buffer.deinit();
+
+    try buffer.append(&semicircles);
+    try buffer.append(&lines);
+
+    try buffer.execute();
 }
 
-pub fn drawHalf(riskProfile: state) void {
+pub fn drawHalf(riskProfile: state, allocator: std.mem.Allocator) void {
     const origin: rl.Vector2 = .{ .x = 600, .y = 750 };
 
-    drawLinesPoly(riskProfile, .{
+    draw(riskProfile, .{
         .x = origin.x,
         .y = origin.y,
-    }, 0);
+    }, 0, allocator) catch return;
 }
 
 pub fn drawSST(riskProfile: state) void {
@@ -326,7 +352,8 @@ fn drawLines(riskProfile: state, origin: rl.Vector2, angle: f32) void {
         q2.drawLineV();
         if (riskProfile.config.showText) q2.drawText("q2", 25, 0, 40);
     } else {
-        ch.endAtIntersection(q1);
+        // ch.endAtIntersection(q1);
+        ch.endAtIntersection(c);
 
         q1.endAtIntersection(ch);
 
