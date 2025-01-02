@@ -9,27 +9,23 @@ pub const DrawBuffer = struct {
     };
     pub const Buffer = struct {
         type: Type,
-        buffer: *const []rl.Vector2,
+        buffer: []const rl.Vector2,
         color: rl.Color,
 
-        pub fn init(sort: Type, items: *const []rl.Vector2, color: rl.Color) !Buffer {
+        pub fn init(sort: Type, items: []const rl.Vector2, color: rl.Color) !Buffer {
             return Buffer{
                 .type = sort,
                 .buffer = items,
                 .color = color,
             };
         }
-
-        pub fn append(self: *Buffer, item: *const []rl.Vector2) !void {
-            try self.buffer.append(item);
-        }
     };
 
-    buffer: std.ArrayList(*const Buffer),
+    buffer: std.ArrayList(Buffer),
 
-    pub fn init(allocator: std.mem.Allocator) !DrawBuffer {
+    pub fn init(allocator: std.mem.Allocator) DrawBuffer {
         return DrawBuffer{
-            .buffer = std.ArrayList(*const Buffer).init(allocator),
+            .buffer = std.ArrayList(Buffer).init(allocator),
         };
     }
 
@@ -37,7 +33,7 @@ pub const DrawBuffer = struct {
         self.buffer.deinit();
     }
 
-    pub fn append(self: *DrawBuffer, item: *const Buffer) !void {
+    pub fn append(self: *DrawBuffer, item: Buffer) !void {
         try self.buffer.append(item);
     }
 
@@ -51,8 +47,8 @@ pub const DrawBuffer = struct {
 
                     for (0..item.buffer.len - 1) |i| {
                         rl.gl.rlColor4ub(item.color.r, item.color.g, item.color.b, item.color.a);
-                        rl.gl.rlVertex2f(item.buffer.*[i].x, item.buffer.*[i].y);
-                        rl.gl.rlVertex2f(item.buffer.*[i + 1].x, item.buffer.*[i + 1].y);
+                        rl.gl.rlVertex2f(item.buffer[i].x, item.buffer[i].y);
+                        rl.gl.rlVertex2f(item.buffer[i + 1].x, item.buffer[i + 1].y);
                     }
 
                     rl.gl.rlEnd();

@@ -4,6 +4,20 @@ const geo = @import("../../math/geo.zig");
 const state = @import("../../data/state.zig").RiskProfile;
 const drawBuffer = @import("drawBuffer.zig");
 
+const Type = enum {
+    Half,
+    Box,
+    SST,
+};
+
+pub fn draw2(sort: Type, riskProfile: state, allocator: std.mem.Allocator) void {
+    switch (sort) {
+        .Half => drawHalf(riskProfile, allocator),
+        .SST => drawSST(riskProfile),
+        .Box => drawBox(riskProfile),
+    }
+}
+
 fn draw(riskProfile: state, origin: rl.Vector2, angle: f32, allocator: std.mem.Allocator) !void {
     // h
     var h: geo.Line = try geo.Line.init(rl.Vector2{
@@ -118,13 +132,13 @@ fn draw(riskProfile: state, origin: rl.Vector2, angle: f32, allocator: std.mem.A
         20,
     );
 
-    var semicircles = try drawBuffer.DrawBuffer.Buffer.init(
+    const semicircles = try drawBuffer.DrawBuffer.Buffer.init(
         .Semicircle,
-        &hv,
+        hv,
         rl.Color.red,
     );
 
-    var points = [_]rl.Vector2{
+    const points = [_]rl.Vector2{
         h.end,
         h.start,
         v.end,
@@ -133,31 +147,28 @@ fn draw(riskProfile: state, origin: rl.Vector2, angle: f32, allocator: std.mem.A
         q.start,
     };
 
-    var lines = try drawBuffer.DrawBuffer.Buffer.init(
+    const lines = try drawBuffer.DrawBuffer.Buffer.init(
         .Line,
-        &points[0..],
+        points[0..],
         rl.Color.red,
     );
 
-    var buffer = try drawBuffer.DrawBuffer.init(allocator);
+    var buffer = drawBuffer.DrawBuffer.init(allocator);
     defer buffer.deinit();
 
-    try buffer.append(&semicircles);
-    try buffer.append(&lines);
+    try buffer.append(semicircles);
+    try buffer.append(lines);
 
     try buffer.execute();
 }
 
-pub fn drawHalf(riskProfile: state, allocator: std.mem.Allocator) void {
+fn drawHalf(riskProfile: state, allocator: std.mem.Allocator) void {
     const origin: rl.Vector2 = .{ .x = 600, .y = 750 };
 
-    draw(riskProfile, .{
-        .x = origin.x,
-        .y = origin.y,
-    }, 0, allocator) catch return;
+    draw(riskProfile, origin, 0, allocator) catch return;
 }
 
-pub fn drawSST(riskProfile: state) void {
+fn drawSST(riskProfile: state) void {
     const origin: rl.Vector2 = .{ .x = 600, .y = 750 };
 
     const sst = [_]rl.Vector2{
@@ -183,7 +194,7 @@ pub fn drawSST(riskProfile: state) void {
     }, riskProfile.sst.hh);
 }
 
-pub fn drawBox(riskProfile: state) void {
+fn drawBox(riskProfile: state) void {
     const origin: rl.Vector2 = .{ .x = 600, .y = 750 };
 
     const box = [_]rl.Vector2{

@@ -161,11 +161,17 @@ fn drawGrid(allocator: std.mem.Allocator) void {
         rl.drawGrid(200, 100);
         rl.gl.rlPopMatrix();
 
-        if (riskProfile.config.valid) switch (riskProfile.config.sort) {
-            .Box => draw.drawBox(riskProfile),
-            .SST => draw.drawSST(riskProfile),
-            .Halva => draw.drawHalf(riskProfile, allocator),
-        };
+        if (riskProfile.config.valid) draw.draw2(switch (riskProfile.config.sort) {
+            .Box => .Box,
+            .SST => .SST,
+            .Halva => .Half,
+        }, riskProfile, allocator);
+
+        // if (riskProfile.config.valid) switch (riskProfile.config.sort) {
+        //     .Box => draw.draw2(.Box, riskProfile, allocator), //draw.drawBox(riskProfile),
+        //     .SST => draw.draw2(.SST, riskProfile, allocator), //draw.drawSST(riskProfile),
+        //     .Halva => draw.draw2(.Half, riskProfile, allocator), //draw.drawHalf(riskProfile, allocator),
+        // };
     }
 }
 
