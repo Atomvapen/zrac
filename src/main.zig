@@ -7,6 +7,4 @@ pub fn main() !void {
     defer _ = gpa.deinit();
 
     try renderer.main(allocator);
-
-    // try @import("test/renderer.zig").main();
 }

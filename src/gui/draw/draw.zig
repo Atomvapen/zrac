@@ -124,25 +124,6 @@ fn draw(riskProfile: state, origin: rl.Vector2, angle: f32, allocator: std.mem.A
         q = q1;
     }
 
-    // const semicircles = drawBuffer.Command.init(
-    //     .Semicircle,
-    //     hv,
-    //     rl.Color.red,
-    // );
-
-    // const lines = drawBuffer.Command.init(
-    //     .Line,
-    //     &[_]rl.Vector2{
-    //         h.end,
-    //         h.start,
-    //         v.end,
-    //         geo.getLineIntersectionPoint(ch, c).?,
-    //         geo.getLineIntersectionPoint(c, q).?,
-    //         q.start,
-    //     },
-    //     rl.Color.red,
-    // );
-
     const lines: drawBuffer.Command = .{ .Line = drawBuffer.Command.create(.Line)
         .init(
         &[_]rl.Vector2{
