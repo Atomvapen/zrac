@@ -7,13 +7,13 @@ pub const DrawBuffer = struct {
         Semicircle,
         Text,
     };
-    pub const Buffer = struct {
+    pub const BufferItem = struct {
         type: Type,
         buffer: []const rl.Vector2,
         color: rl.Color,
 
-        pub fn init(sort: Type, items: []const rl.Vector2, color: rl.Color) !Buffer {
-            return Buffer{
+        pub fn init(sort: Type, items: []const rl.Vector2, color: rl.Color) !BufferItem {
+            return BufferItem{
                 .type = sort,
                 .buffer = items,
                 .color = color,
@@ -21,11 +21,11 @@ pub const DrawBuffer = struct {
         }
     };
 
-    buffer: std.ArrayList(Buffer),
+    buffer: std.ArrayList(BufferItem),
 
     pub fn init(allocator: std.mem.Allocator) DrawBuffer {
         return DrawBuffer{
-            .buffer = std.ArrayList(Buffer).init(allocator),
+            .buffer = std.ArrayList(BufferItem).init(allocator),
         };
     }
 
@@ -33,7 +33,7 @@ pub const DrawBuffer = struct {
         self.buffer.deinit();
     }
 
-    pub fn append(self: *DrawBuffer, item: Buffer) !void {
+    pub fn append(self: *DrawBuffer, item: BufferItem) !void {
         try self.buffer.append(item);
     }
 

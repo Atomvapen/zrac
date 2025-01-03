@@ -2,7 +2,7 @@ const std = @import("std");
 const rl = @import("raylib");
 const geo = @import("../../math/geo.zig");
 const state = @import("../../data/state.zig").RiskProfile;
-const drawBuffer = @import("drawBuffer.zig");
+const drawBuffer = @import("drawBuffer.zig").DrawBuffer;
 
 const Type = enum {
     Half,
@@ -59,13 +59,13 @@ fn draw(riskProfile: state, origin: rl.Vector2, angle: f32, allocator: std.mem.A
     if (riskProfile.config.showText) f.drawText("f", -70, 0, 40);
 
     // h -> v
-    // var hv: geo.Line = try geo.Line.init(rl.Vector2{
-    //     .x = origin.x,
-    //     .y = origin.y,
-    // }, rl.Vector2{
-    //     .x = undefined,
-    //     .y = undefined,
-    // }, true, riskProfile.weaponValues.v);
+    const hv = try geo.calculateArcPoints(
+        origin,
+        riskProfile.terrainValues.h,
+        std.math.pi / 2.0,
+        std.math.pi / 2.0 + geo.milsToRadians(v.angle),
+        20,
+    );
 
     // ch
     var ch: geo.Line = try geo.Line.init(rl.Vector2{
@@ -124,36 +124,26 @@ fn draw(riskProfile: state, origin: rl.Vector2, angle: f32, allocator: std.mem.A
         q = q1;
     }
 
-    const hv = try geo.calculateArcPoints(
-        origin,
-        riskProfile.terrainValues.h,
-        std.math.pi / 2.0,
-        std.math.pi / 2.0 + geo.milsToRadians(v.angle),
-        20,
-    );
-
-    const semicircles = try drawBuffer.DrawBuffer.Buffer.init(
+    const semicircles = try drawBuffer.BufferItem.init(
         .Semicircle,
         hv,
         rl.Color.red,
     );
 
-    const points = [_]rl.Vector2{
-        h.end,
-        h.start,
-        v.end,
-        geo.getLineIntersectionPoint(ch, c).?,
-        geo.getLineIntersectionPoint(c, q).?,
-        q.start,
-    };
-
-    const lines = try drawBuffer.DrawBuffer.Buffer.init(
+    const lines = try drawBuffer.BufferItem.init(
         .Line,
-        points[0..],
+        &[_]rl.Vector2{
+            h.end,
+            h.start,
+            v.end,
+            geo.getLineIntersectionPoint(ch, c).?,
+            geo.getLineIntersectionPoint(c, q).?,
+            q.start,
+        },
         rl.Color.red,
     );
 
-    var buffer = drawBuffer.DrawBuffer.init(allocator);
+    var buffer = drawBuffer.init(allocator);
     defer buffer.deinit();
 
     try buffer.append(semicircles);

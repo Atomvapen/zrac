@@ -5,7 +5,7 @@
     .dependencies = .{
         .zgui = .{
             .url = "https://github.com/Atomvapen/zgui-rl/archive/refs/heads/main.tar.gz",
-            .hash = "122050b2cc5932e0cd521d94b06601e741d6d6d3ecf8cb62afe913b67bb538c59f47",
+            .hash = "1220dd046269317480536e92cd6b819184d41ed33d7e91cbb4cc1dba4e74a66f5409",
         },
         .@"raylib-zig" = .{
             .url = "git+https://github.com/Not-Nik/raylib-zig?ref=devel#845af357e4bc5ed8d008a8bb64bd7c4b4906851d",
