@@ -1,35 +1,35 @@
 const std = @import("std");
 const rl = @import("raylib");
 
-pub const Point = struct {
-    pos: rl.Vector2 = .{ .x = 0, .y = 0 },
-    text: [*:0]const u8 = "",
+// pub const Point = struct {
+//     pos: rl.Vector2 = .{ .x = 0, .y = 0 },
+//     text: [*:0]const u8 = "",
 
-    pub fn init(
-        pos: rl.Vector2,
-        text: [*:0]const u8,
-    ) Point {
-        return Point{
-            .pos = pos,
-            .text = text,
-        };
-    }
+//     pub fn init(
+//         pos: rl.Vector2,
+//         text: [*:0]const u8,
+//     ) Point {
+//         return Point{
+//             .pos = pos,
+//             .text = text,
+//         };
+//     }
 
-    // pub fn drawText(
-    //     self: *const Point,
-    //     textOffsetX: i32,
-    //     textOffsetY: i32,
-    //     fontSize: i32,
-    // ) void {
-    //     rl.drawText(
-    //         self.text,
-    //         @as(i32, @intFromFloat(self.pos.x)) + textOffsetX,
-    //         @as(i32, @intFromFloat(self.pos.y)) + textOffsetY,
-    //         fontSize,
-    //         rl.Color.black,
-    //     );
-    // }
-};
+//     // pub fn drawText(
+//     //     self: *const Point,
+//     //     textOffsetX: i32,
+//     //     textOffsetY: i32,
+//     //     fontSize: i32,
+//     // ) void {
+//     //     rl.drawText(
+//     //         self.text,
+//     //         @as(i32, @intFromFloat(self.pos.x)) + textOffsetX,
+//     //         @as(i32, @intFromFloat(self.pos.y)) + textOffsetY,
+//     //         fontSize,
+//     //         rl.Color.black,
+//     //     );
+//     // }
+// };
 
 pub const Line = struct {
     start: rl.Vector2,
@@ -49,13 +49,13 @@ pub const Line = struct {
         };
     }
 
-    pub fn scale(
-        self: *Line,
-        factor: f32,
-    ) void {
-        self.start.scale(factor);
-        self.end.scale(factor);
-    }
+    // pub fn scale(
+    //     self: *Line,
+    //     factor: f32,
+    // ) void {
+    //     self.start.scale(factor);
+    //     self.end.scale(factor);
+    // }
 
     pub fn endAtIntersection(
         self: *Line,

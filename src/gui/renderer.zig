@@ -3,6 +3,7 @@ const rl = @import("raylib");
 const zgui = @import("zgui");
 
 const draw = @import("draw/draw.zig");
+const sync = @import("../data/sync.zig");
 const camera_fn = @import("camera.zig");
 const drawBuffer = @import("draw/drawBuffer.zig").DrawBuffer;
 
@@ -173,8 +174,8 @@ fn drawGrid(draw_buffer: *drawBuffer) !void {
 fn doMainMenu() void {
     if (zgui.beginMainMenuBar()) {
         if (zgui.beginMenu("Fil", true)) {
-            if (zgui.menuItem("Spara", .{})) std.debug.print("Save\n", .{});
-            if (zgui.menuItem("Ladda", .{})) std.debug.print("Load\n", .{});
+            if (zgui.menuItem("Spara", .{})) sync.save();
+            if (zgui.menuItem("Ladda", .{})) sync.load();
             if (zgui.menuItem("Avsluta", .{})) risk_editor_viewer.quit = true;
             zgui.endMenu();
         }

@@ -1,5 +1,6 @@
 const std = @import("std");
 const rl = @import("raylib");
+
 const geo = @import("../../math/geo.zig");
 const state = @import("../../data/state.zig").RiskProfile;
 const drawBuffer = @import("drawBuffer.zig").DrawBuffer;
