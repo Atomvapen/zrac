@@ -12,22 +12,22 @@ const Type = enum {
     SST,
 };
 
-pub fn draw(sort: Type, riskProfile: state, allocator: std.mem.Allocator) void {
+pub fn draw(sort: Type, riskProfile: state, draw_buffer: *drawBuffer) void {
     switch (sort) {
-        .Half => drawHalf(riskProfile, allocator),
-        .SST => drawSST(riskProfile, allocator),
-        .Box => drawBox(riskProfile, allocator),
+        .Half => drawHalf(riskProfile, draw_buffer),
+        .SST => drawSST(riskProfile, draw_buffer),
+        .Box => drawBox(riskProfile, draw_buffer),
     }
 }
 
-fn drawHalf(riskProfile: state, allocator: std.mem.Allocator) void {
+fn drawHalf(riskProfile: state, draw_buffer: *drawBuffer) void {
     drawRisk(riskProfile, .{
         .x = start_origin.x,
         .y = start_origin.y,
-    }, 0, allocator) catch return;
+    }, 0, draw_buffer) catch return;
 }
 
-fn drawSST(riskProfile: state, allocator: std.mem.Allocator) void {
+fn drawSST(riskProfile: state, draw_buffer: *drawBuffer) void {
     const sst = [_]rl.Vector2{
         rl.Vector2{ .x = start_origin.x - (riskProfile.sst.width / 2), .y = start_origin.y },
         rl.Vector2{ .x = start_origin.x + (riskProfile.sst.width / 2), .y = start_origin.y },
@@ -37,10 +37,10 @@ fn drawSST(riskProfile: state, allocator: std.mem.Allocator) void {
     drawRisk(riskProfile, .{
         .x = start_origin.x + (riskProfile.sst.width / 2),
         .y = start_origin.y,
-    }, riskProfile.sst.hh, allocator) catch return;
+    }, riskProfile.sst.hh, draw_buffer) catch return;
 }
 
-fn drawBox(riskProfile: state, allocator: std.mem.Allocator) void {
+fn drawBox(riskProfile: state, draw_buffer: *drawBuffer) void {
     const box = [_]rl.Vector2{
         rl.Vector2{ .x = start_origin.x - (riskProfile.box.width / 2), .y = start_origin.y },
         rl.Vector2{ .x = start_origin.x + (riskProfile.box.width / 2), .y = start_origin.y },
@@ -53,15 +53,15 @@ fn drawBox(riskProfile: state, allocator: std.mem.Allocator) void {
     drawRisk(riskProfile, .{
         .x = start_origin.x + (riskProfile.box.width / 2),
         .y = start_origin.y,
-    }, riskProfile.box.h, allocator) catch return;
+    }, riskProfile.box.h, draw_buffer) catch return;
 
     drawRisk(riskProfile, .{
         .x = start_origin.x + (riskProfile.box.width / 2),
         .y = start_origin.y - riskProfile.box.length,
-    }, riskProfile.box.h, allocator) catch return;
+    }, riskProfile.box.h, draw_buffer) catch return;
 }
 
-fn drawRisk(riskProfile: state, origin: rl.Vector2, angle: f32, allocator: std.mem.Allocator) !void {
+fn drawRisk(riskProfile: state, origin: rl.Vector2, angle: f32, draw_buffer: *drawBuffer) !void {
     // h
     const h: geo.Line = try geo.Line.init(rl.Vector2{
         .x = origin.x,
@@ -193,17 +193,13 @@ fn drawRisk(riskProfile: state, origin: rl.Vector2, angle: f32, allocator: std.m
         rl.Color.red,
     ) };
 
-    var buffer = drawBuffer.init(allocator);
-    defer buffer.deinit();
-
-    try buffer.append(semicircles);
-    try buffer.append(lines);
+    try draw_buffer.append(semicircles);
+    try draw_buffer.append(lines);
 
     if (riskProfile.config.showText) {
-        try buffer.append(h_text);
+        try draw_buffer.append(h_text);
     }
 
-    try buffer.execute();
-
-    try buffer.clear();
+    try draw_buffer.execute();
+    try draw_buffer.clear();
 }

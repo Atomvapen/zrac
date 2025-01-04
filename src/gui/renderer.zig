@@ -4,6 +4,7 @@ const zgui = @import("zgui");
 
 const draw = @import("draw/draw.zig");
 const camera_fn = @import("camera.zig");
+const drawBuffer = @import("draw/drawBuffer.zig").DrawBuffer;
 
 var riskProfile = @import("../data/state.zig").RiskProfile.init();
 
@@ -150,7 +151,7 @@ const RiskEditorViewerWindow = struct {
     }
 };
 
-fn drawGrid(allocator: std.mem.Allocator) void {
+fn drawGrid(draw_buffer: *drawBuffer) void {
     { // Moveable UI
         camera.begin();
         defer camera.end();
@@ -165,13 +166,7 @@ fn drawGrid(allocator: std.mem.Allocator) void {
             .Box => .Box,
             .SST => .SST,
             .Halva => .Half,
-        }, riskProfile, allocator);
-
-        // if (riskProfile.config.valid) switch (riskProfile.config.sort) {
-        //     .Box => draw.draw2(.Box, riskProfile, allocator), //draw.drawBox(riskProfile),
-        //     .SST => draw.draw2(.SST, riskProfile, allocator), //draw.drawSST(riskProfile),
-        //     .Halva => draw.draw2(.Half, riskProfile, allocator), //draw.drawHalf(riskProfile, allocator),
-        // };
+        }, riskProfile, draw_buffer);
     }
 }
 
@@ -193,6 +188,9 @@ fn doMainMenu() void {
 }
 
 pub fn main(allocator: std.mem.Allocator) !void {
+    var draw_buffer = drawBuffer.init(allocator);
+    defer draw_buffer.deinit();
+
     const window_title = "ZRAC";
     const window_size = .{ .width = 1200, .height = 800 };
 
@@ -218,7 +216,7 @@ pub fn main(allocator: std.mem.Allocator) !void {
         rl.clearBackground(rl.Color.white);
 
         zgui.rlimgui.begin();
-        drawGrid(allocator);
+        drawGrid(&draw_buffer);
         doMainMenu();
 
         if (risk_editor_viewer.open) try risk_editor_viewer.show();
