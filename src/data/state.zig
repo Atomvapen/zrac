@@ -21,7 +21,7 @@ pub const RiskProfile = struct {
     const Config = struct {
         show: bool = true,
         valid: bool = false,
-        sort: Sort = .Box,
+        sort: Sort = .Halva,
         showText: bool = true,
     };
     const TerrainValues = struct {

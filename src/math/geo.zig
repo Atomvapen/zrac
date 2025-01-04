@@ -15,20 +15,20 @@ pub const Point = struct {
         };
     }
 
-    pub fn drawText(
-        self: *const Point,
-        textOffsetX: i32,
-        textOffsetY: i32,
-        fontSize: i32,
-    ) void {
-        rl.drawText(
-            self.text,
-            @as(i32, @intFromFloat(self.pos.x)) + textOffsetX,
-            @as(i32, @intFromFloat(self.pos.y)) + textOffsetY,
-            fontSize,
-            rl.Color.black,
-        );
-    }
+    // pub fn drawText(
+    //     self: *const Point,
+    //     textOffsetX: i32,
+    //     textOffsetY: i32,
+    //     fontSize: i32,
+    // ) void {
+    //     rl.drawText(
+    //         self.text,
+    //         @as(i32, @intFromFloat(self.pos.x)) + textOffsetX,
+    //         @as(i32, @intFromFloat(self.pos.y)) + textOffsetY,
+    //         fontSize,
+    //         rl.Color.black,
+    //     );
+    // }
 };
 
 pub const Line = struct {
@@ -77,21 +77,21 @@ pub const Line = struct {
         };
     }
 
-    pub fn drawCircleSector(
-        self: *Line,
-        radius: f32,
-        startAngle: f32,
-    ) void {
-        rl.drawRingLines(
-            .{ .x = self.start.x, .y = self.start.y },
-            radius,
-            radius,
-            startAngle,
-            startAngle + milsToDegree(self.angle),
-            50,
-            rl.Color.maroon,
-        );
-    }
+    // pub fn drawCircleSector(
+    //     self: *Line,
+    //     radius: f32,
+    //     startAngle: f32,
+    // ) void {
+    //     rl.drawRingLines(
+    //         .{ .x = self.start.x, .y = self.start.y },
+    //         radius,
+    //         radius,
+    //         startAngle,
+    //         startAngle + milsToDegree(self.angle),
+    //         50,
+    //         rl.Color.maroon,
+    //     );
+    // }
 
     pub fn drawText(
         self: *Line,
@@ -109,15 +109,15 @@ pub const Line = struct {
         );
     }
 
-    pub fn drawLineV(
-        self: *Line,
-    ) void {
-        rl.drawLineV(
-            self.start,
-            self.end,
-            rl.Color.maroon,
-        );
-    }
+    // pub fn drawLineV(
+    //     self: *Line,
+    // ) void {
+    //     rl.drawLineV(
+    //         self.start,
+    //         self.end,
+    //         rl.Color.maroon,
+    //     );
+    // }
 };
 
 pub fn drawPolylineV(buffer: []const rl.Vector2, colors: rl.Color) void {

@@ -161,7 +161,7 @@ fn drawGrid(allocator: std.mem.Allocator) void {
         rl.drawGrid(200, 100);
         rl.gl.rlPopMatrix();
 
-        if (riskProfile.config.valid) draw.draw2(switch (riskProfile.config.sort) {
+        if (riskProfile.config.valid) draw.draw(switch (riskProfile.config.sort) {
             .Box => .Box,
             .SST => .SST,
             .Halva => .Half,
