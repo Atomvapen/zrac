@@ -151,7 +151,7 @@ const RiskEditorViewerWindow = struct {
     }
 };
 
-fn drawGrid(draw_buffer: *drawBuffer) void {
+fn drawGrid(draw_buffer: *drawBuffer) !void {
     { // Moveable UI
         camera.begin();
         defer camera.end();
@@ -162,7 +162,7 @@ fn drawGrid(draw_buffer: *drawBuffer) void {
         rl.drawGrid(200, 100);
         rl.gl.rlPopMatrix();
 
-        if (riskProfile.config.valid) draw.draw(switch (riskProfile.config.sort) {
+        if (riskProfile.config.valid) try draw.draw(switch (riskProfile.config.sort) {
             .Box => .Box,
             .SST => .SST,
             .Halva => .Half,
@@ -216,11 +216,11 @@ pub fn main(allocator: std.mem.Allocator) !void {
         rl.clearBackground(rl.Color.white);
 
         zgui.rlimgui.begin();
-        drawGrid(&draw_buffer);
+        try drawGrid(&draw_buffer);
         doMainMenu();
 
         if (risk_editor_viewer.open) try risk_editor_viewer.show();
-
+        try draw_buffer.clear();
         zgui.rlimgui.end();
 
         rl.endDrawing();

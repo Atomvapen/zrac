@@ -6,7 +6,6 @@ pub fn setup(self: *rl.Camera2D) void {
 }
 
 pub fn handleCamera(self: *rl.Camera2D) void {
-    if (checkValidity()) return;
     move(self);
     zoom(self);
 }
@@ -28,10 +27,6 @@ fn zoom(self: *rl.Camera2D) void {
         self.target = mouseWorldPos;
         var scaleFactor = 1.0 + (0.25 * @abs(wheel));
         if (wheel < 0) scaleFactor = 1.0 / scaleFactor;
-        self.zoom = rl.math.clamp(self.zoom * scaleFactor, 0.125, 64.0);
+        self.zoom = rl.math.clamp(self.zoom * scaleFactor, 0.125, 1);
     }
-}
-
-fn checkValidity() bool {
-    return if (rl.getMousePosition().x < 200) true else false;
 }

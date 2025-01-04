@@ -57,6 +57,10 @@ pub const DrawBuffer = struct {
                     rl.gl.rlVertex2f(self.points[i + 1].x, self.points[i + 1].y);
                 }
             }
+
+            pub fn drawDistanceArrow(self: *const LineCommand) void {
+                _ = self;
+            }
         };
 
         const TextCommand = struct {
