@@ -72,13 +72,21 @@ fn drawBox(riskProfile: state, draw_buffer: *drawBuffer) !void {
 
 fn drawRisk(riskProfile: state, risk_origin: rl.Vector2, angle: f32, draw_buffer: *drawBuffer) !void {
     // h
-    const h: geo.Line = try geo.Line.init(rl.Vector2{
+    var h: geo.Line = try geo.Line.init3(rl.Vector2{
         .x = risk_origin.x,
         .y = risk_origin.y,
     }, rl.Vector2{
         .x = risk_origin.x,
         .y = risk_origin.y - riskProfile.terrainValues.h,
-    }, true, angle);
+    }, angle);
+    h.rotate2(.End, angle);
+    // const h: geo.Line = try geo.Line.init(rl.Vector2{
+    //     .x = risk_origin.x,
+    //     .y = risk_origin.y,
+    // }, rl.Vector2{
+    //     .x = risk_origin.x,
+    //     .y = risk_origin.y - riskProfile.terrainValues.h,
+    // }, true, angle);
     // if (riskProfile.config.showText) h.drawText("h", -20, 0, 40);
 
     const h_text: drawBuffer.Command = .{ .Text = drawBuffer.Command.create(.Text).init(

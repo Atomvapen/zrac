@@ -4,3 +4,4 @@ bkp
 imgui.ini
 *.DS_Store
 test
+*.test.*

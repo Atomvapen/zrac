@@ -4,21 +4,14 @@ const zgui = @import("zgui");
 
 const draw = @import("draw/draw.zig");
 const sync = @import("../data/sync.zig");
-const camera_fn = @import("camera.zig");
+const camera = @import("camera.zig");
 const drawBuffer = @import("draw/drawBuffer.zig").DrawBuffer;
 
 var riskProfile = @import("../data/state.zig").RiskProfile.init();
 
-var camera = rl.Camera2D{
-    .target = .{ .x = 9.785727e2, .y = -4.9193994e2 },
-    .offset = .{ .x = 7.23e2, .y = 2.23e2 },
-    .zoom = 4.0960002e-1,
-    .rotation = 0,
-};
+var risk_editor_viewer: RiskEditorWindow = undefined;
 
-var risk_editor_viewer: RiskEditorViewerWindow = undefined;
-
-const RiskEditorViewerWindow = struct {
+const RiskEditorWindow = struct {
     const Self = @This();
 
     open: bool = false,
@@ -37,7 +30,7 @@ const RiskEditorViewerWindow = struct {
                 // .no_move = true,
                 .no_resize = true,
                 .always_auto_resize = true,
-                .no_collapse = true, //TODO Fix crash at : .no_collapse = true
+                .no_collapse = true, //TODO Fix crash at : .no_collapse = false
             },
         })) {
             { // Config values
@@ -133,12 +126,8 @@ const RiskEditorViewerWindow = struct {
                 zgui.separator();
                 zgui.newLine();
                 zgui.textUnformatted("Flytta: Höger musknapp.");
-                zgui.textUnformatted(" Zooma: Scrollhjulet.");
+                zgui.textUnformatted(" Zooma: Scrollhjul.");
             }
-
-            // const draw_list = zgui.getBackgroundDrawList();
-
-            // draw.drawTest(draw_list);
 
             zgui.end();
             zgui.popStyleVar(.{});
@@ -152,30 +141,28 @@ const RiskEditorViewerWindow = struct {
     }
 };
 
-fn drawGrid(draw_buffer: *drawBuffer) !void {
-    { // Moveable UI
-        camera.begin();
-        defer camera.end();
+fn drawPlane(draw_buffer: *drawBuffer) !void {
+    camera.begin();
+    defer camera.end();
 
-        rl.gl.rlPushMatrix();
-        rl.gl.rlTranslatef(0, 50 * 50, 0);
-        rl.gl.rlRotatef(90, 1, 0, 0);
-        rl.drawGrid(200, 100);
-        rl.gl.rlPopMatrix();
+    rl.gl.rlPushMatrix();
+    rl.gl.rlTranslatef(50 * 50, 50 * 50, 0);
+    rl.gl.rlRotatef(90, 1, 0, 0);
+    rl.drawGrid(200, 200);
+    rl.gl.rlPopMatrix();
 
-        if (riskProfile.config.valid) try draw.draw(switch (riskProfile.config.sort) {
-            .Box => .Box,
-            .SST => .SST,
-            .Halva => .Half,
-        }, riskProfile, draw_buffer);
-    }
+    if (riskProfile.config.valid) try draw.draw(switch (riskProfile.config.sort) {
+        .Box => .Box,
+        .SST => .SST,
+        .Halva => .Half,
+    }, riskProfile, draw_buffer);
 }
 
 fn doMainMenu() void {
     if (zgui.beginMainMenuBar()) {
         if (zgui.beginMenu("Fil", true)) {
-            if (zgui.menuItem("Spara", .{})) sync.save();
-            if (zgui.menuItem("Ladda", .{})) sync.load();
+            if (zgui.menuItem("Exportera", .{})) sync.save();
+            if (zgui.menuItem("Importera", .{})) sync.load();
             if (zgui.menuItem("Avsluta", .{})) risk_editor_viewer.quit = true;
             zgui.endMenu();
         }
@@ -184,6 +171,7 @@ fn doMainMenu() void {
             if (zgui.menuItem("Riskprofil", .{})) risk_editor_viewer.open = !risk_editor_viewer.open;
             zgui.endMenu();
         }
+
         zgui.endMainMenuBar();
     }
 }
@@ -210,17 +198,18 @@ pub fn main(allocator: std.mem.Allocator) !void {
     risk_editor_viewer.open = true;
 
     while (!rl.windowShouldClose() and !risk_editor_viewer.quit) {
-        camera_fn.handleCamera(&camera);
+        camera.handle();
         risk_editor_viewer.update();
 
         rl.beginDrawing();
         rl.clearBackground(rl.Color.white);
 
         zgui.rlimgui.begin();
-        try drawGrid(&draw_buffer);
+        try drawPlane(&draw_buffer);
         doMainMenu();
 
         if (risk_editor_viewer.open) try risk_editor_viewer.show();
+
         try draw_buffer.clear();
         zgui.rlimgui.end();
 

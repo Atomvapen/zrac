@@ -1,5 +1,5 @@
-const renderer = @import("gui/renderer.zig");
 const std = @import("std");
+const renderer = @import("gui/renderer.zig");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};

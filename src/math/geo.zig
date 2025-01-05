@@ -32,9 +32,77 @@ const rl = @import("raylib");
 // };
 
 pub const Line = struct {
+    const Direction = enum {
+        Start,
+        End,
+    };
     start: rl.Vector2,
     end: rl.Vector2,
     angle: f32,
+
+    pub fn init2(
+        start: rl.Vector2,
+        end: rl.Vector2,
+        rotated: bool,
+        direction: Direction,
+        angle: f32,
+    ) !Line {
+        var result = Line{
+            .start = start,
+            .end = end,
+            .angle = angle,
+        };
+
+        if (rotated) result.rotate2(direction, angle);
+
+        return result;
+    }
+
+    pub fn init3(start: rl.Vector2, end: rl.Vector2, angle: f32) !Line {
+        return Line{ .start = start, .end = end, .angle = angle };
+    }
+
+    /// Rotates one endpoint of a `Line` around the other by the specified angle.
+    ///
+    /// This function modifies the position of either the starting point (`Start`)
+    /// or the ending point (`End`) of the line, depending on the `direction` provided.
+    /// The rotation is performed around the other fixed point, using the formula for
+    /// rotating points around an arbitrary center.
+    ///
+    /// ### Parameters:
+    /// - `direction`: Specifies which endpoint to rotate. Can be:
+    ///   - `.Start`: Rotates the starting point around the ending point.
+    ///   - `.End`: Rotates the ending point around the starting point.
+    /// - `line`: A pointer to the `Line` structure, which contains the `start` and `end` points.
+    /// - `angle`: The rotation angle in milliradians. Use a positive angle for counterclockwise
+    ///   rotation and a negative angle for clockwise rotation.
+    pub fn rotate2(
+        self: *Line,
+        direction: Direction,
+        angle: f32,
+    ) void {
+        const rad = milsToRadians(angle);
+
+        const cosAngle = @cos(rad);
+        const sinAngle = @sin(rad);
+
+        switch (direction) {
+            .End => {
+                const dx = self.end.x - self.start.x;
+                const dy = self.end.y - self.start.y;
+
+                self.end.x = (dx * cosAngle) - (dy * sinAngle) + self.start.x;
+                self.end.y = (dx * sinAngle) + (dy * cosAngle) + self.start.y;
+            },
+            .Start => {
+                const dx = self.start.x - self.end.x;
+                const dy = self.start.y - self.end.y;
+
+                self.start.x = (dx * cosAngle) - (dy * sinAngle) + self.end.x;
+                self.start.y = (dx * sinAngle) + (dy * cosAngle) + self.end.y;
+            },
+        }
+    }
 
     pub fn init(
         start: rl.Vector2,
