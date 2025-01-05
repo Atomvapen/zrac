@@ -14,31 +14,35 @@ pub const DrawBuffer = struct {
         };
 
         const SemiCommand = struct {
-            points: []const rl.Vector2,
             color: rl.Color,
+            startAngle: f32,
+            endAngle: f32,
+            radius: f32,
+            center: rl.Vector2,
+            segments: i32,
 
-            pub fn init(items: []const rl.Vector2, color: rl.Color) SemiCommand {
-                return SemiCommand{
-                    .points = items,
-                    .color = color,
-                };
+            pub fn init(color: rl.Color, startAngle: f32, endAngle: f32, radius: f32, center: rl.Vector2, segments: i32) SemiCommand {
+                return SemiCommand{ .color = color, .startAngle = startAngle, .endAngle = endAngle, .radius = radius, .center = center, .segments = segments };
             }
 
             pub fn draw(self: *const SemiCommand) void {
-                rl.gl.rlBegin(rl.gl.rl_lines);
-                defer rl.gl.rlEnd();
-
-                for (0..self.points.len - 1) |i| {
-                    rl.gl.rlColor4ub(self.color.r, self.color.g, self.color.b, self.color.a);
-                    rl.gl.rlVertex2f(self.points[i].x, self.points[i].y);
-                    rl.gl.rlVertex2f(self.points[i + 1].x, self.points[i + 1].y);
-                }
+                rl.drawRingLines(
+                    .{ .x = self.center.x, .y = self.center.y },
+                    self.radius,
+                    self.radius,
+                    self.startAngle,
+                    self.endAngle,
+                    self.segments,
+                    self.color,
+                );
             }
         };
 
         const LineCommand = struct {
-            points: []const rl.Vector2,
+            points: []const rl.Vector2 = undefined,
             color: rl.Color,
+            start: rl.Vector2 = undefined,
+            end: rl.Vector2 = undefined,
 
             pub fn init(points: []const rl.Vector2, color: rl.Color) LineCommand {
                 return LineCommand{
@@ -47,19 +51,16 @@ pub const DrawBuffer = struct {
                 };
             }
 
-            pub fn draw(self: *const LineCommand) void {
-                rl.gl.rlBegin(rl.gl.rl_lines);
-                defer rl.gl.rlEnd();
-
-                for (0..self.points.len - 1) |i| {
-                    rl.gl.rlColor4ub(self.color.r, self.color.g, self.color.b, self.color.a);
-                    rl.gl.rlVertex2f(self.points[i].x, self.points[i].y);
-                    rl.gl.rlVertex2f(self.points[i + 1].x, self.points[i + 1].y);
-                }
+            pub fn init2(start: rl.Vector2, end: rl.Vector2, color: rl.Color) LineCommand {
+                return LineCommand{
+                    .start = start,
+                    .end = end,
+                    .color = color,
+                };
             }
 
-            pub fn drawDistanceArrow(self: *const LineCommand) void {
-                _ = self;
+            pub fn draw(self: *const LineCommand) void {
+                rl.drawLineV(self.start, self.end, self.color);
             }
         };
 

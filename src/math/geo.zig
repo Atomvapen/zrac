@@ -1,65 +1,44 @@
 const std = @import("std");
 const rl = @import("raylib");
+const drawBuffer = @import("../gui/draw/drawBuffer.zig").DrawBuffer;
 
-// pub const Point = struct {
-//     pos: rl.Vector2 = .{ .x = 0, .y = 0 },
-//     text: [*:0]const u8 = "",
+pub const Semicircle = struct {
+    color: rl.Color,
+    startAngle: f32,
+    endAngle: f32,
+    radius: f32,
+    center: rl.Vector2,
+    segments: i32,
+    command: drawBuffer.Command = undefined,
 
-//     pub fn init(
-//         pos: rl.Vector2,
-//         text: [*:0]const u8,
-//     ) Point {
-//         return Point{
-//             .pos = pos,
-//             .text = text,
-//         };
-//     }
-
-//     // pub fn drawText(
-//     //     self: *const Point,
-//     //     textOffsetX: i32,
-//     //     textOffsetY: i32,
-//     //     fontSize: i32,
-//     // ) void {
-//     //     rl.drawText(
-//     //         self.text,
-//     //         @as(i32, @intFromFloat(self.pos.x)) + textOffsetX,
-//     //         @as(i32, @intFromFloat(self.pos.y)) + textOffsetY,
-//     //         fontSize,
-//     //         rl.Color.black,
-//     //     );
-//     // }
-// };
-
-pub const Line = struct {
-    const Direction = enum {
-        Start,
-        End,
-    };
-    start: rl.Vector2,
-    end: rl.Vector2,
-    angle: f32,
-
-    pub fn init2(
-        start: rl.Vector2,
-        end: rl.Vector2,
-        rotated: bool,
-        direction: Direction,
-        angle: f32,
-    ) !Line {
-        var result = Line{
-            .start = start,
-            .end = end,
-            .angle = angle,
-        };
-
-        if (rotated) result.rotate2(direction, angle);
-
-        return result;
+    pub fn init(color: rl.Color, startAngle: f32, endAngle: f32, radius: f32, center: rl.Vector2, segments: i32) Semicircle {
+        return Semicircle{ .color = color, .startAngle = startAngle, .endAngle = endAngle, .radius = radius, .center = center, .segments = segments };
     }
 
-    pub fn init3(start: rl.Vector2, end: rl.Vector2, angle: f32) !Line {
-        return Line{ .start = start, .end = end, .angle = angle };
+    pub fn createCommand(self: *Semicircle) drawBuffer.Command {
+        return .{ .Semicircle = drawBuffer.Command.create(.Semicircle).init(self.color, self.startAngle, self.endAngle, self.radius, self.center, self.segments) };
+    }
+};
+
+pub const Line = struct {
+    start: rl.Vector2,
+    end: rl.Vector2,
+    text: drawBuffer.Command = undefined,
+    // command: drawBuffer.Command = undefined,
+
+    /// Initiates the Line.
+    pub fn init(start: rl.Vector2, end: rl.Vector2) Line {
+        return Line{ .start = start, .end = end };
+    }
+
+    /// Adds text to the line for later drawing.
+    pub fn addText(self: *Line, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32, color: rl.Color, pos: rl.Vector2) void {
+        self.text = .{ .Text = drawBuffer.Command.create(.Text).init(text, textOffsetX, textOffsetY, fontSize, color, pos) };
+    }
+
+    /// Creates draw-command for execution
+    pub fn createCommand(self: *Line) drawBuffer.Command {
+        return .{ .Line = drawBuffer.Command.create(.Line).init2(self.start, self.end, rl.Color.red) };
     }
 
     /// Rotates one endpoint of a `Line` around the other by the specified angle.
@@ -76,11 +55,7 @@ pub const Line = struct {
     /// - `line`: A pointer to the `Line` structure, which contains the `start` and `end` points.
     /// - `angle`: The rotation angle in milliradians. Use a positive angle for counterclockwise
     ///   rotation and a negative angle for clockwise rotation.
-    pub fn rotate2(
-        self: *Line,
-        direction: Direction,
-        angle: f32,
-    ) void {
+    pub fn rotate(self: *Line, direction: enum { End, Start }, angle: f32) void {
         const rad = milsToRadians(angle);
 
         const cosAngle = @cos(rad);
@@ -104,141 +79,19 @@ pub const Line = struct {
         }
     }
 
-    pub fn init(
-        start: rl.Vector2,
-        end: rl.Vector2,
-        rotate: bool,
-        angle: f32,
-    ) !Line {
-        return Line{
-            .start = start,
-            .end = if (rotate) try rotateEndVector(start, end, angle) else end,
-            .angle = angle,
-        };
+    pub fn scale(self: *Line, factor: f32) void {
+        self.start.scale(factor);
+        self.end.scale(factor);
     }
 
-    // pub fn scale(
-    //     self: *Line,
-    //     factor: f32,
-    // ) void {
-    //     self.start.scale(factor);
-    //     self.end.scale(factor);
-    // }
-
-    pub fn endAtIntersection(
-        self: *Line,
-        line: Line,
-    ) void {
-        self.*.end = getLineIntersectionPoint(self.*, line) orelse rl.Vector2{
-            .x = 0,
-            .y = 0,
-        };
+    pub fn endAtIntersection(self: *Line, line: Line) void {
+        self.*.end = getLineIntersectionPoint(self.*, line).?;
     }
 
-    pub fn startAtIntersection(
-        self: *Line,
-        line: Line,
-    ) void {
-        self.*.start = getLineIntersectionPoint(self.*, line) orelse rl.Vector2{
-            .x = 0,
-            .y = 0,
-        };
+    pub fn startAtIntersection(self: *Line, line: Line) void {
+        self.*.start = getLineIntersectionPoint(self.*, line).?;
     }
-
-    // pub fn drawCircleSector(
-    //     self: *Line,
-    //     radius: f32,
-    //     startAngle: f32,
-    // ) void {
-    //     rl.drawRingLines(
-    //         .{ .x = self.start.x, .y = self.start.y },
-    //         radius,
-    //         radius,
-    //         startAngle,
-    //         startAngle + milsToDegree(self.angle),
-    //         50,
-    //         rl.Color.maroon,
-    //     );
-    // }
-
-    pub fn drawText(
-        self: *Line,
-        text: [*:0]const u8,
-        textOffsetX: i32,
-        textOffsetY: i32,
-        fontSize: i32,
-    ) void {
-        rl.drawText(
-            text,
-            @as(i32, @intFromFloat(self.end.x)) + textOffsetX,
-            @as(i32, @intFromFloat(self.end.y)) + textOffsetY,
-            fontSize,
-            rl.Color.black,
-        );
-    }
-
-    // pub fn drawLineV(
-    //     self: *Line,
-    // ) void {
-    //     rl.drawLineV(
-    //         self.start,
-    //         self.end,
-    //         rl.Color.maroon,
-    //     );
-    // }
 };
-
-pub fn drawPolylineV(buffer: []const rl.Vector2, colors: rl.Color) void {
-    if (buffer.len < 2) return;
-
-    rl.gl.rlBegin(rl.gl.rl_lines);
-
-    for (0..buffer.len - 1) |i| {
-        rl.gl.rlColor4ub(colors.r, colors.g, colors.b, colors.a);
-        rl.gl.rlVertex2f(buffer[i].x, buffer[i].y);
-        rl.gl.rlVertex2f(buffer[i + 1].x, buffer[i + 1].y);
-    }
-
-    rl.gl.rlEnd();
-}
-
-pub fn drawPolylineVectorArrayList(buffer: std.ArrayList(rl.Vector2), colors: rl.Color) void {
-    if (buffer.items.len < 2) return;
-
-    rl.gl.rlBegin(rl.gl.rl_lines);
-
-    var index: usize = 0;
-    while (index < buffer.items.len - 1) : (index += 1) {
-        rl.gl.rlColor4ub(colors.r, colors.g, colors.b, colors.a);
-        rl.gl.rlVertex2f(buffer.items[index].x, buffer.items[index].y);
-        rl.gl.rlVertex2f(buffer.items[index + 1].x, buffer.items[index + 1].y);
-    }
-
-    rl.gl.rlEnd();
-}
-
-/// Rotates the endpoint of a `Line` around its starting point by the specified angle.
-///
-/// This function returns a new rotated rl.Vector2 with the new position of the endpoint.
-///
-/// The rotation is performed using the formula for rotating points around an arbitrary center.
-fn rotateEndVector(
-    start: rl.Vector2,
-    end: rl.Vector2,
-    angle: f32,
-) !rl.Vector2 {
-    const dx = end.x - start.x;
-    const dy = end.y - start.y;
-    const rad = milsToRadians(angle);
-
-    const cosAngle = @cos(rad);
-    const sinAngle = @sin(rad);
-
-    return rl.Vector2{
-        .x = (dx * cosAngle) - (dy * sinAngle) + start.x,
-        .y = (dx * sinAngle) + (dy * cosAngle) + start.y,
-    };
-}
 
 /// Calculates the intersection point of two line segments, if it exists.
 ///
@@ -248,10 +101,7 @@ fn rotateEndVector(
 ///
 /// The formula for finding the intersection is derived from solving the equations
 /// of the two lines in parametric form:
-pub fn getLineIntersectionPoint(
-    line1: Line,
-    line2: Line,
-) ?rl.Vector2 {
+pub fn getLineIntersectionPoint(line1: Line, line2: Line) ?rl.Vector2 {
     // Line 1 points
     const line1_start_x: f32 = line1.start.x;
     const line1_start_y: f32 = line1.start.y;
@@ -278,35 +128,19 @@ pub fn getLineIntersectionPoint(
     return rl.Vector2{ .x = intersection_x, .y = intersection_y };
 }
 
-pub fn calculateArcPoints(origin: rl.Vector2, radius: f32, startAngle: f32, endAngle: f32, n: usize) ![]rl.Vector2 {
-    var allocator = std.heap.page_allocator;
-    var points = try allocator.alloc(rl.Vector2, n);
-    const step = (startAngle - endAngle) / (@as(f32, @floatFromInt(n - 1)));
-    for (0..n) |i| {
-        const angle = startAngle + step * (@as(f32, @floatFromInt(i)));
-        points[i] = .{
-            .x = origin.x + radius * std.math.cos(angle),
-            .y = origin.y - radius * std.math.sin(angle),
-        };
-    }
-    return points[0..];
-}
-
-pub fn calculateArcPointsArrayList(origin: rl.Vector2, radius: f32, startAngle: f32, endAngle: f32, n: usize) !std.ArrayList(rl.Vector2) {
-    const allocator = std.heap.page_allocator;
-    var list = std.ArrayList(rl.Vector2).init(allocator);
-
-    // var points = try allocator.alloc(rl.Vector2, n);
-    const step = (startAngle - endAngle) / (@as(f32, @floatFromInt(n - 1)));
-    for (0..n) |i| {
-        const angle = startAngle + step * (@as(f32, @floatFromInt(i)));
-        try list.append(.{
-            .x = origin.x + radius * std.math.cos(angle),
-            .y = origin.y - radius * std.math.sin(angle),
-        });
-    }
-    return list;
-}
+// pub fn calculateArcPoints(origin: rl.Vector2, radius: f32, startAngle: f32, endAngle: f32, n: usize) ![]rl.Vector2 {
+//     var allocator = std.heap.page_allocator;
+//     var points = try allocator.alloc(rl.Vector2, n);
+//     const step = (startAngle - endAngle) / (@as(f32, @floatFromInt(n - 1)));
+//     for (0..n) |i| {
+//         const angle = startAngle + step * (@as(f32, @floatFromInt(i)));
+//         points[i] = .{
+//             .x = origin.x + radius * std.math.cos(angle),
+//             .y = origin.y - radius * std.math.sin(angle),
+//         };
+//     }
+//     return points[0..];
+// }
 
 /// Calculates a line parallel to the given line at a specified distance.
 ///
@@ -317,10 +151,7 @@ pub fn calculateArcPointsArrayList(origin: rl.Vector2, radius: f32, startAngle: 
 /// The perpendicular direction is calculated by rotating the original direction vector
 /// of the line by 90 degrees, then normalizing it. The endpoints of the original line
 /// are then offset by the perpendicular vector scaled by the distance `c`.
-pub fn getParallelLine(
-    line: Line,
-    c: f32,
-) !Line {
+pub fn getParallelLine(line: Line, c: f32) !Line {
     const start_x: f32 = line.start.x;
     const start_y: f32 = line.start.y;
     const end_x: f32 = line.end.x;
@@ -350,28 +181,21 @@ pub fn getParallelLine(
     const y2_parallel = end_y + offset_y;
 
     // Return the new start and end points of the parallel line
-    return Line{ .start = rl.Vector2{ .x = x1_parallel, .y = y1_parallel }, .end = rl.Vector2{ .x = x2_parallel, .y = y2_parallel }, .angle = undefined };
+    return Line{ .start = rl.Vector2{ .x = x1_parallel, .y = y1_parallel }, .end = rl.Vector2{ .x = x2_parallel, .y = y2_parallel } };
 }
 
 /// Converts a given angle in mils to degrees.
-pub fn milsToDegree(
-    mils: f32,
-) f32 {
+pub fn milsToDegree(mils: f32) f32 {
     return mils * 0.05625;
 }
 
 /// Converts a given angle in mils to radians.
-pub fn milsToRadians(
-    mils: f32,
-) f32 {
+pub fn milsToRadians(mils: f32) f32 {
     return mils * 0.000982;
 }
 
 /// Calculates the length of one leg of a right triangle given the other leg and an angle.
-pub fn calculateXfromAngle(
-    width: f32,
-    angle: f32,
-) f32 {
+pub fn calculateXfromAngle(width: f32, angle: f32) f32 {
     const b: f32 = width;
     const a: f32 = @tan(milsToRadians(angle));
 
