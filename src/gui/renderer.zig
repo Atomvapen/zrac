@@ -11,6 +11,15 @@ var riskProfile = @import("../data/state.zig").RiskProfile.init();
 
 var risk_editor_viewer: RiskEditorWindow = undefined;
 
+const windowConfig = struct {
+    const title: [*:0]const u8 = "ZRAC";
+    const size = .{ .width = 1200, .height = 800 };
+    const FPS: i32 = 60;
+
+    var icon: rl.Image = undefined;
+    var quit: bool = false;
+};
+
 const RiskEditorWindow = struct {
     const Self = @This();
 
@@ -163,7 +172,7 @@ fn doMainMenu() void {
         if (zgui.beginMenu("Fil", true)) {
             if (zgui.menuItem("Exportera", .{})) sync.save();
             if (zgui.menuItem("Importera", .{})) sync.load();
-            if (zgui.menuItem("Avsluta", .{})) risk_editor_viewer.quit = true;
+            if (zgui.menuItem("Avsluta", .{})) windowConfig.quit = true;
             zgui.endMenu();
         }
 
@@ -180,15 +189,12 @@ pub fn main(allocator: std.mem.Allocator) !void {
     var draw_buffer = drawBuffer.init(allocator);
     defer draw_buffer.deinit();
 
-    const window_title = "ZRAC";
-    const window_size = .{ .width = 1200, .height = 800 };
-
     rl.setConfigFlags(.{ .msaa_4x_hint = true, .vsync_hint = true });
-    rl.initWindow(window_size.width, window_size.height, window_title);
+    rl.initWindow(windowConfig.size.width, windowConfig.size.height, windowConfig.title);
     defer rl.closeWindow();
 
-    const icon: rl.Image = rl.loadImage("assets/icon.png");
-    icon.useAsWindowIcon();
+    windowConfig.icon = rl.loadImage("assets/icon.png");
+    windowConfig.icon.useAsWindowIcon();
 
     rl.setTargetFPS(60);
     zgui.rlimgui.setup(true);
@@ -197,7 +203,7 @@ pub fn main(allocator: std.mem.Allocator) !void {
 
     risk_editor_viewer.open = true;
 
-    while (!rl.windowShouldClose() and !risk_editor_viewer.quit) {
+    while (!rl.windowShouldClose() and !windowConfig.quit) {
         camera.handle();
         risk_editor_viewer.update();
 

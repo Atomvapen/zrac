@@ -7,13 +7,7 @@ const drawBuffer = @import("drawBuffer.zig").DrawBuffer;
 
 const origin: rl.Vector2 = .{ .x = 600, .y = 750 };
 
-const Type = enum {
-    Half,
-    Box,
-    SST,
-};
-
-pub fn draw(sort: Type, riskProfile: state, draw_buffer: *drawBuffer) !void {
+pub fn draw(sort: enum { Half, Box, SST }, riskProfile: state, draw_buffer: *drawBuffer) !void {
     try switch (sort) {
         .Half => drawHalf(riskProfile, draw_buffer),
         .SST => drawSST(riskProfile, draw_buffer),
@@ -116,15 +110,15 @@ fn drawRisk(riskProfile: state, risk_origin: rl.Vector2, angle: f32, draw_buffer
     // hv
     var hv: geo.Semicircle = geo.Semicircle.init(
         rl.Color.red,
-        -90 + geo.milsToDegree(angle),
-        -90 + geo.milsToDegree(angle + riskProfile.weaponValues.v),
+        -1600 + angle,
+        -1600 + angle + riskProfile.weaponValues.v,
         riskProfile.terrainValues.h,
         risk_origin,
         10,
     );
 
     //c
-    var c: geo.Line = try geo.getParallelLine(v, riskProfile.weaponValues.c);
+    var c: geo.Line = try v.getParallelLine(riskProfile.weaponValues.c);
 
     // ch
     var ch: geo.Line = geo.Line.init(rl.Vector2{
@@ -136,7 +130,7 @@ fn drawRisk(riskProfile: state, risk_origin: rl.Vector2, angle: f32, draw_buffer
     });
     ch.rotate(.End, angle + 3200.0 - riskProfile.terrainValues.ch);
     ch.addText("ch", -5, -20, 40, rl.Color.black, ch.end);
-    ch.endAtIntersection(c);
+    ch.end = ch.getIntersectionPoint(c).?;
 
     // q1
     var q1: geo.Line = geo.Line.init(rl.Vector2{
@@ -172,18 +166,18 @@ fn drawRisk(riskProfile: state, risk_origin: rl.Vector2, angle: f32, draw_buffer
 
     // q
     var q: geo.Line = if (riskProfile.terrainValues.forestDist > 0) q2 else q1;
-    q.endAtIntersection(c);
+    q.end = q.getIntersectionPoint(c).?;
 
-    v.endAtIntersection(q);
-    c.endAtIntersection(ch);
-    c.startAtIntersection(q);
+    v.end = v.getIntersectionPoint(q).?;
+    c.end = c.getIntersectionPoint(ch).?;
+    c.start = c.getIntersectionPoint(q).?;
 
-    try draw_buffer.append(hv.createCommand());
-    try draw_buffer.append(h.createCommand());
-    try draw_buffer.append(v.createCommand());
-    try draw_buffer.append(ch.createCommand());
-    try draw_buffer.append(c.createCommand());
-    try draw_buffer.append(q.createCommand());
+    try draw_buffer.append(hv.createDrawCommand());
+    try draw_buffer.append(h.createDrawCommand());
+    try draw_buffer.append(v.createDrawCommand());
+    try draw_buffer.append(ch.createDrawCommand());
+    try draw_buffer.append(c.createDrawCommand());
+    try draw_buffer.append(q.createDrawCommand());
 
     if (riskProfile.config.showText) {
         try draw_buffer.append(h.text);
