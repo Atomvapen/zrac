@@ -1,5 +1,6 @@
 const std = @import("std");
-const Profile = @import("state.zig").RiskProfile;
+const reg = @import("reg");
+const Profile = reg.data.state.RiskProfile;
 
 const ValidationError = error{
     NoValue,

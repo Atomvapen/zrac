@@ -1,7 +1,8 @@
 const std = @import("std");
 const rl = @import("raylib");
-
-const drawBuffer = @import("../gui/draw/drawBuffer.zig").DrawBuffer;
+const reg = @import("reg");
+const trig = reg.math.trig;
+const DrawBuffer = reg.gui.DrawBuffer;
 
 pub const Semicircle = struct {
     color: rl.Color,
@@ -10,28 +11,28 @@ pub const Semicircle = struct {
     radius: f32,
     center: rl.Vector2,
     segments: i32,
-    // command: drawBuffer.Command = undefined,
+    // command: DrawBuffer.Command = undefined,
 
     pub fn init(color: rl.Color, startAngle: f32, endAngle: f32, radius: f32, center: rl.Vector2, segments: i32) Semicircle {
         return Semicircle{
             .color = color,
-            .startAngle = milsToDegree(startAngle),
-            .endAngle = milsToDegree(endAngle),
+            .startAngle = trig.convertAngle(startAngle, .Mils, .Degrees),
+            .endAngle = trig.convertAngle(endAngle, .Mils, .Degrees),
             .radius = radius,
             .center = center,
             .segments = segments,
         };
     }
 
-    pub fn createDrawCommand(self: *Semicircle) drawBuffer.Command {
-        return .{ .Semicircle = drawBuffer.Command.create(.Semicircle).init(self.color, self.startAngle, self.endAngle, self.radius, self.center, self.segments) };
+    pub fn createDrawCommand(self: *Semicircle) DrawBuffer.Command {
+        return .{ .Semicircle = DrawBuffer.Command.create(.Semicircle).init(self.color, self.startAngle, self.endAngle, self.radius, self.center, self.segments) };
     }
 };
 
 pub const Line = struct {
     start: rl.Vector2,
     end: rl.Vector2,
-    text: drawBuffer.Command = undefined,
+    text: DrawBuffer.Command = undefined,
     // command: drawBuffer.Command = undefined,
 
     /// Initiates a Line.
@@ -41,12 +42,12 @@ pub const Line = struct {
 
     /// Adds text to the line for later drawing.
     pub fn addText(self: *Line, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32, color: rl.Color, pos: rl.Vector2) void {
-        self.text = .{ .Text = drawBuffer.Command.create(.Text).init(text, textOffsetX, textOffsetY, fontSize, color, pos) };
+        self.text = .{ .Text = DrawBuffer.Command.create(.Text).init(text, textOffsetX, textOffsetY, fontSize, color, pos) };
     }
 
     /// Creates draw-command for execution
-    pub fn createDrawCommand(self: *Line) drawBuffer.Command {
-        return .{ .Line = drawBuffer.Command.create(.Line).init2(self.start, self.end, rl.Color.red) };
+    pub fn createDrawCommand(self: *Line) DrawBuffer.Command {
+        return .{ .Line = DrawBuffer.Command.create(.Line).init2(self.start, self.end, rl.Color.red) };
     }
 
     /// Rotates one endpoint of a `Line` around the other by the specified angle.
@@ -64,7 +65,7 @@ pub const Line = struct {
     /// - `angle`: The rotation angle in milliradians. Use a positive angle for counterclockwise
     ///   rotation and a negative angle for clockwise rotation.
     pub fn rotate(self: *Line, direction: enum { End, Start }, angle: f32) void {
-        const rad = milsToRadians(angle);
+        const rad = trig.convertAngle(angle, .Mils, .Radians);
 
         const cosAngle = @cos(rad);
         const sinAngle = @sin(rad);
@@ -164,21 +165,3 @@ pub const Line = struct {
         return Line{ .start = rl.Vector2{ .x = x1_parallel, .y = y1_parallel }, .end = rl.Vector2{ .x = x2_parallel, .y = y2_parallel } };
     }
 };
-
-/// Calculates the length of one leg of a right triangle given the other leg and an angle.
-pub fn calculateXfromAngle(width: f32, angle: f32) f32 {
-    const b: f32 = width;
-    const a: f32 = @tan(milsToRadians(angle));
-
-    return (b * a);
-}
-
-/// Converts a given angle in mils to degrees.
-pub fn milsToDegree(mils: f32) f32 {
-    return mils * 0.05625;
-}
-
-/// Converts a given angle in mils to radians.
-pub fn milsToRadians(mils: f32) f32 {
-    return mils * 0.000982;
-}

@@ -1,13 +1,13 @@
 const std = @import("std");
 const rl = @import("raylib");
 const zgui = @import("zgui");
+const reg = @import("reg");
+const draw = reg.gui.draw;
+const sync = reg.data.sync;
+const camera = reg.gui.camera;
+const DrawBuffer = reg.gui.DrawBuffer;
 
-const draw = @import("draw/draw.zig");
-const sync = @import("../data/sync.zig");
-const camera = @import("camera.zig");
-const drawBuffer = @import("draw/drawBuffer.zig").DrawBuffer;
-
-var riskProfile = @import("../data/state.zig").RiskProfile.init();
+var riskProfile = reg.data.state.RiskProfile.init();
 
 var risk_editor_viewer: RiskEditorWindow = undefined;
 
@@ -150,7 +150,7 @@ const RiskEditorWindow = struct {
     }
 };
 
-fn drawPlane(draw_buffer: *drawBuffer) !void {
+fn drawPlane(draw_buffer: *DrawBuffer) !void {
     camera.begin();
     defer camera.end();
 
@@ -186,7 +186,7 @@ fn doMainMenu() void {
 }
 
 pub fn main(allocator: std.mem.Allocator) !void {
-    var draw_buffer = drawBuffer.init(allocator);
+    var draw_buffer = DrawBuffer.init(allocator);
     defer draw_buffer.deinit();
 
     rl.setConfigFlags(.{ .msaa_4x_hint = true, .vsync_hint = true });

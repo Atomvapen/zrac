@@ -1,13 +1,14 @@
 const std = @import("std");
 const rl = @import("raylib");
-
-const geo = @import("../../math/geo.zig");
-const state = @import("../../data/state.zig").RiskProfile;
-const drawBuffer = @import("drawBuffer.zig").DrawBuffer;
+const reg = @import("reg");
+const geo = reg.math.geometry;
+const trig = reg.math.trig;
+const DrawBuffer = reg.gui.DrawBuffer;
+const State = reg.data.state.RiskProfile;
 
 const origin: rl.Vector2 = .{ .x = 600, .y = 750 };
 
-pub fn draw(sort: enum { Half, Box, SST }, riskProfile: state, draw_buffer: *drawBuffer) !void {
+pub fn draw(sort: enum { Half, Box, SST }, riskProfile: State, draw_buffer: *DrawBuffer) !void {
     try switch (sort) {
         .Half => drawHalf(riskProfile, draw_buffer),
         .SST => drawSST(riskProfile, draw_buffer),
@@ -15,15 +16,15 @@ pub fn draw(sort: enum { Half, Box, SST }, riskProfile: state, draw_buffer: *dra
     };
 }
 
-fn drawHalf(riskProfile: state, draw_buffer: *drawBuffer) !void {
+fn drawHalf(riskProfile: State, draw_buffer: *DrawBuffer) !void {
     try drawRisk(riskProfile, .{
         .x = origin.x,
         .y = origin.y,
     }, 0, draw_buffer);
 }
 
-fn drawSST(riskProfile: state, draw_buffer: *drawBuffer) !void {
-    const sst: drawBuffer.Command = .{ .Line = drawBuffer.Command.create(.Line).init(
+fn drawSST(riskProfile: State, draw_buffer: *DrawBuffer) !void {
+    const sst: DrawBuffer.Command = .{ .Line = DrawBuffer.Command.create(.Line).init(
         &[_]rl.Vector2{
             rl.Vector2{ .x = origin.x - (riskProfile.sst.width / 2), .y = origin.y },
             rl.Vector2{ .x = origin.x + (riskProfile.sst.width / 2), .y = origin.y },
@@ -39,8 +40,8 @@ fn drawSST(riskProfile: state, draw_buffer: *drawBuffer) !void {
     }, riskProfile.sst.hh, draw_buffer);
 }
 
-fn drawBox(riskProfile: state, draw_buffer: *drawBuffer) !void {
-    const box: drawBuffer.Command = .{ .Line = drawBuffer.Command.create(.Line).init(
+fn drawBox(riskProfile: State, draw_buffer: *DrawBuffer) !void {
+    const box: DrawBuffer.Command = .{ .Line = DrawBuffer.Command.create(.Line).init(
         &[_]rl.Vector2{
             rl.Vector2{ .x = origin.x - (riskProfile.box.width / 2), .y = origin.y },
             rl.Vector2{ .x = origin.x + (riskProfile.box.width / 2), .y = origin.y },
@@ -64,7 +65,7 @@ fn drawBox(riskProfile: state, draw_buffer: *drawBuffer) !void {
     }, riskProfile.box.h, draw_buffer);
 }
 
-fn drawRisk(riskProfile: state, risk_origin: rl.Vector2, angle: f32, draw_buffer: *drawBuffer) !void {
+fn drawRisk(riskProfile: State, risk_origin: rl.Vector2, angle: f32, draw_buffer: *DrawBuffer) !void {
     // h
     var h: geo.Line = geo.Line.init(rl.Vector2{
         .x = risk_origin.x,
@@ -134,7 +135,7 @@ fn drawRisk(riskProfile: state, risk_origin: rl.Vector2, angle: f32, draw_buffer
 
     // q1
     var q1: geo.Line = geo.Line.init(rl.Vector2{
-        .x = geo.calculateXfromAngle(riskProfile.terrainValues.Amin - riskProfile.terrainValues.f, angle + riskProfile.weaponValues.v) + risk_origin.x,
+        .x = trig.triangleOppositeLeg(riskProfile.terrainValues.Amin - riskProfile.terrainValues.f, angle + riskProfile.weaponValues.v) + risk_origin.x,
         .y = risk_origin.y - riskProfile.terrainValues.Amin + riskProfile.terrainValues.f,
     }, rl.Vector2{
         .x = v.end.x,
@@ -145,7 +146,7 @@ fn drawRisk(riskProfile: state, risk_origin: rl.Vector2, angle: f32, draw_buffer
 
     // q2
     var q2: geo.Line = geo.Line.init(rl.Vector2{
-        .x = geo.calculateXfromAngle(riskProfile.terrainValues.forestDist, angle + riskProfile.weaponValues.v) + risk_origin.x,
+        .x = trig.triangleOppositeLeg(riskProfile.terrainValues.forestDist, angle + riskProfile.weaponValues.v) + risk_origin.x,
         .y = risk_origin.y - riskProfile.terrainValues.forestDist,
     }, rl.Vector2{
         .x = v.end.x,
