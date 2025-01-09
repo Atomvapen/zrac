@@ -35,19 +35,11 @@ pub const Command = union(CommandType) {
     };
 
     const LineCommand = struct {
-        points: []const rl.Vector2 = undefined,
         color: rl.Color,
         start: rl.Vector2 = undefined,
         end: rl.Vector2 = undefined,
 
-        pub fn init(points: []const rl.Vector2, color: rl.Color) LineCommand {
-            return LineCommand{
-                .points = points,
-                .color = color,
-            };
-        }
-
-        pub fn init2(start: rl.Vector2, end: rl.Vector2, color: rl.Color) LineCommand {
+        pub fn init(start: rl.Vector2, end: rl.Vector2, color: rl.Color) LineCommand {
             return LineCommand{
                 .start = start,
                 .end = end,

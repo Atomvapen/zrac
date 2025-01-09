@@ -39,8 +39,8 @@ pub fn build(b: *std.Build) void {
     exe_check.linkLibrary(zgui.artifact("imgui"));
     exe_check.root_module.addImport("reg", reg);
 
-    // const check = b.step("check", "Check if ZRAC compiles");
-    // check.dependOn(&exe_check.step);
+    const check = b.step("check", "Check if ZRAC compiles");
+    check.dependOn(&exe_check.step);
 
     const run_cmd = b.addRunArtifact(exe);
     run_cmd.step.dependOn(&install_exe.step);

@@ -24,15 +24,15 @@ fn drawHalf(riskProfile: State, draw_buffer: *DrawBuffer) !void {
 }
 
 fn drawSST(riskProfile: State, draw_buffer: *DrawBuffer) !void {
-    const sst: DrawBuffer.Command = .{ .Line = DrawBuffer.Command.create(.Line).init(
-        &[_]rl.Vector2{
-            rl.Vector2{ .x = origin.x - (riskProfile.sst.width / 2), .y = origin.y },
-            rl.Vector2{ .x = origin.x + (riskProfile.sst.width / 2), .y = origin.y },
-        },
-        rl.Color.red,
-    ) };
+    // const sst: DrawBuffer.Command = .{ .Line = DrawBuffer.Command.create(.Line).init(
+    //     &[_]rl.Vector2{
+    //         rl.Vector2{ .x = origin.x - (riskProfile.sst.width / 2), .y = origin.y },
+    //         rl.Vector2{ .x = origin.x + (riskProfile.sst.width / 2), .y = origin.y },
+    //     },
+    //     rl.Color.red,
+    // ) };
 
-    try draw_buffer.append(sst);
+    // try draw_buffer.append(sst);
 
     try drawRisk(riskProfile, .{
         .x = origin.x + (riskProfile.sst.width / 2),
@@ -41,18 +41,18 @@ fn drawSST(riskProfile: State, draw_buffer: *DrawBuffer) !void {
 }
 
 fn drawBox(riskProfile: State, draw_buffer: *DrawBuffer) !void {
-    const box: DrawBuffer.Command = .{ .Line = DrawBuffer.Command.create(.Line).init(
-        &[_]rl.Vector2{
-            rl.Vector2{ .x = origin.x - (riskProfile.box.width / 2), .y = origin.y },
-            rl.Vector2{ .x = origin.x + (riskProfile.box.width / 2), .y = origin.y },
-            rl.Vector2{ .x = origin.x + (riskProfile.box.width / 2), .y = origin.y - riskProfile.box.length },
-            rl.Vector2{ .x = origin.x - (riskProfile.box.width / 2), .y = origin.y - riskProfile.box.length },
-            rl.Vector2{ .x = origin.x - (riskProfile.box.width / 2), .y = origin.y },
-        },
-        rl.Color.red,
-    ) };
+    // const box: DrawBuffer.Command = .{ .Line = DrawBuffer.Command.create(.Line).init(
+    //     &[_]rl.Vector2{
+    //         rl.Vector2{ .x = origin.x - (riskProfile.box.width / 2), .y = origin.y },
+    //         rl.Vector2{ .x = origin.x + (riskProfile.box.width / 2), .y = origin.y },
+    //         rl.Vector2{ .x = origin.x + (riskProfile.box.width / 2), .y = origin.y - riskProfile.box.length },
+    //         rl.Vector2{ .x = origin.x - (riskProfile.box.width / 2), .y = origin.y - riskProfile.box.length },
+    //         rl.Vector2{ .x = origin.x - (riskProfile.box.width / 2), .y = origin.y },
+    //     },
+    //     rl.Color.red,
+    // ) };
 
-    try draw_buffer.append(box);
+    // try draw_buffer.append(box);
 
     try drawRisk(riskProfile, .{
         .x = origin.x + (riskProfile.box.width / 2),
@@ -75,7 +75,7 @@ fn drawRisk(riskProfile: State, risk_origin: rl.Vector2, angle: f32, draw_buffer
         .y = risk_origin.y - riskProfile.terrainValues.h,
     });
     h.rotate(.End, angle);
-    h.addText("h", -20, 0, 40, rl.Color.black, h.end);
+    h.addTextCommand("h", -20, 0, 40, rl.Color.black, h.end);
 
     // Amin
     var Amin: geo.Line = geo.Line.init(rl.Vector2{
@@ -86,7 +86,7 @@ fn drawRisk(riskProfile: State, risk_origin: rl.Vector2, angle: f32, draw_buffer
         .y = risk_origin.y - riskProfile.terrainValues.Amin,
     });
     Amin.rotate(.End, angle);
-    Amin.addText("Amin", -100, 0, 40, rl.Color.black, Amin.end);
+    Amin.addTextCommand("Amin", -100, 0, 40, rl.Color.black, Amin.end);
 
     // v
     var v: geo.Line = geo.Line.init(rl.Vector2{
@@ -97,7 +97,7 @@ fn drawRisk(riskProfile: State, risk_origin: rl.Vector2, angle: f32, draw_buffer
         .y = risk_origin.y - riskProfile.terrainValues.h,
     });
     v.rotate(.End, angle + riskProfile.weaponValues.v);
-    v.addText("v", -5, -30, 40, rl.Color.black, v.end);
+    v.addTextCommand("v", -5, -30, 40, rl.Color.black, v.end);
 
     var f: geo.Line = geo.Line.init(rl.Vector2{
         .x = risk_origin.x,
@@ -106,7 +106,7 @@ fn drawRisk(riskProfile: State, risk_origin: rl.Vector2, angle: f32, draw_buffer
         .x = risk_origin.x,
         .y = Amin.end.y + riskProfile.terrainValues.f,
     });
-    f.addText("f", -70, 0, 40, rl.Color.black, f.end);
+    f.addTextCommand("f", -70, 0, 40, rl.Color.black, f.end);
 
     // hv
     var hv: geo.Semicircle = geo.Semicircle.init(
@@ -130,7 +130,7 @@ fn drawRisk(riskProfile: State, risk_origin: rl.Vector2, angle: f32, draw_buffer
         .y = v.end.y - 1000.0,
     });
     ch.rotate(.End, angle + 3200.0 - riskProfile.terrainValues.ch);
-    ch.addText("ch", -5, -20, 40, rl.Color.black, ch.end);
+    ch.addTextCommand("ch", -5, -20, 40, rl.Color.black, ch.end);
     ch.end = ch.getIntersectionPoint(c).?;
 
     // q1
@@ -142,7 +142,7 @@ fn drawRisk(riskProfile: State, risk_origin: rl.Vector2, angle: f32, draw_buffer
         .y = v.end.y,
     });
     q1.rotate(.End, riskProfile.terrainValues.q1);
-    q1.addText("q1", 15, 0, 40, rl.Color.black, q1.end);
+    q1.addTextCommand("q1", 15, 0, 40, rl.Color.black, q1.end);
 
     // q2
     var q2: geo.Line = geo.Line.init(rl.Vector2{
@@ -153,7 +153,7 @@ fn drawRisk(riskProfile: State, risk_origin: rl.Vector2, angle: f32, draw_buffer
         .y = v.end.y,
     });
     q2.rotate(.End, riskProfile.terrainValues.q2);
-    q2.addText("q2", 25, 0, 40, rl.Color.black, q2.end);
+    q2.addTextCommand("q2", 25, 0, 40, rl.Color.black, q2.end);
 
     // forestMin
     var forestMin: geo.Line = geo.Line.init(rl.Vector2{
@@ -163,7 +163,7 @@ fn drawRisk(riskProfile: State, risk_origin: rl.Vector2, angle: f32, draw_buffer
         .x = risk_origin.x,
         .y = risk_origin.y - riskProfile.terrainValues.forestDist,
     });
-    forestMin.addText("forestMin", -220, 0, 40, rl.Color.black, forestMin.end);
+    forestMin.addTextCommand("forestMin", -220, 0, 40, rl.Color.black, forestMin.end);
 
     // q
     var q: geo.Line = if (riskProfile.terrainValues.forestDist > 0) q2 else q1;
@@ -173,25 +173,32 @@ fn drawRisk(riskProfile: State, risk_origin: rl.Vector2, angle: f32, draw_buffer
     c.end = c.getIntersectionPoint(ch).?;
     c.start = c.getIntersectionPoint(q).?;
 
-    try draw_buffer.append(hv.createDrawCommand());
-    try draw_buffer.append(h.createDrawCommand());
-    try draw_buffer.append(v.createDrawCommand());
-    try draw_buffer.append(ch.createDrawCommand());
-    try draw_buffer.append(c.createDrawCommand());
-    try draw_buffer.append(q.createDrawCommand());
+    hv.addDrawCommand();
+    h.addDrawCommand();
+    v.addDrawCommand();
+    ch.addDrawCommand();
+    c.addDrawCommand();
+    q.addDrawCommand();
+
+    try draw_buffer.append(hv.drawCommand);
+    try draw_buffer.append(h.drawCommand);
+    try draw_buffer.append(v.drawCommand);
+    try draw_buffer.append(ch.drawCommand);
+    try draw_buffer.append(c.drawCommand);
+    try draw_buffer.append(q.drawCommand);
 
     if (riskProfile.config.showText) {
-        try draw_buffer.append(h.text);
-        try draw_buffer.append(f.text);
-        try draw_buffer.append(v.text);
-        try draw_buffer.append(Amin.text);
-        try draw_buffer.append(ch.text);
+        try draw_buffer.append(h.textCommand);
+        try draw_buffer.append(f.textCommand);
+        try draw_buffer.append(v.textCommand);
+        try draw_buffer.append(Amin.textCommand);
+        try draw_buffer.append(ch.textCommand);
 
         if (riskProfile.terrainValues.forestDist > 0) {
-            try draw_buffer.append(forestMin.text);
-            try draw_buffer.append(q2.text);
+            try draw_buffer.append(forestMin.textCommand);
+            try draw_buffer.append(q2.textCommand);
         } else {
-            try draw_buffer.append(q1.text);
+            try draw_buffer.append(q1.textCommand);
         }
     }
 

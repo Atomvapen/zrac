@@ -4,6 +4,53 @@ const reg = @import("reg");
 const trig = reg.math.trig;
 const DrawBuffer = reg.gui.DrawBuffer;
 
+pub const Point = struct {
+    pos: rl.Vector2,
+    textCommand: DrawBuffer.Command = undefined,
+
+    /// Initiates a Point
+    pub fn init(start: rl.Vector2, end: rl.Vector2) Line {
+        return Line{ .start = start, .end = end };
+    }
+
+    /// Distance from the origin (0,0) to the point (x,y)
+    pub fn getLength(self: *Point) f32 {
+        return @sqrt(self.pos.x * self.pos.x + self.pos.y * self.pos.y);
+    }
+
+    /// Add Point
+    pub fn add(self: *Point, b: Point) void {
+        self = Point{
+            .pos = rl.Vector2{ .x = self.pos.x + b.pos.x, .y = self.pos.y + b.pos.y },
+            .textCommand = self.textCommand,
+        };
+    }
+
+    /// Subtract Point
+    pub fn sub(self: *Point, b: Point) void {
+        self = Point{
+            .pos = rl.Vector2{ .x = self.pos.x - b.pos.x, .y = self.pos.y - b.pos.y },
+            .textCommand = self.textCommand,
+        };
+    }
+
+    /// Scale Point by factor
+    pub fn scale(self: *Point, factor: f32) void {
+        self = Point{
+            .pos = rl.Vector2{ .x = self.pos.x * factor, .y = self.pos.y * factor },
+            .textCommand = self.textCommand,
+        };
+    }
+
+    /// Multiply Point by Point
+    pub fn multiply(self: *Point, b: Point) void {
+        self = Point{
+            .pos = rl.Vector2{ .x = self.pos.x * b.pos.x, .y = self.pos.y * b.pos.y },
+            .textCommand = self.textCommand,
+        };
+    }
+};
+
 pub const Semicircle = struct {
     color: rl.Color,
     startAngle: f32,
@@ -11,8 +58,10 @@ pub const Semicircle = struct {
     radius: f32,
     center: rl.Vector2,
     segments: i32,
-    // command: DrawBuffer.Command = undefined,
+    textCommand: DrawBuffer.Command = undefined,
+    drawCommand: DrawBuffer.Command = undefined,
 
+    /// Initiates a Semicircle
     pub fn init(color: rl.Color, startAngle: f32, endAngle: f32, radius: f32, center: rl.Vector2, segments: i32) Semicircle {
         return Semicircle{
             .color = color,
@@ -24,30 +73,81 @@ pub const Semicircle = struct {
         };
     }
 
-    pub fn createDrawCommand(self: *Semicircle) DrawBuffer.Command {
-        return .{ .Semicircle = DrawBuffer.Command.create(.Semicircle).init(self.color, self.startAngle, self.endAngle, self.radius, self.center, self.segments) };
+    /// Add text
+    pub fn addTextCommand(self: *Semicircle, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32, color: rl.Color, pos: rl.Vector2) void {
+        self.textCommand = .{ .Text = DrawBuffer.Command.create(.Text).init(text, textOffsetX, textOffsetY, fontSize, color, pos) };
+    }
+
+    /// Add draw-command of current state
+    pub fn addDrawCommand(self: *Semicircle) void {
+        self.drawCommand = .{ .Semicircle = DrawBuffer.Command.create(.Semicircle).init(self.color, self.startAngle, self.endAngle, self.radius, self.center, self.segments) };
     }
 };
 
 pub const Line = struct {
     start: rl.Vector2,
     end: rl.Vector2,
-    text: DrawBuffer.Command = undefined,
-    // command: drawBuffer.Command = undefined,
+    textCommand: DrawBuffer.Command = undefined,
+    drawCommand: DrawBuffer.Command = undefined,
 
-    /// Initiates a Line.
+    /// Initiates a Line
     pub fn init(start: rl.Vector2, end: rl.Vector2) Line {
         return Line{ .start = start, .end = end };
     }
 
-    /// Adds text to the line for later drawing.
-    pub fn addText(self: *Line, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32, color: rl.Color, pos: rl.Vector2) void {
-        self.text = .{ .Text = DrawBuffer.Command.create(.Text).init(text, textOffsetX, textOffsetY, fontSize, color, pos) };
+    /// Add text
+    pub fn addTextCommand(self: *Line, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32, color: rl.Color, pos: rl.Vector2) void {
+        self.textCommand = .{ .Text = DrawBuffer.Command.create(.Text).init(text, textOffsetX, textOffsetY, fontSize, color, pos) };
     }
 
-    /// Creates draw-command for execution
-    pub fn createDrawCommand(self: *Line) DrawBuffer.Command {
-        return .{ .Line = DrawBuffer.Command.create(.Line).init2(self.start, self.end, rl.Color.red) };
+    /// Add draw-command of current state
+    pub fn addDrawCommand(self: *Line) void {
+        self.drawCommand = .{ .Line = DrawBuffer.Command.create(.Line).init(self.start, self.end, rl.Color.red) };
+    }
+
+    /// Length of Line
+    pub fn getLength(self: *Line) f32 {
+        return @sqrt(self.start.x * self.end.x + self.start.y * self.end.y);
+    }
+
+    /// Add Line
+    pub fn add(self: *Line, b: Line) void {
+        self = Point{
+            .start = rl.Vector2{ .x = self.start.x + b.start.x, .y = self.start.y + b.start.y },
+            .end = rl.Vector2{ .x = self.end.x + b.end.x, .y = self.end.y + b.end.y },
+            .textCommand = self.textCommand,
+            .drawCommand = self.drawCommand,
+        };
+    }
+
+    /// Subtract Line
+    pub fn sub(self: *Line, b: Line) void {
+        self = Point{
+            .start = rl.Vector2{ .x = self.start.x - b.start.x, .y = self.start.y - b.start.y },
+            .end = rl.Vector2{ .x = self.end.x - b.end.x, .y = self.end.y - b.end.y },
+            .textCommand = self.textCommand,
+            .drawCommand = self.drawCommand,
+        };
+    }
+
+    /// Scale Line by factor
+    pub fn scale(self: *Line, factor: f32) void {
+        self = Point{
+            .start = rl.Vector2{ .x = self.start.x * factor, .y = self.start.y * factor },
+            .end = rl.Vector2{ .x = self.end.x * factor, .y = self.end.y * factor },
+            .textCommand = self.textCommand,
+            .drawCommand = self.drawCommand,
+        };
+    }
+
+    /// Multiply Line by Line
+    pub fn multiply(self: *Line, b: Line) void {
+        self = Point{
+            .start = rl.Vector2{ .x = self.start.x * b.start.x, .y = self.start.y * b.start.y },
+            .end = rl.Vector2{ .x = self.end.x * b.end.x, .y = self.end.y * b.end.y },
+            .textCommand = self.textCommand,
+            .drawCommand = self.drawCommand,
+        };
     }
 
     /// Rotates one endpoint of a `Line` around the other by the specified angle.
