@@ -75,7 +75,7 @@ fn drawRisk(riskProfile: State, risk_origin: rl.Vector2, angle: f32, draw_buffer
         .y = risk_origin.y - riskProfile.terrainValues.h,
     });
     h.rotate(.End, angle);
-    h.addTextCommand("h", -20, 0, 40, rl.Color.black, h.end);
+    h.createTextCommand("h", -20, 0, 40, rl.Color.black, h.end);
 
     // Amin
     var Amin: geo.Line = geo.Line.init(rl.Vector2{
@@ -86,7 +86,7 @@ fn drawRisk(riskProfile: State, risk_origin: rl.Vector2, angle: f32, draw_buffer
         .y = risk_origin.y - riskProfile.terrainValues.Amin,
     });
     Amin.rotate(.End, angle);
-    Amin.addTextCommand("Amin", -100, 0, 40, rl.Color.black, Amin.end);
+    Amin.createTextCommand("Amin", -100, 0, 40, rl.Color.black, Amin.end);
 
     // v
     var v: geo.Line = geo.Line.init(rl.Vector2{
@@ -97,7 +97,7 @@ fn drawRisk(riskProfile: State, risk_origin: rl.Vector2, angle: f32, draw_buffer
         .y = risk_origin.y - riskProfile.terrainValues.h,
     });
     v.rotate(.End, angle + riskProfile.weaponValues.v);
-    v.addTextCommand("v", -5, -30, 40, rl.Color.black, v.end);
+    v.createTextCommand("v", -5, -30, 40, rl.Color.black, v.end);
 
     var f: geo.Line = geo.Line.init(rl.Vector2{
         .x = risk_origin.x,
@@ -106,7 +106,7 @@ fn drawRisk(riskProfile: State, risk_origin: rl.Vector2, angle: f32, draw_buffer
         .x = risk_origin.x,
         .y = Amin.end.y + riskProfile.terrainValues.f,
     });
-    f.addTextCommand("f", -70, 0, 40, rl.Color.black, f.end);
+    f.createTextCommand("f", -70, 0, 40, rl.Color.black, f.end);
 
     // hv
     var hv: geo.Semicircle = geo.Semicircle.init(
@@ -130,7 +130,7 @@ fn drawRisk(riskProfile: State, risk_origin: rl.Vector2, angle: f32, draw_buffer
         .y = v.end.y - 1000.0,
     });
     ch.rotate(.End, angle + 3200.0 - riskProfile.terrainValues.ch);
-    ch.addTextCommand("ch", -5, -20, 40, rl.Color.black, ch.end);
+    ch.createTextCommand("ch", -5, -20, 40, rl.Color.black, ch.end);
     ch.end = ch.getIntersectionPoint(c).?;
 
     // q1
@@ -142,7 +142,7 @@ fn drawRisk(riskProfile: State, risk_origin: rl.Vector2, angle: f32, draw_buffer
         .y = v.end.y,
     });
     q1.rotate(.End, riskProfile.terrainValues.q1);
-    q1.addTextCommand("q1", 15, 0, 40, rl.Color.black, q1.end);
+    q1.createTextCommand("q1", 15, 0, 40, rl.Color.black, q1.end);
 
     // q2
     var q2: geo.Line = geo.Line.init(rl.Vector2{
@@ -153,7 +153,7 @@ fn drawRisk(riskProfile: State, risk_origin: rl.Vector2, angle: f32, draw_buffer
         .y = v.end.y,
     });
     q2.rotate(.End, riskProfile.terrainValues.q2);
-    q2.addTextCommand("q2", 25, 0, 40, rl.Color.black, q2.end);
+    q2.createTextCommand("q2", 25, 0, 40, rl.Color.black, q2.end);
 
     // forestMin
     var forestMin: geo.Line = geo.Line.init(rl.Vector2{
@@ -163,7 +163,7 @@ fn drawRisk(riskProfile: State, risk_origin: rl.Vector2, angle: f32, draw_buffer
         .x = risk_origin.x,
         .y = risk_origin.y - riskProfile.terrainValues.forestDist,
     });
-    forestMin.addTextCommand("forestMin", -220, 0, 40, rl.Color.black, forestMin.end);
+    forestMin.createTextCommand("forestMin", -220, 0, 40, rl.Color.black, forestMin.end);
 
     // q
     var q: geo.Line = if (riskProfile.terrainValues.forestDist > 0) q2 else q1;
@@ -173,12 +173,12 @@ fn drawRisk(riskProfile: State, risk_origin: rl.Vector2, angle: f32, draw_buffer
     c.end = c.getIntersectionPoint(ch).?;
     c.start = c.getIntersectionPoint(q).?;
 
-    hv.addDrawCommand();
-    h.addDrawCommand();
-    v.addDrawCommand();
-    ch.addDrawCommand();
-    c.addDrawCommand();
-    q.addDrawCommand();
+    hv.createDrawCommand();
+    h.createDrawCommand();
+    v.createDrawCommand();
+    ch.createDrawCommand();
+    c.createDrawCommand();
+    q.createDrawCommand();
 
     try draw_buffer.append(hv.drawCommand);
     try draw_buffer.append(h.drawCommand);

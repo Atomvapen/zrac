@@ -13,41 +13,34 @@ pub const Point = struct {
         return Line{ .start = start, .end = end };
     }
 
-    /// Distance from the origin (0,0) to the point (x,y)
+    /// Distance from the origin (0,0) to the point
     pub fn getLength(self: *Point) f32 {
         return @sqrt(self.pos.x * self.pos.x + self.pos.y * self.pos.y);
     }
 
     /// Add Point
     pub fn add(self: *Point, b: Point) void {
-        self = Point{
-            .pos = rl.Vector2{ .x = self.pos.x + b.pos.x, .y = self.pos.y + b.pos.y },
-            .textCommand = self.textCommand,
-        };
+        self.pos = rl.Vector2{ .x = self.pos.x + b.pos.x, .y = self.pos.y + b.pos.y };
     }
 
     /// Subtract Point
     pub fn sub(self: *Point, b: Point) void {
-        self = Point{
-            .pos = rl.Vector2{ .x = self.pos.x - b.pos.x, .y = self.pos.y - b.pos.y },
-            .textCommand = self.textCommand,
-        };
+        self.pos = rl.Vector2{ .x = self.pos.x - b.pos.x, .y = self.pos.y - b.pos.y };
     }
 
     /// Scale Point by factor
     pub fn scale(self: *Point, factor: f32) void {
-        self = Point{
-            .pos = rl.Vector2{ .x = self.pos.x * factor, .y = self.pos.y * factor },
-            .textCommand = self.textCommand,
-        };
+        self.pos = rl.Vector2{ .x = self.pos.x * factor, .y = self.pos.y * factor };
     }
 
     /// Multiply Point by Point
     pub fn multiply(self: *Point, b: Point) void {
-        self = Point{
-            .pos = rl.Vector2{ .x = self.pos.x * b.pos.x, .y = self.pos.y * b.pos.y },
-            .textCommand = self.textCommand,
-        };
+        self.pos = rl.Vector2{ .x = self.pos.x * b.pos.x, .y = self.pos.y * b.pos.y };
+    }
+
+    /// Add text-command
+    pub fn createTextCommand(self: *Semicircle, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32, color: rl.Color, pos: rl.Vector2) void {
+        self.textCommand = .{ .Text = DrawBuffer.Command.create(.Text).init(text, textOffsetX, textOffsetY, fontSize, color, pos) };
     }
 };
 
@@ -73,14 +66,26 @@ pub const Semicircle = struct {
         };
     }
 
-    /// Add text
-    pub fn addTextCommand(self: *Semicircle, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32, color: rl.Color, pos: rl.Vector2) void {
+    /// Add text-command
+    pub fn createTextCommand(self: *Semicircle, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32, color: rl.Color, pos: rl.Vector2) void {
         self.textCommand = .{ .Text = DrawBuffer.Command.create(.Text).init(text, textOffsetX, textOffsetY, fontSize, color, pos) };
     }
 
     /// Add draw-command of current state
-    pub fn addDrawCommand(self: *Semicircle) void {
+    pub fn createDrawCommand(self: *Semicircle) void {
         self.drawCommand = .{ .Semicircle = DrawBuffer.Command.create(.Semicircle).init(self.color, self.startAngle, self.endAngle, self.radius, self.center, self.segments) };
+    }
+
+    /// Scale Semicircle by factor
+    pub fn scale(self: *Semicircle, factor: f32) void {
+        self.radius *= factor;
+    }
+
+    /// Add Semicircle
+    pub fn add(self: *Semicircle, semicircle: Semicircle) void {
+        self.radius += semicircle.radius;
+        self.center.x += semicircle.center.x;
+        self.center.y += semicircle.center.y;
     }
 };
 
@@ -95,13 +100,13 @@ pub const Line = struct {
         return Line{ .start = start, .end = end };
     }
 
-    /// Add text
-    pub fn addTextCommand(self: *Line, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32, color: rl.Color, pos: rl.Vector2) void {
+    /// Add text-command
+    pub fn createTextCommand(self: *Line, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32, color: rl.Color, pos: rl.Vector2) void {
         self.textCommand = .{ .Text = DrawBuffer.Command.create(.Text).init(text, textOffsetX, textOffsetY, fontSize, color, pos) };
     }
 
     /// Add draw-command of current state
-    pub fn addDrawCommand(self: *Line) void {
+    pub fn createDrawCommand(self: *Line) void {
         self.drawCommand = .{ .Line = DrawBuffer.Command.create(.Line).init(self.start, self.end, rl.Color.red) };
     }
 
@@ -110,60 +115,45 @@ pub const Line = struct {
         return @sqrt(self.start.x * self.end.x + self.start.y * self.end.y);
     }
 
+    /// Distance from the origin (0,0) to the endpoint
+    pub fn getEndLength(self: *Line) f32 {
+        return @sqrt(self.end.x * self.end.x + self.end.y * self.end.y);
+    }
+
+    /// Distance from the origin (0,0) to the startpoint
+    pub fn getStartLength(self: *Line) f32 {
+        return @sqrt(self.start.x * self.start.x + self.start.y * self.start.y);
+    }
+
     /// Add Line
     pub fn add(self: *Line, b: Line) void {
-        self = Point{
-            .start = rl.Vector2{ .x = self.start.x + b.start.x, .y = self.start.y + b.start.y },
-            .end = rl.Vector2{ .x = self.end.x + b.end.x, .y = self.end.y + b.end.y },
-            .textCommand = self.textCommand,
-            .drawCommand = self.drawCommand,
-        };
+        self.start = rl.Vector2{ .x = self.start.x + b.start.x, .y = self.start.y + b.start.y };
+        self.end = rl.Vector2{ .x = self.end.x + b.end.x, .y = self.end.y + b.end.y };
     }
 
     /// Subtract Line
     pub fn sub(self: *Line, b: Line) void {
-        self = Point{
-            .start = rl.Vector2{ .x = self.start.x - b.start.x, .y = self.start.y - b.start.y },
-            .end = rl.Vector2{ .x = self.end.x - b.end.x, .y = self.end.y - b.end.y },
-            .textCommand = self.textCommand,
-            .drawCommand = self.drawCommand,
-        };
+        self.start = rl.Vector2{ .x = self.start.x - b.start.x, .y = self.start.y - b.start.y };
+        self.end = rl.Vector2{ .x = self.end.x - b.end.x, .y = self.end.y - b.end.y };
     }
 
     /// Scale Line by factor
     pub fn scale(self: *Line, factor: f32) void {
-        self = Point{
-            .start = rl.Vector2{ .x = self.start.x * factor, .y = self.start.y * factor },
-            .end = rl.Vector2{ .x = self.end.x * factor, .y = self.end.y * factor },
-            .textCommand = self.textCommand,
-            .drawCommand = self.drawCommand,
-        };
+        self.start = rl.Vector2{ .x = self.start.x * factor, .y = self.start.y * factor };
+        self.end = rl.Vector2{ .x = self.end.x * factor, .y = self.end.y * factor };
     }
 
     /// Multiply Line by Line
     pub fn multiply(self: *Line, b: Line) void {
-        self = Point{
-            .start = rl.Vector2{ .x = self.start.x * b.start.x, .y = self.start.y * b.start.y },
-            .end = rl.Vector2{ .x = self.end.x * b.end.x, .y = self.end.y * b.end.y },
-            .textCommand = self.textCommand,
-            .drawCommand = self.drawCommand,
-        };
+        self.start = rl.Vector2{ .x = self.start.x * b.start.x, .y = self.start.y * b.start.y };
+        self.end = rl.Vector2{ .x = self.end.x * b.end.x, .y = self.end.y * b.end.y };
     }
 
-    /// Rotates one endpoint of a `Line` around the other by the specified angle.
+    /// Rotates one endpoint of a `Line` around the other by the specified angle in mils.
     ///
     /// This function modifies the position of either the starting point (`Start`)
     /// or the ending point (`End`) of the line, depending on the `direction` provided.
-    /// The rotation is performed around the other fixed point, using the formula for
-    /// rotating points around an arbitrary center.
-    ///
-    /// ### Parameters:
-    /// - `direction`: Specifies which endpoint to rotate. Can be:
-    ///   - `.Start`: Rotates the starting point around the ending point.
-    ///   - `.End`: Rotates the ending point around the starting point.
-    /// - `line`: A pointer to the `Line` structure, which contains the `start` and `end` points.
-    /// - `angle`: The rotation angle in milliradians. Use a positive angle for counterclockwise
-    ///   rotation and a negative angle for clockwise rotation.
+    /// The rotation is performed around the other fixed point.
     pub fn rotate(self: *Line, direction: enum { End, Start }, angle: f32) void {
         const rad = trig.convertAngle(angle, .Mils, .Radians);
 
@@ -193,9 +183,6 @@ pub const Line = struct {
     /// The function determines the point where two lines intersect, based on their
     /// start and end coordinates. If the lines are parallel and do not intersect,
     /// it returns `null`.
-    ///
-    /// The formula for finding the intersection is derived from solving the equations
-    /// of the two lines in parametric form:
     pub fn getIntersectionPoint(self: *Line, line: Line) ?rl.Vector2 {
         // Self points
         const line1_start_x: f32 = self.start.x;
@@ -226,12 +213,8 @@ pub const Line = struct {
     /// Calculates a line parallel to the given line at a specified distance.
     ///
     /// This function computes the coordinates of a line parallel to the input line.
-    /// The parallel line is offset by a specified distance `c` along a perpendicular
+    /// The parallel line is offset by a specified distance `offset` along a perpendicular
     /// direction.
-    ///
-    /// The perpendicular direction is calculated by rotating the original direction vector
-    /// of the line by 90 degrees, then normalizing it. The endpoints of the original line
-    /// are then offset by the perpendicular vector scaled by the distance `c`.
     pub fn getParallelLine(self: *Line, offset: f32) !Line {
         const start_x: f32 = self.start.x;
         const start_y: f32 = self.start.y;
