@@ -1,5 +1,7 @@
 const std = @import("std");
 const rl = @import("raylib");
+const reg = @import("reg");
+const geo = reg.math.geometry;
 const DrawBuffer = @This();
 
 pub const Command = union(CommandType) {
@@ -7,6 +9,7 @@ pub const Command = union(CommandType) {
         Line,
         Semicircle,
         Text,
+        PolyLine,
     };
 
     const SemiCommand = struct {
@@ -52,6 +55,32 @@ pub const Command = union(CommandType) {
         }
     };
 
+    const PolyLineCommand = struct {
+        color: rl.Color,
+        points: []const rl.Vector2 = undefined,
+
+        pub fn init(points: []const rl.Vector2, color: rl.Color) PolyLineCommand {
+            return PolyLineCommand{
+                .points = points,
+                .color = color,
+            };
+        }
+
+        pub fn draw(self: *const PolyLineCommand) void {
+            if (self.points.len < 2) return;
+
+            rl.gl.rlBegin(rl.gl.rl_lines);
+
+            for (0..self.points.len - 1) |i| {
+                rl.gl.rlColor4ub(self.color.r, self.color.g, self.color.b, self.color.a);
+                rl.gl.rlVertex2f(self.points[i].x, self.points[i].y);
+                rl.gl.rlVertex2f(self.points[i + 1].x, self.points[i + 1].y);
+            }
+
+            rl.gl.rlEnd();
+        }
+    };
+
     const TextCommand = struct {
         text: [*:0]const u8,
         textOffsetX: i32,
@@ -85,12 +114,14 @@ pub const Command = union(CommandType) {
     Line: LineCommand,
     Semicircle: SemiCommand,
     Text: TextCommand,
+    PolyLine: PolyLineCommand,
 
     pub fn create(comptime sort: CommandType) type {
         return switch (sort) {
             .Line => LineCommand,
             .Semicircle => SemiCommand,
             .Text => TextCommand,
+            .PolyLine => PolyLineCommand,
         };
     }
 };
@@ -109,6 +140,31 @@ pub fn append(self: *DrawBuffer, item: Command) !void {
     try self.buffer.append(item);
 }
 
+pub fn append2(self: *DrawBuffer, item: geo.Shape) !void {
+    switch (item) {
+        .Line => |line| {
+            const result: Command = Command{ .Line = DrawBuffer.Command.create(.Line).init(line.start, line.end, rl.Color.red) };
+            try self.buffer.append(result);
+
+            if (line.text.init == true and line.text.show == true) {
+                const result2: Command = Command{ .Text = DrawBuffer.Command.create(.Text).init(line.text.text, line.text.textOffsetX, line.text.textOffsetY, line.text.fontSize, line.text.color, line.text.pos) };
+                try self.buffer.append(result2);
+            }
+        },
+
+        .Point => |point| {
+            if (point.text.init == true and point.text.show == true) {
+                const result2: Command = Command{ .Text = DrawBuffer.Command.create(.Text).init(point.text.text, point.text.textOffsetX, point.text.textOffsetY, point.text.fontSize, point.text.color, point.text.pos) };
+                try self.buffer.append(result2);
+            }
+        },
+        .Semicircle => |semi| {
+            const result: Command = Command{ .Semicircle = DrawBuffer.Command.create(.Semicircle).init(semi.color, semi.startAngle, semi.endAngle, semi.radius, semi.center, semi.segments) };
+            try self.buffer.append(result);
+        },
+    }
+}
+
 pub fn clearAndFree(self: *DrawBuffer) void {
     self.buffer.clearAndFree();
 }
@@ -123,6 +179,7 @@ pub fn execute(self: *DrawBuffer) !void {
             .Line => |line| line.draw(),
             .Semicircle => |semi| semi.draw(),
             .Text => |text| text.draw(),
+            .PolyLine => |line| line.draw(),
         }
     }
 }
