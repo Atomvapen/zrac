@@ -1,6 +1,7 @@
 .zig-cache/
 zig-out/
 bkp
+lib
 imgui.ini
 *.DS_Store
 test

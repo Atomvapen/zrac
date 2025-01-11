@@ -4,12 +4,11 @@ const reg = @import("reg");
 const geo = reg.math.geometry;
 const DrawBuffer = @This();
 
-pub const Command = union(CommandType) {
+const Command = union(CommandType) {
     const CommandType = enum {
         Line,
         Semicircle,
         Text,
-        PolyLine,
     };
 
     const SemiCommand = struct {
@@ -55,32 +54,6 @@ pub const Command = union(CommandType) {
         }
     };
 
-    const PolyLineCommand = struct {
-        color: rl.Color,
-        points: []const rl.Vector2 = undefined,
-
-        pub fn init(points: []const rl.Vector2, color: rl.Color) PolyLineCommand {
-            return PolyLineCommand{
-                .points = points,
-                .color = color,
-            };
-        }
-
-        pub fn draw(self: *const PolyLineCommand) void {
-            if (self.points.len < 2) return;
-
-            rl.gl.rlBegin(rl.gl.rl_lines);
-
-            for (0..self.points.len - 1) |i| {
-                rl.gl.rlColor4ub(self.color.r, self.color.g, self.color.b, self.color.a);
-                rl.gl.rlVertex2f(self.points[i].x, self.points[i].y);
-                rl.gl.rlVertex2f(self.points[i + 1].x, self.points[i + 1].y);
-            }
-
-            rl.gl.rlEnd();
-        }
-    };
-
     const TextCommand = struct {
         text: [*:0]const u8,
         textOffsetX: i32,
@@ -88,8 +61,9 @@ pub const Command = union(CommandType) {
         fontSize: i32,
         color: rl.Color,
         pos: rl.Vector2,
+        show: bool,
 
-        pub fn init(text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32, color: rl.Color, pos: rl.Vector2) TextCommand {
+        pub fn init(text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32, color: rl.Color, pos: rl.Vector2, show: bool) TextCommand {
             return TextCommand{
                 .text = text,
                 .textOffsetX = textOffsetX,
@@ -97,10 +71,13 @@ pub const Command = union(CommandType) {
                 .fontSize = fontSize,
                 .color = color,
                 .pos = pos,
+                .show = show,
             };
         }
 
         pub fn draw(self: *const TextCommand) void {
+            if (!self.show) return;
+
             rl.drawText(
                 self.text,
                 @as(i32, @intFromFloat(self.pos.x)) + self.textOffsetX,
@@ -114,14 +91,12 @@ pub const Command = union(CommandType) {
     Line: LineCommand,
     Semicircle: SemiCommand,
     Text: TextCommand,
-    PolyLine: PolyLineCommand,
 
     pub fn create(comptime sort: CommandType) type {
         return switch (sort) {
             .Line => LineCommand,
             .Semicircle => SemiCommand,
             .Text => TextCommand,
-            .PolyLine => PolyLineCommand,
         };
     }
 };
@@ -136,34 +111,24 @@ pub fn deinit(self: *DrawBuffer) void {
     self.buffer.deinit();
 }
 
-pub fn append(self: *DrawBuffer, item: Command) !void {
-    try self.buffer.append(item);
+pub fn append(self: *DrawBuffer, item: geo.Shape) !void {
+    const drawResult: Command = switch (item) {
+        .Line => |line| Command{ .Line = DrawBuffer.Command.create(.Line).init(line.start, line.end, rl.Color.red) },
+        .Point => |point| Command{ .Text = DrawBuffer.Command.create(.Text).init(point.text.text, point.text.textOffsetX, point.text.textOffsetY, point.text.fontSize, point.text.color, point.text.pos, point.text.init == true and point.text.show == true) },
+        .Semicircle => |semi| Command{ .Semicircle = DrawBuffer.Command.create(.Semicircle).init(semi.color, semi.startAngle, semi.endAngle, semi.radius, semi.center, semi.segments) },
+    };
+
+    const textResult: Command = switch (item) {
+        .Line => |line| Command{ .Text = DrawBuffer.Command.create(.Text).init(line.text.text, line.text.textOffsetX, line.text.textOffsetY, line.text.fontSize, line.text.color, line.text.pos, line.text.init == true and line.text.show == true) },
+        .Point => |point| Command{ .Text = DrawBuffer.Command.create(.Text).init(point.text.text, point.text.textOffsetX, point.text.textOffsetY, point.text.fontSize, point.text.color, point.text.pos, point.text.init == true and point.text.show == true) },
+        .Semicircle => |semi| Command{ .Text = DrawBuffer.Command.create(.Text).init(semi.text.text, semi.text.textOffsetX, semi.text.textOffsetY, semi.text.fontSize, semi.text.color, semi.text.pos, semi.text.init == true and semi.text.show == true) },
+    };
+
+    try self.buffer.append(drawResult);
+    try self.buffer.append(textResult);
 }
 
-pub fn append2(self: *DrawBuffer, item: geo.Shape) !void {
-    switch (item) {
-        .Line => |line| {
-            const result: Command = Command{ .Line = DrawBuffer.Command.create(.Line).init(line.start, line.end, rl.Color.red) };
-            try self.buffer.append(result);
-
-            if (line.text.init == true and line.text.show == true) {
-                const result2: Command = Command{ .Text = DrawBuffer.Command.create(.Text).init(line.text.text, line.text.textOffsetX, line.text.textOffsetY, line.text.fontSize, line.text.color, line.text.pos) };
-                try self.buffer.append(result2);
-            }
-        },
-
-        .Point => |point| {
-            if (point.text.init == true and point.text.show == true) {
-                const result2: Command = Command{ .Text = DrawBuffer.Command.create(.Text).init(point.text.text, point.text.textOffsetX, point.text.textOffsetY, point.text.fontSize, point.text.color, point.text.pos) };
-                try self.buffer.append(result2);
-            }
-        },
-        .Semicircle => |semi| {
-            const result: Command = Command{ .Semicircle = DrawBuffer.Command.create(.Semicircle).init(semi.color, semi.startAngle, semi.endAngle, semi.radius, semi.center, semi.segments) };
-            try self.buffer.append(result);
-        },
-    }
-}
+fn processTextCommand() void {}
 
 pub fn clearAndFree(self: *DrawBuffer) void {
     self.buffer.clearAndFree();
@@ -179,7 +144,6 @@ pub fn execute(self: *DrawBuffer) !void {
             .Line => |line| line.draw(),
             .Semicircle => |semi| semi.draw(),
             .Text => |text| text.draw(),
-            .PolyLine => |line| line.draw(),
         }
     }
 }

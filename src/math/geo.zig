@@ -20,7 +20,7 @@ pub const Point = struct {
     }
 
     /// Distance from the origin (0,0) to the point
-    pub fn getLength(self: *Point) f32 {
+    pub fn magnitude(self: *Point) f32 {
         return @sqrt(self.pos.x * self.pos.x + self.pos.y * self.pos.y);
     }
 
@@ -49,6 +49,18 @@ pub const Point = struct {
         self.text = .{ .show = show, .init = true, .text = text, .textOffsetX = textOffsetX, .textOffsetY = textOffsetY, .fontSize = fontSize, .color = color, .pos = self.pos };
     }
 
+    pub fn normalize(self: Point) Point {
+        const mag = self.magnitude(); // Calculate the vector's magnitude
+
+        if (mag == 0) return self; // Handle the special case for zero vector
+
+        // Divide each component by the magnitude to normalize
+        return Point{
+            .x = self.pos.x / mag,
+            .y = self.pos.y / mag,
+        };
+    }
+
     /// Rotates a `Point` around the other Point by the specified angle in mils.
     ///
     /// This function modifies the position of the  point
@@ -74,8 +86,6 @@ pub const Semicircle = struct {
     radius: f32,
     center: rl.Vector2,
     segments: i32,
-    // textCommand: DrawBuffer.Command = undefined,
-    drawCommand: DrawBuffer.Command = undefined,
     text: struct { show: bool = false, init: bool = false, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32, color: rl.Color, pos: rl.Vector2 } = undefined,
 
     /// Initiates a Semicircle
@@ -93,15 +103,6 @@ pub const Semicircle = struct {
     /// Add text-command
     pub fn addText(self: *Semicircle, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32, color: rl.Color, pos: rl.Vector2, show: bool) void {
         self.text = .{ .show = show, .init = true, .text = text, .textOffsetX = textOffsetX, .textOffsetY = textOffsetY, .fontSize = fontSize, .color = color, .pos = pos };
-    }
-    // /// Add text-command
-    // pub fn createTextCommand(self: *Semicircle, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32, color: rl.Color, pos: rl.Vector2) void {
-    //     self.textCommand = DrawBuffer.Command{ .Text = DrawBuffer.Command.create(.Text).init(text, textOffsetX, textOffsetY, fontSize, color, pos) };
-    // }
-
-    /// Add draw-command of current state
-    pub fn createDrawCommand(self: *Semicircle) void {
-        self.drawCommand = DrawBuffer.Command{ .Semicircle = DrawBuffer.Command.create(.Semicircle).init(self.color, self.startAngle, self.endAngle, self.radius, self.center, self.segments) };
     }
 
     /// Scale Semicircle by factor
@@ -121,8 +122,6 @@ pub const Line = struct {
     start: rl.Vector2,
     end: rl.Vector2,
     text: struct { show: bool = false, init: bool = false, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32, color: rl.Color, pos: rl.Vector2 } = undefined,
-    textCommand: DrawBuffer.Command = undefined,
-    drawCommand: DrawBuffer.Command = undefined,
 
     /// Initiates a Line
     pub fn init(start: rl.Vector2, end: rl.Vector2) Line {
@@ -132,16 +131,6 @@ pub const Line = struct {
     /// Add text-command
     pub fn addText(self: *Line, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32, color: rl.Color, pos: rl.Vector2, show: bool) void {
         self.text = .{ .show = show, .init = true, .text = text, .textOffsetX = textOffsetX, .textOffsetY = textOffsetY, .fontSize = fontSize, .color = color, .pos = pos };
-    }
-
-    /// Add text-command
-    pub fn createTextCommand(self: *Line, text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32, color: rl.Color, pos: rl.Vector2) void {
-        self.textCommand = DrawBuffer.Command{ .Text = DrawBuffer.Command.create(.Text).init(text, textOffsetX, textOffsetY, fontSize, color, pos) };
-    }
-
-    /// Add draw-command of current state
-    pub fn createDrawCommand(self: *Line) void {
-        self.drawCommand = DrawBuffer.Command{ .Line = DrawBuffer.Command.create(.Line).init(self.start, self.end, rl.Color.red) };
     }
 
     /// Length of Line
