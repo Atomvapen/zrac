@@ -2,6 +2,7 @@ const std = @import("std");
 const rl = @import("raylib");
 const reg = @import("reg");
 const geo = reg.math.geometry;
+
 const DrawBuffer = @This();
 
 const Command = union(CommandType) {

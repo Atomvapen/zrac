@@ -55,10 +55,7 @@ pub const Point = struct {
         if (mag == 0) return self; // Handle the special case for zero vector
 
         // Divide each component by the magnitude to normalize
-        return Point{
-            .x = self.pos.x / mag,
-            .y = self.pos.y / mag,
-        };
+        return Point{ .x = self.pos.x / mag, .y = self.pos.y / mag };
     }
 
     /// Rotates a `Point` around the other Point by the specified angle in mils.
@@ -67,6 +64,7 @@ pub const Point = struct {
     /// The rotation is performed around the other fixed point.
     pub fn rotate(self: *Point, point: rl.Vector2, angle: f32) void {
         const rad = trig.convertAngle(angle, .Mils, .Radians);
+        if (rad == 0) return;
 
         const cosAngle = @cos(rad);
         const sinAngle = @sin(rad);
@@ -134,7 +132,7 @@ pub const Line = struct {
     }
 
     /// Length of Line
-    pub fn getLength(self: *Line) f32 {
+    pub fn magnitude(self: *Line) f32 {
         return @sqrt(self.start.x * self.end.x + self.start.y * self.end.y);
     }
 
@@ -179,6 +177,7 @@ pub const Line = struct {
     /// The rotation is performed around the other fixed point.
     pub fn rotate(self: *Line, direction: enum { End, Start }, angle: f32) void {
         const rad = trig.convertAngle(angle, .Mils, .Radians);
+        if (rad == 0) return;
 
         const cosAngle = @cos(rad);
         const sinAngle = @sin(rad);

@@ -25,7 +25,7 @@ pub const RiskProfile = struct {
         show: bool = true,
         valid: bool = false,
         sort: Sort = .Halva,
-        showText: bool = true,
+        showText: bool = false,
     };
     const TerrainValues = struct {
         interceptingForest: bool = false,
