@@ -42,52 +42,105 @@ const RiskEditorWindow = struct {
                 .no_collapse = true, //TODO Fix crash at : .no_collapse = false
             },
         })) {
-            { // Config values
-                _ = zgui.checkbox("Visa linjer", .{ .v = &riskProfile.config.show });
-                zgui.sameLine(.{});
+            if (zgui.beginTabBar("test", .{})) {
+                if (zgui.beginTabItem("Halva", .{})) {
+                    zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 0.0, 0.0, 0.0, 1 } });
+                    {
+                        zgui.textUnformatted("1");
+                    }
+                    zgui.popStyleColor(.{ .count = 1 });
+                    zgui.endTabItem();
+                }
+                if (zgui.beginTabItem("SST", .{})) {
+                    zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 0.0, 0.0, 0.0, 1 } });
+                    {
+                        zgui.textUnformatted("2");
+                    }
+                    zgui.popStyleColor(.{ .count = 1 });
+                    zgui.endTabItem();
+                }
+                if (zgui.beginTabItem("Box", .{})) {
+                    zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 0.0, 0.0, 0.0, 1 } });
+                    {
+                        zgui.textUnformatted("3");
+                    }
+                    zgui.popStyleColor(.{ .count = 1 });
+                    zgui.endTabItem();
+                }
 
-                if (!riskProfile.config.show) zgui.beginDisabled(.{ .disabled = true });
-                _ = zgui.checkbox("Visa text", .{ .v = &riskProfile.config.showText });
-                if (!riskProfile.config.show) zgui.endDisabled();
+                zgui.endTabBar();
+            }
+
+            zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 0.0, 0.0, 0.0, 1 } });
+            { // Config values
+                zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 0.0, 0.0, 0.0, 1 } });
+                {
+                    _ = zgui.checkbox("Visa linjer", .{ .v = &riskProfile.config.show });
+                    zgui.sameLine(.{});
+
+                    if (!riskProfile.config.show) zgui.beginDisabled(.{ .disabled = true });
+                    _ = zgui.checkbox("Visa text", .{ .v = &riskProfile.config.showText });
+                    if (!riskProfile.config.show) zgui.endDisabled();
+                }
+                zgui.popStyleColor(.{ .count = 1 });
             }
 
             { // Type value
                 zgui.separatorText("Typ");
-                _ = zgui.comboFromEnum("Typ", &riskProfile.config.sort);
+                zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 0.0, 0.0, 0.0, 1 } });
+                {
+                    _ = zgui.comboFromEnum("Typ", &riskProfile.config.sort);
+                }
+                zgui.popStyleColor(.{ .count = 1 });
             }
 
             { // Terrain Values
                 zgui.separatorText("Terrängvärden");
-                _ = zgui.comboFromEnum("Faktor", &riskProfile.terrainValues.factor);
-                _ = zgui.inputFloat("Amin", .{ .v = &riskProfile.terrainValues.Amin });
-                _ = zgui.inputFloat("Amax", .{ .v = &riskProfile.terrainValues.Amax });
-                _ = zgui.inputFloat("f", .{ .v = &riskProfile.terrainValues.f });
-                zgui.setNextItemWidth(93);
-                _ = zgui.inputFloat("Skogsavstånd", .{ .v = &riskProfile.terrainValues.forestDist });
+
+                zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 1.0, 1.0, 1.0, 1 } });
+                {
+                    _ = zgui.comboFromEnum("Faktor", &riskProfile.terrainValues.factor);
+                    _ = zgui.inputFloat("Amin", .{ .v = &riskProfile.terrainValues.Amin });
+                    _ = zgui.inputFloat("Amax", .{ .v = &riskProfile.terrainValues.Amax });
+                    _ = zgui.inputFloat("f", .{ .v = &riskProfile.terrainValues.f });
+                    zgui.setNextItemWidth(93);
+                    _ = zgui.inputFloat("Skogsavstånd", .{ .v = &riskProfile.terrainValues.forestDist });
+                }
+                zgui.popStyleColor(.{ .count = 1 });
+
                 zgui.sameLine(.{});
                 _ = zgui.checkbox("Uppfångande", .{ .v = &riskProfile.terrainValues.interceptingForest });
             }
 
             { // Weapons & Ammunition Values
                 zgui.separatorText("Vapenvärden");
-                zgui.setNextItemWidth(121);
-                _ = zgui.comboFromEnum("Vapentyp", &riskProfile.weaponValues.weapon_enum_value);
-                zgui.sameLine(.{});
+                zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 1.0, 1.0, 1.0, 1 } });
+                {
+                    zgui.setNextItemWidth(121);
+                    _ = zgui.comboFromEnum("Vapentyp", &riskProfile.weaponValues.weapon_enum_value);
+                    zgui.sameLine(.{});
 
-                if (!riskProfile.getHasSupport()) {
-                    riskProfile.weaponValues.support = false;
-                    zgui.beginDisabled(.{ .disabled = true });
+                    if (!riskProfile.getHasSupport()) {
+                        riskProfile.weaponValues.support = false;
+                        zgui.beginDisabled(.{ .disabled = true });
+                    }
                 }
+                zgui.popStyleColor(.{ .count = 1 });
+
                 _ = zgui.checkbox("Benstöd", .{ .v = &riskProfile.weaponValues.support });
                 if (!riskProfile.getHasSupport()) zgui.endDisabled();
 
-                switch (riskProfile.weaponValues.weapon_enum_value) {
-                    .AK5, .KSP90 => _ = zgui.comboFromEnum("Ammunitionstyp", &riskProfile.weaponValues.amm556),
-                    .KSP58 => _ = zgui.comboFromEnum("Ammunitionstyp", &riskProfile.weaponValues.amm762),
-                    .KSP88, .AG90 => _ = zgui.comboFromEnum("Ammunitionstyp", &riskProfile.weaponValues.amm127),
-                    .P88 => _ = zgui.comboFromEnum("Ammunitionstyp", &riskProfile.weaponValues.amm9),
+                zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 1.0, 1.0, 1.0, 1 } });
+                {
+                    switch (riskProfile.weaponValues.weapon_enum_value) {
+                        .AK5, .KSP90 => _ = zgui.comboFromEnum("Ammunitionstyp", &riskProfile.weaponValues.amm556),
+                        .KSP58 => _ = zgui.comboFromEnum("Ammunitionstyp", &riskProfile.weaponValues.amm762),
+                        .KSP88, .AG90 => _ = zgui.comboFromEnum("Ammunitionstyp", &riskProfile.weaponValues.amm127),
+                        .P88 => _ = zgui.comboFromEnum("Ammunitionstyp", &riskProfile.weaponValues.amm9),
+                    }
+                    _ = zgui.comboFromEnum("Måltyp", &riskProfile.weaponValues.target);
                 }
-                _ = zgui.comboFromEnum("Måltyp", &riskProfile.weaponValues.target);
+                zgui.popStyleColor(.{ .count = 1 });
             }
 
             { // Box values
@@ -127,7 +180,11 @@ const RiskEditorWindow = struct {
                 zgui.newLine();
                 zgui.separator();
                 zgui.newLine();
-                if (zgui.button("Återställ", .{})) riskProfile.reset();
+                zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 1.0, 1.0, 1.0, 1 } });
+                {
+                    if (zgui.button("Återställ", .{})) riskProfile.reset();
+                }
+                zgui.popStyleColor(.{ .count = 1 });
             }
 
             { // Information text
@@ -137,7 +194,7 @@ const RiskEditorWindow = struct {
                 zgui.textUnformatted("Flytta: Höger musknapp.");
                 zgui.textUnformatted(" Zooma: Scrollhjul.");
             }
-
+            zgui.popStyleColor(.{ .count = 1 });
             zgui.end();
             zgui.popStyleVar(.{});
         }
@@ -170,8 +227,9 @@ fn drawPlane(draw_buffer: *DrawBuffer) !void {
 fn doMainMenu() void {
     if (zgui.beginMainMenuBar()) {
         if (zgui.beginMenu("Fil", true)) {
-            if (zgui.menuItem("Exportera", .{})) sync.save();
             if (zgui.menuItem("Importera", .{})) sync.load();
+            if (zgui.menuItem("Exportera", .{})) sync.save();
+            zgui.separator();
             if (zgui.menuItem("Avsluta", .{})) windowConfig.quit = true;
             zgui.endMenu();
         }
@@ -200,6 +258,48 @@ pub fn main(allocator: std.mem.Allocator) !void {
     zgui.rlimgui.setup(true);
     defer zgui.rlimgui.shutdown();
     zgui.io.setConfigWindowsMoveFromTitleBarOnly(true);
+
+    { // Styling
+        const style = zgui.getStyle();
+
+        style.setColor(.header, .{ 0.094, 0.094, 0.106, 1.0 });
+        style.setColor(.button, .{ 0.094, 0.094, 0.106, 1.0 });
+        style.setColor(.button_active, .{ 0.184, 0.184, 0.192, 1.0 });
+        style.setColor(.button_hovered, .{ 0.184, 0.184, 0.192, 1.0 });
+
+        style.setColor(.title_bg, .{ 0.094, 0.094, 0.106, 1.0 });
+        style.setColor(.title_bg_active, .{ 0.094, 0.094, 0.106, 1.0 });
+
+        style.setColor(.window_bg, .{ 1.0, 1.0, 1.0, 1.0 });
+
+        // style.setColor(.frame_bg, .{ 1.0, 1.0, 1.0, 1.0 });
+        // style.setColor(.frame_bg_active, .{ 1.0, 1.0, 1.0, 1.0 });
+        // style.setColor(.frame_bg_hovered, .{ 1.0, 1.0, 1.0, 1.0 });
+
+        style.setColor(.frame_bg_active, .{ 0.094, 0.094, 0.106, 1.0 });
+        style.setColor(.frame_bg_hovered, .{ 0.184, 0.184, 0.192, 1.0 });
+        style.setColor(.frame_bg, .{ 0.094, 0.094, 0.106, 1.0 });
+        style.setColor(.check_mark, .{ 1.0, 1.0, 1.0, 1.0 });
+
+        style.setColor(.tab, .{ 0.184, 0.184, 0.192, 1.0 });
+        style.setColor(.tab_hovered, .{ 0.094, 0.094, 0.106, 1.0 });
+        style.setColor(.tab_selected, .{ 0.094, 0.094, 0.106, 1.0 });
+        style.setColor(.tab_selected_overline, .{ 1.0, 1.0, 1.0, 1.0 });
+        style.tab_rounding = 2;
+
+        // style.setColor(.text, .{ 0.094, 0.094, 0.106, 1.0 });
+
+        style.popup_rounding = 3.0;
+        style.setColor(.border, .{ 0.184, 0.184, 0.192, 1.0 });
+
+        style.window_min_size = .{ 320.0, 240.0 };
+        style.scrollbar_size = 6.0;
+        {
+            var color = style.getColor(.scrollbar_grab);
+            color[1] = 0.8;
+            style.setColor(.scrollbar_grab, color);
+        }
+    }
 
     risk_editor_viewer.open = true;
 
