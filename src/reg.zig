@@ -9,12 +9,15 @@ pub const math = struct {
 };
 
 pub const data = struct {
-    pub const sync = @import("data/sync.zig");
-    pub const json = @import("data/json.zig");
     pub const state = @import("data/state.zig");
     pub const validation = @import("data/validation.zig");
     pub const ammunition = @import("data/ammunition.zig");
     pub const weapon = @import("data/weapon.zig");
+};
+
+pub const io = struct {
+    pub const sync = @import("io/sync.zig");
+    pub const json = @import("io/json.zig");
 };
 
 pub const gui = struct {

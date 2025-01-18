@@ -3,7 +3,7 @@ const rl = @import("raylib");
 const zgui = @import("zgui");
 const reg = @import("reg");
 const draw = reg.gui.draw;
-const sync = reg.data.sync;
+const sync = reg.io.sync;
 const camera = reg.gui.camera;
 const DrawBuffer = reg.gui.DrawBuffer;
 
@@ -195,6 +195,15 @@ const RiskEditorWindow = struct {
                 zgui.textUnformatted(" Zooma: Scrollhjul.");
             }
             zgui.popStyleColor(.{ .count = 1 });
+
+            // listTest();
+
+            zgui.getStyle().frame_padding = .{ 5, 5 };
+            if (zgui.beginListBox("test", .{ .w = 500, .h = 100 })) {
+                listTest();
+                zgui.endListBox();
+            }
+
             zgui.end();
             zgui.popStyleVar(.{});
         }
@@ -206,6 +215,29 @@ const RiskEditorWindow = struct {
         riskProfile.update();
     }
 };
+
+fn listTest() void {
+    const items = [_][:0]const u8{ "1", "2", "3" };
+
+    for (items, 0..) |item, index| {
+        zgui.pushStyleColor4f(.{ .idx = .check_mark, .c = .{ 0.0, 0.0, 0.0, 1 } });
+        zgui.pushStyleColor4f(.{ .idx = .frame_bg, .c = .{ 1.0, 1.0, 1.0, 1 } });
+        zgui.pushStyleColor4f(.{ .idx = .frame_bg_hovered, .c = .{ 0.7, 0.7, 0.7, 1 } });
+
+        _ = zgui.checkbox(item, .{ .v = &riskProfile.terrainValues.interceptingForest });
+        zgui.popStyleColor(.{ .count = 3 });
+
+        zgui.sameLine(.{});
+        zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 0.0, 0.0, 0.0, 1 } });
+        zgui.textUnformatted(item);
+        zgui.sameLine(.{});
+        zgui.textUnformatted(item);
+        zgui.popStyleColor(.{ .count = 1 });
+        zgui.pushStyleColor4f(.{ .idx = .separator, .c = .{ 1.0, 1.0, 1.0, 1 } });
+        if (index != items.len - 1) zgui.separator();
+        zgui.popStyleColor(.{ .count = 1 });
+    }
+}
 
 fn drawPlane(draw_buffer: *DrawBuffer) !void {
     camera.begin();
@@ -263,6 +295,9 @@ pub fn main(allocator: std.mem.Allocator) !void {
         const style = zgui.getStyle();
 
         style.setColor(.header, .{ 0.094, 0.094, 0.106, 1.0 });
+        style.setColor(.window_bg, .{ 1.0, 1.0, 1.0, 1.0 });
+        style.setColor(.check_mark, .{ 1.0, 1.0, 1.0, 1.0 });
+
         style.setColor(.button, .{ 0.094, 0.094, 0.106, 1.0 });
         style.setColor(.button_active, .{ 0.184, 0.184, 0.192, 1.0 });
         style.setColor(.button_hovered, .{ 0.184, 0.184, 0.192, 1.0 });
@@ -270,28 +305,19 @@ pub fn main(allocator: std.mem.Allocator) !void {
         style.setColor(.title_bg, .{ 0.094, 0.094, 0.106, 1.0 });
         style.setColor(.title_bg_active, .{ 0.094, 0.094, 0.106, 1.0 });
 
-        style.setColor(.window_bg, .{ 1.0, 1.0, 1.0, 1.0 });
+        style.setColor(.border, .{ 0.184, 0.184, 0.192, 1.0 });
 
-        // style.setColor(.frame_bg, .{ 1.0, 1.0, 1.0, 1.0 });
-        // style.setColor(.frame_bg_active, .{ 1.0, 1.0, 1.0, 1.0 });
-        // style.setColor(.frame_bg_hovered, .{ 1.0, 1.0, 1.0, 1.0 });
-
+        style.setColor(.frame_bg, .{ 0.094, 0.094, 0.106, 1.0 });
         style.setColor(.frame_bg_active, .{ 0.094, 0.094, 0.106, 1.0 });
         style.setColor(.frame_bg_hovered, .{ 0.184, 0.184, 0.192, 1.0 });
-        style.setColor(.frame_bg, .{ 0.094, 0.094, 0.106, 1.0 });
-        style.setColor(.check_mark, .{ 1.0, 1.0, 1.0, 1.0 });
 
         style.setColor(.tab, .{ 0.184, 0.184, 0.192, 1.0 });
         style.setColor(.tab_hovered, .{ 0.094, 0.094, 0.106, 1.0 });
         style.setColor(.tab_selected, .{ 0.094, 0.094, 0.106, 1.0 });
         style.setColor(.tab_selected_overline, .{ 1.0, 1.0, 1.0, 1.0 });
+
         style.tab_rounding = 2;
-
-        // style.setColor(.text, .{ 0.094, 0.094, 0.106, 1.0 });
-
         style.popup_rounding = 3.0;
-        style.setColor(.border, .{ 0.184, 0.184, 0.192, 1.0 });
-
         style.window_min_size = .{ 320.0, 240.0 };
         style.scrollbar_size = 6.0;
         {
