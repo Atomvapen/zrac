@@ -1,10 +1,6 @@
 pub const math = struct {
     pub const geometry = @import("math/geo.zig");
     pub const risk = @import("math/risk.zig");
-    // pub const geometry = struct {
-    //  pub const Line = @import("math/Line.zig");
-    //  pub const Semicircle = @import("math/Semicircle.zig");
-    // };
     pub const trig = @import("math/trig.zig");
 };
 
@@ -25,4 +21,5 @@ pub const gui = struct {
     pub const camera = @import("gui/camera.zig");
     pub const DrawBuffer = @import("gui/drawBuffer.zig");
     pub const draw = @import("gui/draw.zig");
+    pub const Color = @import("gui/Color.zig").Color;
 };

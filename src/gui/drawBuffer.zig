@@ -129,8 +129,6 @@ pub fn append(self: *DrawBuffer, item: geo.Shape) !void {
     try self.buffer.append(textResult);
 }
 
-fn processTextCommand() void {}
-
 pub fn clearAndFree(self: *DrawBuffer) void {
     self.buffer.clearAndFree();
 }

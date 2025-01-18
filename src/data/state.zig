@@ -114,4 +114,14 @@ pub const RiskProfile = struct {
 
         self.config.valid = validation.validate(self);
     }
+
+    pub fn save(self: *RiskProfile) !void {
+        // Implement saving logic, such as serializing the state and writing it to a file.
+        try reg.io.sync.save(self.state);
+    }
+
+    pub fn load(self: *RiskProfile) !void {
+        // Implement loading logic, such as reading the state from a file and deserializing it.
+        try reg.io.sync.load(self.state);
+    }
 };

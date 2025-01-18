@@ -17,7 +17,7 @@
 * Exlusively written in [Zig].
 * Use as little dependencies as possible.
 * Compliant with, and based upon [SÄKR EHV/PV].
-* Be a good _learning experience_ - not a good _product_.
+* Foremost be a good _learning experience_ - not a good _product_.
 
 ## Dependencies
 
