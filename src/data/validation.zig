@@ -1,6 +1,6 @@
 const std = @import("std");
 const reg = @import("reg");
-const Profile = reg.data.state;
+const State = reg.data.State;
 
 const ValidationError = error{
     NoValue,
@@ -10,63 +10,63 @@ const ValidationError = error{
     UnknownError,
 };
 
-pub fn validate(profile: *Profile) bool {
-    if (!profile.config.show) return false;
-    if (!validateZeroValues(profile)) return false;
-    if (!validateRangeConditions(profile)) return false;
-    if (!validateNegativeValues(profile)) return false;
-    if (!validateOverflow(profile)) return false;
-    switch (profile.config.sort) {
-        .Box => if (!validadeBox(profile)) return false,
-        .SST => if (!validadeSST(profile)) return false,
+pub fn validate(state: *State) bool {
+    if (!state.config.show) return false;
+    if (!validateZeroValues(state)) return false;
+    if (!validateRangeConditions(state)) return false;
+    if (!validateNegativeValues(state)) return false;
+    if (!validateOverflow(state)) return false;
+    switch (state.config.sort) {
+        .Box => if (!validadeBox(state)) return false,
+        .SST => if (!validadeSST(state)) return false,
         .Halva => return true,
     }
 
     return true;
 }
 
-fn validadeBox(profile: *Profile) bool {
-    return (profile.box.length > 0 and
-        profile.box.width > 0 and
-        profile.box.v > 0 and
-        profile.box.h > 0);
+fn validadeBox(state: *State) bool {
+    return (state.box.length > 0 and
+        state.box.width > 0 and
+        state.box.v > 0 and
+        state.box.h > 0);
 }
 
-fn validadeSST(profile: *Profile) bool {
-    return (profile.sst.width > 0 and
-        profile.sst.hh > 0 and
-        profile.sst.hv > 0 and
-        profile.sst.vv > 0 and
-        profile.sst.vh > 0);
+fn validadeSST(state: *State) bool {
+    return (state.sst.width > 0 and
+        state.sst.hh > 0 and
+        state.sst.hv > 0 and
+        state.sst.vv > 0 and
+        state.sst.vh > 0);
 }
 
-fn validateZeroValues(profile: *Profile) bool {
-    return (profile.terrainValues.Amax != 0 and
-        profile.terrainValues.h != 0 and
-        profile.terrainValues.l != 0 and
-        profile.weaponValues.v != 0);
+fn validateZeroValues(state: *State) bool {
+    return (state.terrainValues.Amax != 0 and
+        state.terrainValues.h != 0 and
+        state.terrainValues.l != 0 and
+        state.weaponValues.v != 0);
 }
 
-fn validateRangeConditions(profile: *Profile) bool {
-    return (profile.terrainValues.Amin < profile.terrainValues.Amax and
-        profile.terrainValues.f < profile.terrainValues.Amax and
-        profile.terrainValues.f < profile.terrainValues.Amin and
-        profile.terrainValues.forestDist < profile.terrainValues.h);
+fn validateRangeConditions(state: *State) bool {
+    return (state.terrainValues.Amin < state.terrainValues.Amax and
+        state.terrainValues.f < state.terrainValues.Amax and
+        state.terrainValues.f < state.terrainValues.Amin and
+        state.terrainValues.forestDist < state.terrainValues.h);
 }
 
-fn validateNegativeValues(profile: *Profile) bool {
-    return (profile.terrainValues.Amax >= 0 and
-        profile.terrainValues.Amin >= 0 and
-        profile.terrainValues.f >= 0 and
-        profile.terrainValues.l >= 0 and
-        profile.terrainValues.h >= 0 and
-        profile.terrainValues.forestDist >= 0);
+fn validateNegativeValues(state: *State) bool {
+    return (state.terrainValues.Amax >= 0 and
+        state.terrainValues.Amin >= 0 and
+        state.terrainValues.f >= 0 and
+        state.terrainValues.l >= 0 and
+        state.terrainValues.h >= 0 and
+        state.terrainValues.forestDist >= 0);
 }
 
-fn validateOverflow(profile: *Profile) bool {
+fn validateOverflow(state: *State) bool {
     const max = std.math.floatMax(f32);
-    return (profile.terrainValues.Amax < max and
-        profile.terrainValues.Amin < max and
-        profile.terrainValues.f < max and
-        profile.terrainValues.forestDist < max);
+    return (state.terrainValues.Amax < max and
+        state.terrainValues.Amin < max and
+        state.terrainValues.f < max and
+        state.terrainValues.forestDist < max);
 }

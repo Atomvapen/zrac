@@ -5,7 +5,7 @@ pub const math = struct {
 };
 
 pub const data = struct {
-    pub const state = @import("data/state.zig");
+    pub const State = @import("data/State.zig");
     pub const validation = @import("data/validation.zig");
     pub const ammunition = @import("data/ammunition.zig");
     pub const weapon = @import("data/weapon.zig");
@@ -21,5 +21,5 @@ pub const gui = struct {
     pub const camera = @import("gui/camera.zig");
     pub const DrawBuffer = @import("gui/drawBuffer.zig");
     pub const draw = @import("gui/draw.zig");
-    pub const Color = @import("gui/Color.zig").Color;
+    pub const Color = @import("gui/Color.zig");
 };

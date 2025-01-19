@@ -9,13 +9,13 @@ const DrawBuffer = reg.gui.DrawBuffer;
 const Color = reg.gui.Color;
 
 const Context = struct {
-    state: reg.data.state,
+    state: reg.data.State,
     draw_buffer: DrawBuffer,
     risk_editor_viewer: RiskEditorWindow,
 
     pub fn create(allocator: std.mem.Allocator) !Context {
         return Context{
-            .state = reg.data.state.init(),
+            .state = reg.data.State.init(),
             .draw_buffer = DrawBuffer.init(allocator),
             .risk_editor_viewer = RiskEditorWindow{},
         };

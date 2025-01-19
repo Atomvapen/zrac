@@ -1,12 +1,9 @@
 const reg = @import("reg");
-const data = reg.data;
-const math = reg.math;
-const risk = math.risk;
-const weapon = data.weapon;
-const ammunition = data.ammunition;
-const validation = data.validation;
-
-const RiskProfile = @This();
+const risk = reg.math.risk;
+const weapon = reg.data.weapon;
+const ammunition = reg.data.ammunition;
+const validation = reg.data.validation;
+const State = @This();
 
 const Sort = enum {
     Box,
@@ -22,6 +19,7 @@ const Target = enum {
     Fast,
     Flyttbart,
 };
+
 const Config = struct {
     show: bool = true,
     valid: bool = false,
@@ -74,8 +72,8 @@ config: Config,
 box: Box,
 sst: SST,
 
-pub fn init() RiskProfile {
-    return RiskProfile{
+pub fn init() State {
+    return State{
         .terrainValues = TerrainValues{},
         .weaponValues = WeaponValues{},
         .config = Config{},
@@ -84,11 +82,11 @@ pub fn init() RiskProfile {
     };
 }
 
-pub fn getHasSupport(self: *RiskProfile) bool {
+pub fn getHasSupport(self: *State) bool {
     return weapon.getWeaponModel(self.weaponValues.weapon_enum_value, false).supportable;
 }
 
-pub fn reset(self: *RiskProfile) void {
+pub fn reset(self: *State) void {
     self.terrainValues = TerrainValues{};
     self.weaponValues = WeaponValues{};
     self.config = Config{};
@@ -96,7 +94,7 @@ pub fn reset(self: *RiskProfile) void {
     self.sst = SST{};
 }
 
-pub fn update(self: *RiskProfile) void {
+pub fn update(self: *State) void {
     self.terrainValues.l = risk.calculateL(self.*);
     self.terrainValues.h = risk.calculateH(self.*);
     self.terrainValues.q1 = risk.calculateQ1(self.*);
@@ -105,7 +103,6 @@ pub fn update(self: *RiskProfile) void {
     self.weaponValues.model = weapon.getWeaponModel(self.weaponValues.weapon_enum_value, self.weaponValues.support);
     self.weaponValues.v = if (self.weaponValues.target == .Fast) self.weaponValues.model.v_still else self.weaponValues.model.v_moveable;
 
-    //TODO fixa alla vapen
     switch (self.weaponValues.weapon_enum_value) {
         .AK5, .KSP90 => self.weaponValues.caliber = ammunition.getCaliber(self.weaponValues.amm556),
         .KSP58 => self.weaponValues.caliber = ammunition.getCaliber(self.weaponValues.amm762),
@@ -116,10 +113,10 @@ pub fn update(self: *RiskProfile) void {
     self.config.valid = validation.validate(self);
 }
 
-pub fn save(self: *RiskProfile) !void {
+pub fn save(self: *State) !void {
     try reg.io.sync.save(self.state);
 }
 
-pub fn load(self: *RiskProfile) !void {
+pub fn load(self: *State) !void {
     try reg.io.sync.load(self.state);
 }
