@@ -9,13 +9,13 @@ const DrawBuffer = reg.gui.DrawBuffer;
 const Color = reg.gui.Color;
 
 const Context = struct {
-    state: reg.data.state.RiskProfile,
+    state: reg.data.state,
     draw_buffer: DrawBuffer,
     risk_editor_viewer: RiskEditorWindow,
 
     pub fn create(allocator: std.mem.Allocator) !Context {
         return Context{
-            .state = reg.data.state.RiskProfile.init(),
+            .state = reg.data.state.init(),
             .draw_buffer = DrawBuffer.init(allocator),
             .risk_editor_viewer = RiskEditorWindow{},
         };
@@ -74,7 +74,6 @@ const RiskEditorWindow = struct {
                     ctx.state.config.sort = .Box;
                     zgui.endTabItem();
                 }
-
                 zgui.endTabBar();
             }
 

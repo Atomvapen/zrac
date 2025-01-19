@@ -1,6 +1,6 @@
 const std = @import("std");
 const reg = @import("reg");
-const Profile = reg.data.state.RiskProfile;
+const Profile = reg.data.state;
 
 const ValidationError = error{
     NoValue,

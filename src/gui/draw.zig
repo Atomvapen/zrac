@@ -4,7 +4,7 @@ const reg = @import("reg");
 const geo = reg.math.geometry;
 const trig = reg.math.trig;
 const DrawBuffer = reg.gui.DrawBuffer;
-const State = reg.data.state.RiskProfile;
+const State = reg.data.state;
 
 const origin: rl.Vector2 = .{ .x = 600, .y = 750 };
 

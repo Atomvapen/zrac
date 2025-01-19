@@ -1,5 +1,5 @@
 const reg = @import("reg");
-const RiskProfile = reg.data.state.RiskProfile;
+const RiskProfile = reg.data.state;
 
 pub fn calculateH(riskProfile: RiskProfile) f32 {
     return riskProfile.terrainValues.Amax + riskProfile.terrainValues.l;
