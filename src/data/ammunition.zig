@@ -33,7 +33,7 @@ pub const Caliber = struct {
     Dmax: f32,
     yMax: f32,
     c: f32,
-    id: i32,
+    id: i32, //TODO remove, unused
 
     pub const invalid: Caliber = Caliber{ .Dmax = undefined, .yMax = undefined, .c = undefined, .id = -1 };
     pub const hagelptr: Caliber = Caliber{ .Dmax = 350, .yMax = undefined, .c = 70, .id = 0 };

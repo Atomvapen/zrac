@@ -130,14 +130,18 @@ pub fn append(self: *DrawBuffer, item: geo.Shape) !void {
 }
 
 pub fn clearAndFree(self: *DrawBuffer) void {
+    if (self.buffer.items.len == 0) return;
     self.buffer.clearAndFree();
 }
 
 pub fn clear(self: *DrawBuffer) !void {
+    if (self.buffer.items.len == 0) return;
     try self.buffer.resize(0);
 }
 
-pub fn execute(self: *DrawBuffer) !void {
+pub fn execute(self: *DrawBuffer) void {
+    if (self.buffer.items.len == 0) return;
+
     for (self.buffer.items) |item| {
         switch (item) {
             .Line => |line| line.draw(),

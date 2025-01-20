@@ -8,14 +8,12 @@ const State = reg.data.State;
 
 const origin: rl.Vector2 = .{ .x = 600, .y = 750 };
 
-pub fn draw(sort: enum { Half, Box, SST }, riskProfile: State, draw_buffer: *DrawBuffer) !void {
+pub fn draw(sort: State.Sort, riskProfile: State, draw_buffer: *DrawBuffer) !void {
     try switch (sort) {
-        .Half => drawHalf(riskProfile, draw_buffer),
+        .Halva => drawHalf(riskProfile, draw_buffer),
         .SST => drawSST(riskProfile, draw_buffer),
         .Box => drawBox(riskProfile, draw_buffer),
     };
-    try draw_buffer.execute();
-    try draw_buffer.clear();
 }
 
 fn drawHalf(riskProfile: State, draw_buffer: *DrawBuffer) !void {
@@ -432,9 +430,6 @@ fn drawBox(riskProfile: State, draw_buffer: *DrawBuffer) !void {
         .x = origin.x + (riskProfile.box.width / 2),
         .y = origin.y - riskProfile.box.length,
     }, riskProfile.box.h, draw_buffer);
-
-    try draw_buffer.execute();
-    try draw_buffer.clear();
 }
 
 fn drawRisk(riskProfile: State, risk_origin: rl.Vector2, angle: f32, draw_buffer: *DrawBuffer) !void {

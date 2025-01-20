@@ -9,19 +9,20 @@ const DrawBuffer = reg.gui.DrawBuffer;
 const Color = reg.gui.Color;
 
 const Context = struct {
-    state: reg.data.State,
-    draw_buffer: DrawBuffer,
-    risk_editor_viewer: RiskEditorWindow,
+    state: reg.data.State = undefined,
+    draw_buffer: DrawBuffer = undefined,
+    risk_editor_viewer: RiskEditorWindow = undefined,
 
     pub fn create(allocator: std.mem.Allocator) !Context {
         return Context{
-            .state = reg.data.State.init(),
+            .state = reg.data.State{},
             .draw_buffer = DrawBuffer.init(allocator),
             .risk_editor_viewer = RiskEditorWindow{},
         };
     }
 
     pub fn destroy(self: *Context) void {
+        self.draw_buffer.clearAndFree();
         self.draw_buffer.deinit();
     }
 
@@ -173,7 +174,7 @@ const RiskEditorWindow = struct {
                 _ = zgui.comboFromEnum("Vapentyp", &ctx.state.weaponValues.weapon_enum_value);
                 zgui.sameLine(.{});
 
-                if (!ctx.state.getHasSupport()) {
+                if (!ctx.state.weaponValues.model.supportable) {
                     ctx.state.weaponValues.support = false;
                     zgui.beginDisabled(.{ .disabled = true });
                 }
@@ -181,7 +182,7 @@ const RiskEditorWindow = struct {
             zgui.popStyleColor(.{ .count = 1 });
 
             _ = zgui.checkbox("Benstöd", .{ .v = &ctx.state.weaponValues.support });
-            if (!ctx.state.getHasSupport()) zgui.endDisabled();
+            if (!ctx.state.weaponValues.model.supportable) zgui.endDisabled();
 
             zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 1.0, 1.0, 1.0, 1 } });
             {
@@ -239,14 +240,11 @@ fn drawPlane(ctx: *Context) !void {
     rl.drawGrid(200, 200);
     rl.gl.rlPopMatrix();
 
-    if (ctx.state.config.valid) try draw.draw(switch (ctx.state.config.sort) {
-        .Box => .Box,
-        .SST => .SST,
-        .Halva => .Half,
-    }, ctx.state, &ctx.draw_buffer);
+    if (ctx.state.config.valid) try draw.draw(ctx.state.config.sort, ctx.state, &ctx.draw_buffer);
+    ctx.draw_buffer.execute();
 }
 
-fn doMainMenu(ctx: *Context) void {
+fn drawMainMenu(ctx: *Context) void {
     if (zgui.beginMainMenuBar()) {
         if (zgui.beginMenu("Fil", true)) {
             if (zgui.menuItem("Importera", .{})) sync.load();
@@ -318,17 +316,17 @@ pub fn main(allocator: std.mem.Allocator) !void {
         ctx.update();
 
         rl.beginDrawing();
+        defer rl.endDrawing();
         rl.clearBackground(rl.Color.white);
 
         zgui.rlimgui.begin();
+        defer zgui.rlimgui.end();
+
         try drawPlane(&ctx);
-        doMainMenu(&ctx);
+        drawMainMenu(&ctx);
 
         if (ctx.risk_editor_viewer.open) try ctx.risk_editor_viewer.show(&ctx);
 
         try ctx.draw_buffer.clear();
-        zgui.rlimgui.end();
-
-        rl.endDrawing();
     }
 }

@@ -5,19 +5,10 @@ const ammunition = reg.data.ammunition;
 const validation = reg.data.validation;
 const State = @This();
 
-const Sort = enum {
+pub const Sort = enum {
     Box,
     SST,
     Halva,
-};
-const Factor = enum {
-    I,
-    II,
-    III,
-};
-const Target = enum {
-    Fast,
-    Flyttbart,
 };
 
 const Config = struct {
@@ -28,7 +19,7 @@ const Config = struct {
 };
 const TerrainValues = struct {
     interceptingForest: bool = false,
-    factor: Factor = .I,
+    factor: enum { I, II, III } = .I,
     Amin: f32 = 100,
     Amax: f32 = 200,
     f: f32 = 50,
@@ -41,7 +32,7 @@ const TerrainValues = struct {
 };
 const WeaponValues = struct {
     weapon_enum_value: weapon.Models = .P88,
-    target: Target = .Fast,
+    target: enum { Fast, Flyttbart } = .Fast,
     model: weapon.Model = .EHV,
     caliber: ammunition.Caliber = .ptr9_sk_39b,
     v: f32 = 0,
@@ -66,25 +57,11 @@ const SST = struct {
     vh: f32 = 100,
 };
 
-terrainValues: TerrainValues,
-weaponValues: WeaponValues,
-config: Config,
-box: Box,
-sst: SST,
-
-pub fn init() State {
-    return State{
-        .terrainValues = TerrainValues{},
-        .weaponValues = WeaponValues{},
-        .config = Config{},
-        .box = Box{},
-        .sst = SST{},
-    };
-}
-
-pub fn getHasSupport(self: *State) bool {
-    return weapon.getWeaponModel(self.weaponValues.weapon_enum_value, false).supportable;
-}
+terrainValues: TerrainValues = TerrainValues{},
+weaponValues: WeaponValues = WeaponValues{},
+config: Config = Config{},
+box: Box = Box{},
+sst: SST = SST{},
 
 pub fn reset(self: *State) void {
     self.terrainValues = TerrainValues{};
@@ -100,15 +77,20 @@ pub fn update(self: *State) void {
     self.terrainValues.q1 = risk.calculateQ1(self.*);
     self.terrainValues.q2 = risk.calculateQ2(self.*);
     self.weaponValues.c = risk.calculateC(self.*);
-    self.weaponValues.model = weapon.getWeaponModel(self.weaponValues.weapon_enum_value, self.weaponValues.support);
+
+    // self.weaponValues.model = weapon.getModel(self.weaponValues.weapon_enum_value, self.weaponValues.support);
+    self.weaponValues.model = self.weaponValues.weapon_enum_value.getModel(self.weaponValues.support);
+
     self.weaponValues.v = if (self.weaponValues.target == .Fast) self.weaponValues.model.v_still else self.weaponValues.model.v_moveable;
 
-    switch (self.weaponValues.weapon_enum_value) {
-        .AK5, .KSP90 => self.weaponValues.caliber = ammunition.getCaliber(self.weaponValues.amm556),
-        .KSP58 => self.weaponValues.caliber = ammunition.getCaliber(self.weaponValues.amm762),
-        .KSP88, .AG90 => self.weaponValues.caliber = ammunition.getCaliber(self.weaponValues.amm127),
-        .P88 => self.weaponValues.caliber = ammunition.getCaliber(self.weaponValues.amm9),
-    }
+    // self.weaponValues.caliber = self.weaponValues.weapon_enum_value.getModel(support: bool)
+
+    self.weaponValues.caliber = switch (self.weaponValues.weapon_enum_value) {
+        .AK5, .KSP90 => ammunition.getCaliber(self.weaponValues.amm556),
+        .KSP58 => ammunition.getCaliber(self.weaponValues.amm762),
+        .KSP88, .AG90 => ammunition.getCaliber(self.weaponValues.amm127),
+        .P88 => ammunition.getCaliber(self.weaponValues.amm9),
+    };
 
     self.config.valid = validation.validate(self);
 }
