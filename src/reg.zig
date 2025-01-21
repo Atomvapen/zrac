@@ -20,6 +20,6 @@ pub const gui = struct {
     pub const renderer = @import("gui/renderer.zig");
     pub const camera = @import("gui/camera.zig");
     pub const DrawBuffer = @import("gui/drawBuffer.zig");
-    pub const draw = @import("gui/draw.zig");
+    pub const plane = @import("gui/plane.zig");
     pub const Color = @import("gui/Color.zig");
 };

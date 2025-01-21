@@ -72,25 +72,20 @@ pub fn reset(self: *State) void {
 }
 
 pub fn update(self: *State) void {
+    self.weaponValues.caliber = switch (self.weaponValues.weapon_enum_value) {
+        .AK5, .KSP90 => ammunition.Calibers.getCaliber(.{ .ptr556 = self.weaponValues.amm556 }),
+        .KSP58 => ammunition.Calibers.getCaliber(.{ .ptr762 = self.weaponValues.amm762 }),
+        .KSP88, .AG90 => ammunition.Calibers.getCaliber(.{ .ptr127 = self.weaponValues.amm127 }),
+        .P88 => ammunition.Calibers.getCaliber(.{ .ptr9 = self.weaponValues.amm9 }),
+    };
+
     self.terrainValues.l = risk.calculateL(self.*);
     self.terrainValues.h = risk.calculateH(self.*);
     self.terrainValues.q1 = risk.calculateQ1(self.*);
     self.terrainValues.q2 = risk.calculateQ2(self.*);
     self.weaponValues.c = risk.calculateC(self.*);
-
-    // self.weaponValues.model = weapon.getModel(self.weaponValues.weapon_enum_value, self.weaponValues.support);
     self.weaponValues.model = self.weaponValues.weapon_enum_value.getModel(self.weaponValues.support);
-
     self.weaponValues.v = if (self.weaponValues.target == .Fast) self.weaponValues.model.v_still else self.weaponValues.model.v_moveable;
-
-    // self.weaponValues.caliber = self.weaponValues.weapon_enum_value.getModel(support: bool)
-
-    self.weaponValues.caliber = switch (self.weaponValues.weapon_enum_value) {
-        .AK5, .KSP90 => ammunition.getCaliber(self.weaponValues.amm556),
-        .KSP58 => ammunition.getCaliber(self.weaponValues.amm762),
-        .KSP88, .AG90 => ammunition.getCaliber(self.weaponValues.amm127),
-        .P88 => ammunition.getCaliber(self.weaponValues.amm9),
-    };
 
     self.config.valid = validation.validate(self);
 }

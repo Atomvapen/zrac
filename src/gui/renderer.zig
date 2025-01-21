@@ -2,22 +2,31 @@ const std = @import("std");
 const rl = @import("raylib");
 const zgui = @import("zgui");
 const reg = @import("reg");
-const draw = reg.gui.draw;
+const plane = reg.gui.plane;
 const sync = reg.io.sync;
 const camera = reg.gui.camera;
 const DrawBuffer = reg.gui.DrawBuffer;
 const Color = reg.gui.Color;
 
 const Context = struct {
+    const Config = struct {
+        title: [*:0]const u8 = "ZRAC",
+        size: struct { width: i32, height: i32 } = .{ .width = 1200, .height = 800 },
+        FPS: i32 = 60,
+        icon: rl.Image = undefined,
+        quit: bool = false,
+    };
     state: reg.data.State = undefined,
     draw_buffer: DrawBuffer = undefined,
     risk_editor_viewer: RiskEditorWindow = undefined,
+    config: Config = undefined,
 
     pub fn create(allocator: std.mem.Allocator) !Context {
         return Context{
             .state = reg.data.State{},
             .draw_buffer = DrawBuffer.init(allocator),
             .risk_editor_viewer = RiskEditorWindow{},
+            .config = Config{},
         };
     }
 
@@ -29,15 +38,6 @@ const Context = struct {
     pub fn update(self: *Context) void {
         self.state.update();
     }
-};
-
-const windowConfig = struct {
-    const title: [*:0]const u8 = "ZRAC";
-    const size = .{ .width = 1200, .height = 800 };
-    const FPS: i32 = 60;
-
-    var icon: rl.Image = undefined;
-    var quit: bool = false;
 };
 
 const RiskEditorWindow = struct {
@@ -56,7 +56,6 @@ const RiskEditorWindow = struct {
             .flags = .{
                 .no_scrollbar = true,
                 .no_scroll_with_mouse = true,
-                // .no_move = true,
                 .no_resize = true,
                 .always_auto_resize = true,
                 .no_collapse = true, //TODO Fix crash at : .no_collapse = false
@@ -96,16 +95,6 @@ const RiskEditorWindow = struct {
     fn drawEnd(ctx: *Context) void {
         _ = ctx;
         zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 0.0, 0.0, 0.0, 1 } });
-        // { // Reset
-        //     zgui.newLine();
-        //     zgui.separator();
-        //     zgui.newLine();
-        // zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 1.0, 1.0, 1.0, 1 } });
-        // {
-        //     if (zgui.button("Återställ", .{})) ctx.state.reset();
-        // }
-        // zgui.popStyleColor(.{ .count = 1 });
-        // }
 
         { // Information text
             zgui.newLine();
@@ -138,15 +127,6 @@ const RiskEditorWindow = struct {
             }
             zgui.popStyleColor(.{ .count = 1 });
         }
-
-        // { // Type value
-        //     zgui.separatorText("Typ");
-        //     zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 1.0, 1.0, 1.0, 1 } });
-        //     {
-        //         _ = zgui.comboFromEnum("Typ", &ctx.state.config.sort);
-        //     }
-        //     zgui.popStyleColor(.{ .count = 1 });
-        // }
 
         { // Terrain Values
             zgui.separatorText("Terrängvärden");
@@ -192,6 +172,7 @@ const RiskEditorWindow = struct {
                     .KSP88, .AG90 => _ = zgui.comboFromEnum("Ammunitionstyp", &ctx.state.weaponValues.amm127),
                     .P88 => _ = zgui.comboFromEnum("Ammunitionstyp", &ctx.state.weaponValues.amm9),
                 }
+
                 _ = zgui.comboFromEnum("Måltyp", &ctx.state.weaponValues.target);
             }
             zgui.popStyleColor(.{ .count = 1 });
@@ -240,7 +221,7 @@ fn drawPlane(ctx: *Context) !void {
     rl.drawGrid(200, 200);
     rl.gl.rlPopMatrix();
 
-    if (ctx.state.config.valid) try draw.draw(ctx.state.config.sort, ctx.state, &ctx.draw_buffer);
+    if (ctx.state.config.valid) try plane.draw(ctx.state.config.sort, ctx.state, &ctx.draw_buffer);
     ctx.draw_buffer.execute();
 }
 
@@ -250,7 +231,7 @@ fn drawMainMenu(ctx: *Context) void {
             if (zgui.menuItem("Importera", .{})) sync.load();
             if (zgui.menuItem("Exportera", .{})) sync.save();
             zgui.separator();
-            if (zgui.menuItem("Avsluta", .{})) windowConfig.quit = true;
+            if (zgui.menuItem("Avsluta", .{})) ctx.config.quit = true;
             zgui.endMenu();
         }
 
@@ -298,11 +279,11 @@ pub fn main(allocator: std.mem.Allocator) !void {
     defer ctx.destroy();
 
     rl.setConfigFlags(.{ .msaa_4x_hint = true, .vsync_hint = true });
-    rl.initWindow(windowConfig.size.width, windowConfig.size.height, windowConfig.title);
+    rl.initWindow(ctx.config.size.width, ctx.config.size.height, ctx.config.title);
     defer rl.closeWindow();
 
-    windowConfig.icon = rl.loadImage("assets/icon.png");
-    windowConfig.icon.useAsWindowIcon();
+    ctx.config.icon = rl.loadImage("assets/icon.png");
+    ctx.config.icon.useAsWindowIcon();
 
     rl.setTargetFPS(60);
     zgui.rlimgui.setup(true);
@@ -311,7 +292,7 @@ pub fn main(allocator: std.mem.Allocator) !void {
 
     styleWindow();
 
-    while (!rl.windowShouldClose() and !windowConfig.quit) {
+    while (!rl.windowShouldClose() and !ctx.config.quit) {
         camera.handle();
         ctx.update();
 
