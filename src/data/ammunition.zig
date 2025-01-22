@@ -1,12 +1,3 @@
-// pub const CaliberType = union(enum) {
-//     ptr556: Calibers.ptr556,
-//     ptr65: Calibers.ptr65,
-//     ptr762: Calibers.ptr762,
-//     ptr9: Calibers.ptr9,
-//     ptr127: Calibers.ptr127,
-//     ptrOther: Calibers.ptrOther,
-// };
-
 pub const Calibers = enum {
     pub const ptr556 = enum {
         ptr556_sk_prj_slprj,
@@ -83,7 +74,6 @@ pub const Caliber = struct {
     yMax: f32,
     c: f32,
 
-    pub const invalid: Caliber = Caliber{ .Dmax = undefined, .yMax = undefined, .c = undefined };
     pub const hagelptr: Caliber = Caliber{ .Dmax = 350, .yMax = undefined, .c = 70 };
     pub const long_rifle_22: Caliber = Caliber{ .Dmax = 1500, .yMax = undefined, .c = 200 };
     pub const ptr556_sk_prj_slprj: Caliber = Caliber{ .Dmax = 3000, .yMax = 700, .c = 200 };

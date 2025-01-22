@@ -17,22 +17,22 @@ pub fn validate(state: *State) bool {
     if (!validateNegativeValues(state)) return false;
     if (!validateOverflow(state)) return false;
     switch (state.config.sort) {
-        .Box => if (!validadeBox(state)) return false,
-        .SST => if (!validadeSST(state)) return false,
+        .Box => if (!validateBox(state)) return false,
+        .SST => if (!validateSST(state)) return false,
         .Halva => return true,
     }
 
     return true;
 }
 
-fn validadeBox(state: *State) bool {
+fn validateBox(state: *State) bool {
     return (state.box.length > 0 and
         state.box.width > 0 and
         state.box.v > 0 and
         state.box.h > 0);
 }
 
-fn validadeSST(state: *State) bool {
+fn validateSST(state: *State) bool {
     return (state.sst.width > 0 and
         state.sst.hh > 0 and
         state.sst.hv > 0 and

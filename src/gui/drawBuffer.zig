@@ -39,8 +39,8 @@ const Command = union(CommandType) {
 
     const LineCommand = struct {
         color: rl.Color,
-        start: rl.Vector2 = undefined,
-        end: rl.Vector2 = undefined,
+        start: rl.Vector2,
+        end: rl.Vector2,
 
         pub fn init(start: rl.Vector2, end: rl.Vector2, color: rl.Color) LineCommand {
             return LineCommand{
@@ -126,16 +126,17 @@ pub fn append(self: *DrawBuffer, item: geo.Shape) !void {
     };
 
     try self.buffer.append(drawResult);
+    errdefer self.buffer.resize(self.buffer.items.len - 1) catch {};
+
     try self.buffer.append(textResult);
+    errdefer self.buffer.resize(self.buffer.items.len - 1) catch {};
 }
 
 pub fn clearAndFree(self: *DrawBuffer) void {
-    if (self.buffer.items.len == 0) return;
     self.buffer.clearAndFree();
 }
 
 pub fn clear(self: *DrawBuffer) !void {
-    if (self.buffer.items.len == 0) return;
     try self.buffer.resize(0);
 }
 

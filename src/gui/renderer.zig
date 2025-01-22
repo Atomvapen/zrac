@@ -9,24 +9,20 @@ const DrawBuffer = reg.gui.DrawBuffer;
 const Color = reg.gui.Color;
 
 const Context = struct {
-    const Config = struct {
-        title: [*:0]const u8 = "ZRAC",
-        size: struct { width: i32, height: i32 } = .{ .width = 1200, .height = 800 },
-        FPS: i32 = 60,
-        icon: rl.Image = undefined,
-        quit: bool = false,
-    };
-    state: reg.data.State = undefined,
-    draw_buffer: DrawBuffer = undefined,
-    risk_editor_viewer: RiskEditorWindow = undefined,
-    config: Config = undefined,
+    state: reg.data.State,
+    draw_buffer: DrawBuffer,
+    window: Window,
+    frames: struct { risk_editor: RiskEditorFrame, export_frame: ExportFrame },
 
-    pub fn create(allocator: std.mem.Allocator) !Context {
+    pub fn create(allocator: std.mem.Allocator) Context {
         return Context{
             .state = reg.data.State{},
             .draw_buffer = DrawBuffer.init(allocator),
-            .risk_editor_viewer = RiskEditorWindow{},
-            .config = Config{},
+            .window = Window{ .config = .{} },
+            .frames = .{
+                .risk_editor = RiskEditorFrame{ .open = true },
+                .export_frame = ExportFrame{ .open = false },
+            },
         };
     }
 
@@ -40,13 +36,12 @@ const Context = struct {
     }
 };
 
-const RiskEditorWindow = struct {
+const RiskEditorFrame = struct {
     const Self = @This();
 
-    open: bool = true,
-    quit: bool = false,
+    open: bool = false,
 
-    pub fn show(self: *Self, ctx: *Context) !void {
+    pub fn show(self: *Self, ctx: *Context) void {
         zgui.pushStyleVar2f(.{ .idx = .window_padding, .v = .{ 10, 10 } });
         zgui.setNextWindowSize(.{ .w = 100, .h = 100, .cond = .once });
         zgui.setNextWindowPos(.{ .x = 20.0, .y = 40.0, .cond = .once });
@@ -211,102 +206,158 @@ const RiskEditorWindow = struct {
     }
 };
 
-fn drawPlane(ctx: *Context) !void {
-    camera.begin();
-    defer camera.end();
+const ExportFrame = struct {
+    const Self = @This();
 
-    rl.gl.rlPushMatrix();
-    rl.gl.rlTranslatef(50 * 50, 50 * 50, 0);
-    rl.gl.rlRotatef(90, 1, 0, 0);
-    rl.drawGrid(200, 200);
-    rl.gl.rlPopMatrix();
+    open: bool = false,
 
-    if (ctx.state.config.valid) try plane.draw(ctx.state.config.sort, ctx.state, &ctx.draw_buffer);
-    ctx.draw_buffer.execute();
-}
+    pub fn show(self: *Self, _: *Context) void {
+        zgui.pushStyleVar2f(.{ .idx = .window_padding, .v = .{ 10, 10 } });
+        zgui.setNextWindowSize(.{ .w = 300, .h = 200, .cond = .once });
+        zgui.setNextWindowPos(.{ .x = 100, .y = 100.0, .cond = .once });
 
-fn drawMainMenu(ctx: *Context) void {
-    if (zgui.beginMainMenuBar()) {
-        if (zgui.beginMenu("Fil", true)) {
-            if (zgui.menuItem("Importera", .{})) sync.load();
-            if (zgui.menuItem("Exportera", .{})) sync.save();
-            zgui.separator();
-            if (zgui.menuItem("Avsluta", .{})) ctx.config.quit = true;
-            zgui.endMenu();
+        if (zgui.begin("Exportera", .{
+            .popen = &self.open,
+            .flags = .{
+                .no_scrollbar = true,
+                .no_scroll_with_mouse = true,
+                .no_resize = true,
+                .no_collapse = true,
+                .no_move = true,
+            },
+        })) {
+            zgui.textUnformatted("test");
+            zgui.end();
+            zgui.popStyleVar(.{});
         }
-
-        if (zgui.beginMenu("Fönster", true)) {
-            if (zgui.menuItem("Riskprofil", .{})) ctx.risk_editor_viewer.open = !ctx.risk_editor_viewer.open;
-            zgui.endMenu();
-        }
-
-        zgui.endMainMenuBar();
     }
-}
+};
 
-fn styleWindow() void {
-    const style = zgui.getStyle();
+const Window = struct {
+    config: struct {
+        title: [*:0]const u8 = "ZRAC",
+        size: struct { width: i32, height: i32 } = .{ .width = 1200, .height = 800 },
+        FPS: i32 = 60,
+        icon: rl.Image = undefined,
+        quit: bool = false,
+    },
 
-    style.setColor(.header, Color.dark_grey);
-    style.setColor(.window_bg, Color.white);
-    style.setColor(.check_mark, Color.white);
+    pub fn drawPlane(_: *Window, ctx: *Context) !void {
+        camera.begin();
+        defer camera.end();
 
-    style.setColor(.button, Color.dark_grey);
-    style.setColor(.button_active, Color.grey);
-    style.setColor(.button_hovered, Color.grey);
+        rl.gl.rlPushMatrix();
+        rl.gl.rlTranslatef(50 * 50, 50 * 50, 0);
+        rl.gl.rlRotatef(90, 1, 0, 0);
+        rl.drawGrid(200, 200);
+        rl.gl.rlPopMatrix();
 
-    style.setColor(.title_bg, Color.dark_grey);
-    style.setColor(.title_bg_active, Color.dark_grey);
+        if (ctx.state.config.valid) try plane.draw(ctx.state.config.sort, ctx.state, &ctx.draw_buffer);
+        ctx.draw_buffer.execute();
+    }
 
-    style.setColor(.border, Color.grey);
+    pub fn drawMainMenu(_: *Window, ctx: *Context) void {
+        if (zgui.beginMainMenuBar()) {
+            if (zgui.beginMenu("Fil", true)) {
+                if (zgui.menuItem("Importera", .{})) sync.load();
+                if (zgui.menuItem("Exportera", .{})) {
+                    sync.save();
+                    ctx.frames.export_frame.open = !ctx.frames.export_frame.open;
+                }
+                zgui.separator();
+                if (zgui.menuItem("Avsluta", .{})) ctx.window.config.quit = true;
+                zgui.endMenu();
+            }
 
-    style.setColor(.frame_bg, Color.dark_grey);
-    style.setColor(.frame_bg_active, Color.dark_grey);
-    style.setColor(.frame_bg_hovered, Color.grey);
+            if (zgui.beginMenu("Fönster", true)) {
+                if (zgui.menuItem("Riskprofil", .{})) ctx.frames.risk_editor.open = !ctx.frames.risk_editor.open;
+                zgui.endMenu();
+            }
 
-    style.setColor(.tab, Color.grey);
-    style.setColor(.tab_hovered, Color.dark_grey);
-    style.setColor(.tab_selected, Color.dark_grey);
-    style.setColor(.tab_selected_overline, Color.white);
+            zgui.endMainMenuBar();
+        }
+    }
 
-    style.tab_rounding = 2;
-    style.popup_rounding = 3.0;
-    style.window_min_size = .{ 320.0, 240.0 };
-}
+    pub fn style(_: *Window) void {
+        const zgui_style = zgui.getStyle();
+
+        zgui_style.setColor(.header, Color.dark_grey);
+        zgui_style.setColor(.window_bg, Color.white);
+        zgui_style.setColor(.check_mark, Color.white);
+
+        zgui_style.setColor(.button, Color.dark_grey);
+        zgui_style.setColor(.button_active, Color.grey);
+        zgui_style.setColor(.button_hovered, Color.grey);
+
+        zgui_style.setColor(.title_bg, Color.dark_grey);
+        zgui_style.setColor(.title_bg_active, Color.dark_grey);
+
+        zgui_style.setColor(.border, Color.grey);
+
+        zgui_style.setColor(.frame_bg, Color.dark_grey);
+        zgui_style.setColor(.frame_bg_active, Color.dark_grey);
+        zgui_style.setColor(.frame_bg_hovered, Color.grey);
+
+        zgui_style.setColor(.tab, Color.grey);
+        zgui_style.setColor(.tab_hovered, Color.dark_grey);
+        zgui_style.setColor(.tab_selected, Color.dark_grey);
+        zgui_style.setColor(.tab_selected_overline, Color.white);
+
+        zgui_style.tab_rounding = 2;
+        zgui_style.popup_rounding = 3.0;
+        zgui_style.window_min_size = .{ 320.0, 240.0 };
+    }
+
+    pub fn setProperties(_: *Window, ctx: *Context) void {
+        ctx.window.config.icon = rl.loadImage("assets/icon.png");
+        ctx.window.config.icon.useAsWindowIcon();
+
+        rl.setTargetFPS(ctx.window.config.FPS);
+
+        zgui.io.setConfigWindowsMoveFromTitleBarOnly(true);
+    }
+
+    pub fn setConfigFlags(_: *Window) void {
+        rl.setConfigFlags(.{ .msaa_4x_hint = true, .vsync_hint = true });
+    }
+
+    pub fn init(self: *Window) void {
+        rl.initWindow(self.config.size.width, self.config.size.height, self.config.title);
+        zgui.rlimgui.setup(true);
+    }
+
+    pub fn deinit(_: *Window) void {
+        zgui.rlimgui.shutdown();
+        rl.closeWindow();
+    }
+};
 
 pub fn main(allocator: std.mem.Allocator) !void {
-    var ctx = try Context.create(allocator);
+    var ctx: Context = Context.create(allocator);
     defer ctx.destroy();
 
-    rl.setConfigFlags(.{ .msaa_4x_hint = true, .vsync_hint = true });
-    rl.initWindow(ctx.config.size.width, ctx.config.size.height, ctx.config.title);
-    defer rl.closeWindow();
+    ctx.window.setConfigFlags();
+    ctx.window.init();
+    defer ctx.window.deinit();
+    ctx.window.setProperties(&ctx);
+    ctx.window.style();
 
-    ctx.config.icon = rl.loadImage("assets/icon.png");
-    ctx.config.icon.useAsWindowIcon();
-
-    rl.setTargetFPS(60);
-    zgui.rlimgui.setup(true);
-    defer zgui.rlimgui.shutdown();
-    zgui.io.setConfigWindowsMoveFromTitleBarOnly(true);
-
-    styleWindow();
-
-    while (!rl.windowShouldClose() and !ctx.config.quit) {
+    while (!rl.windowShouldClose() and !ctx.window.config.quit) {
         camera.handle();
         ctx.update();
 
         rl.beginDrawing();
         defer rl.endDrawing();
-        rl.clearBackground(rl.Color.white);
 
         zgui.rlimgui.begin();
         defer zgui.rlimgui.end();
 
-        try drawPlane(&ctx);
-        drawMainMenu(&ctx);
+        rl.clearBackground(rl.Color.white);
+        try ctx.window.drawPlane(&ctx);
+        ctx.window.drawMainMenu(&ctx);
 
-        if (ctx.risk_editor_viewer.open) try ctx.risk_editor_viewer.show(&ctx);
+        if (ctx.frames.risk_editor.open) ctx.frames.risk_editor.show(&ctx);
+        if (ctx.frames.export_frame.open) ctx.frames.export_frame.show(&ctx);
 
         try ctx.draw_buffer.clear();
     }
