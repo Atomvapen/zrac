@@ -3,307 +3,48 @@ const rl = @import("raylib");
 const zgui = @import("zgui");
 const reg = @import("reg");
 const plane = reg.gui.plane;
-const sync = reg.io.sync;
 const camera = reg.gui.camera;
 const DrawBuffer = reg.gui.DrawBuffer;
 const Color = reg.gui.Color;
+const Modal = reg.gui.Modals;
+const Frame = reg.gui.Frames;
+const State = reg.data.State;
 
-const Context = struct {
-    state: reg.data.State,
+pub const Context = struct {
+    state: State,
     draw_buffer: DrawBuffer,
     window: Window,
-    frame: ?Frame = undefined,
+    modal: ?Modal = undefined,
+    frames: struct {
+        riskEditorFrame: Frame.RiskEditorFrame = undefined,
+    } = undefined,
 
     pub fn create(allocator: std.mem.Allocator) Context {
+        defer std.debug.print("INFO: Context created successfully\n", .{});
+        errdefer std.debug.print("INFO: Context creation failed\n", .{});
+
         return Context{
-            .state = reg.data.State{},
+            .state = State{},
             .draw_buffer = DrawBuffer.init(allocator),
             .window = Window{ .config = .{} },
-            .frame = Frame{ .riskFrame = Frame.RiskEditorFrame{ .open = true } },
+            .modal = undefined,
+            .frames = .{
+                .riskEditorFrame = Frame.RiskEditorFrame{ .open = true },
+            },
         };
     }
 
     pub fn destroy(self: *Context) void {
-        self.frame = null;
+        defer std.debug.print("INFO: Context destroyed successfully\n", .{});
+        errdefer std.debug.print("INFO: Context destruction failed\n", .{});
+
+        self.modal = null;
         self.draw_buffer.clearAndFree();
         self.draw_buffer.deinit();
     }
 
     pub fn update(self: *Context) void {
         self.state.update();
-    }
-};
-
-const Frame = union(Frames) {
-    const Frames = enum {
-        riskFrame,
-        exportFrame,
-        importFrame,
-    };
-    const RiskEditorFrame = struct {
-        open: bool = false,
-
-        pub fn show(self: *RiskEditorFrame, ctx: *Context) void {
-            zgui.pushStyleVar2f(.{ .idx = .window_padding, .v = .{ 10, 10 } });
-            zgui.setNextWindowSize(.{ .w = 100, .h = 100, .cond = .once });
-            zgui.setNextWindowPos(.{ .x = 20.0, .y = 40.0, .cond = .once });
-
-            if (zgui.begin("Riskprofil", .{
-                .popen = &self.open,
-                .flags = .{
-                    .no_scrollbar = true,
-                    .no_scroll_with_mouse = true,
-                    .no_resize = true,
-                    .always_auto_resize = true,
-                    .no_collapse = true, //TODO Fix crash at : .no_collapse = false
-                    // .no_bring_to_front_on_focus = if (ctx.frames.export_frame.open) true else false,
-                    // .no_mouse_inputs = if (ctx.frames.export_frame.open) true else false,
-                    // .no_move = if (ctx.frames.export_frame.open) true else false,
-                    // .no_nav_inputs = if (ctx.frames.export_frame.open) true else false,
-                },
-            })) {
-                if (zgui.beginTabBar("Type", .{})) {
-                    if (zgui.beginTabItem("Halva", .{})) {
-                        ctx.state.config.sort = .Halva;
-                        zgui.endTabItem();
-                    }
-                    if (zgui.beginTabItem("SST", .{})) {
-                        ctx.state.config.sort = .SST;
-                        zgui.endTabItem();
-                    }
-                    if (zgui.beginTabItem("Box", .{})) {
-                        ctx.state.config.sort = .Box;
-                        zgui.endTabItem();
-                    }
-                    zgui.endTabBar();
-                }
-
-                drawGeneral(ctx);
-
-                switch (ctx.state.config.sort) {
-                    .Halva => {},
-                    .SST => drawSST(ctx),
-                    .Box => drawBox(ctx),
-                }
-
-                drawEnd(ctx);
-
-                zgui.end();
-                zgui.popStyleVar(.{});
-            }
-        }
-
-        fn drawEnd(ctx: *Context) void {
-            _ = ctx;
-            zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 0.0, 0.0, 0.0, 1 } });
-
-            { // Information text
-                zgui.newLine();
-                zgui.separator();
-                zgui.newLine();
-                zgui.textUnformatted("Flytta: Höger musknapp.");
-                zgui.textUnformatted(" Zooma: Scrollhjul.");
-            }
-            zgui.popStyleColor(.{ .count = 1 });
-        }
-
-        fn drawGeneral(ctx: *Context) void {
-            zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 0.0, 0.0, 0.0, 1 } });
-            { // Config values
-                zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 0.0, 0.0, 0.0, 1 } });
-                {
-                    _ = zgui.checkbox("Visa linjer", .{ .v = &ctx.state.config.show });
-                    zgui.sameLine(.{});
-
-                    if (!ctx.state.config.show) zgui.beginDisabled(.{ .disabled = true });
-                    _ = zgui.checkbox("Visa text", .{ .v = &ctx.state.config.showText });
-                    if (!ctx.state.config.show) zgui.endDisabled();
-
-                    zgui.sameLine(.{});
-                    zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 1.0, 1.0, 1.0, 1 } });
-                    {
-                        if (zgui.button("Återställ", .{})) ctx.state.reset();
-                    }
-                    zgui.popStyleColor(.{ .count = 1 });
-                }
-                zgui.popStyleColor(.{ .count = 1 });
-            }
-
-            { // Terrain Values
-                zgui.separatorText("Terrängvärden");
-
-                zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 1.0, 1.0, 1.0, 1 } });
-                {
-                    _ = zgui.comboFromEnum("Faktor", &ctx.state.terrainValues.factor);
-                    _ = zgui.inputFloat("Amin", .{ .v = &ctx.state.terrainValues.Amin });
-                    _ = zgui.inputFloat("Amax", .{ .v = &ctx.state.terrainValues.Amax });
-                    _ = zgui.inputFloat("f", .{ .v = &ctx.state.terrainValues.f });
-                    zgui.setNextItemWidth(93);
-                    _ = zgui.inputFloat("Skogsavstånd", .{ .v = &ctx.state.terrainValues.forestDist });
-                }
-                zgui.popStyleColor(.{ .count = 1 });
-
-                zgui.sameLine(.{});
-                _ = zgui.checkbox("Uppfångande", .{ .v = &ctx.state.terrainValues.interceptingForest });
-            }
-
-            { // Weapons & Ammunition Values
-                zgui.separatorText("Vapenvärden");
-                zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 1.0, 1.0, 1.0, 1 } });
-                {
-                    zgui.setNextItemWidth(121);
-                    _ = zgui.comboFromEnum("Vapentyp", &ctx.state.weaponValues.weapon_enum_value);
-                    zgui.sameLine(.{});
-
-                    if (!ctx.state.weaponValues.model.supportable) {
-                        ctx.state.weaponValues.support = false;
-                        zgui.beginDisabled(.{ .disabled = true });
-                    }
-                }
-                zgui.popStyleColor(.{ .count = 1 });
-
-                _ = zgui.checkbox("Benstöd", .{ .v = &ctx.state.weaponValues.support });
-                if (!ctx.state.weaponValues.model.supportable) zgui.endDisabled();
-
-                zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 1.0, 1.0, 1.0, 1 } });
-                {
-                    switch (ctx.state.weaponValues.weapon_enum_value) {
-                        .AK5, .KSP90 => _ = zgui.comboFromEnum("Ammunitionstyp", &ctx.state.weaponValues.amm556),
-                        .KSP58 => _ = zgui.comboFromEnum("Ammunitionstyp", &ctx.state.weaponValues.amm762),
-                        .KSP88, .AG90 => _ = zgui.comboFromEnum("Ammunitionstyp", &ctx.state.weaponValues.amm127),
-                        .P88 => _ = zgui.comboFromEnum("Ammunitionstyp", &ctx.state.weaponValues.amm9),
-                    }
-
-                    _ = zgui.comboFromEnum("Måltyp", &ctx.state.weaponValues.target);
-                }
-                zgui.popStyleColor(.{ .count = 1 });
-            }
-
-            zgui.popStyleColor(.{ .count = 1 });
-        }
-
-        fn drawSST(ctx: *Context) void {
-            zgui.separatorText("Övningsområde");
-            _ = zgui.inputFloat("Bredd", .{ .v = &ctx.state.sst.width });
-
-            zgui.setNextItemWidth(91);
-            _ = zgui.inputFloat("HH", .{ .v = &ctx.state.sst.hh });
-            zgui.sameLine(.{});
-            zgui.setNextItemWidth(91);
-            _ = zgui.inputFloat("HV", .{ .v = &ctx.state.sst.hv });
-
-            zgui.setNextItemWidth(91);
-            _ = zgui.inputFloat("VV", .{ .v = &ctx.state.sst.vv });
-            zgui.sameLine(.{});
-            zgui.setNextItemWidth(91);
-            _ = zgui.inputFloat("VH", .{ .v = &ctx.state.sst.vh });
-        }
-
-        fn drawBox(ctx: *Context) void {
-            zgui.separatorText("Övningsområde");
-            _ = zgui.inputFloat("Bredd", .{ .v = &ctx.state.box.width });
-            _ = zgui.inputFloat("Längd", .{ .v = &ctx.state.box.length });
-
-            zgui.setNextItemWidth(80);
-            _ = zgui.inputFloat("Höger", .{ .v = &ctx.state.box.h });
-            zgui.sameLine(.{});
-            zgui.setNextItemWidth(80);
-            _ = zgui.inputFloat("Vänster", .{ .v = &ctx.state.box.v });
-        }
-    };
-    const ExportFrame = struct {
-        open: bool = false,
-
-        pub fn show(self: *ExportFrame, ctx: *Context) void {
-            const window_width: i32 = rl.getScreenWidth();
-            const window_height: i32 = rl.getScreenHeight();
-            const frame_width: f32 = 600.0; // Replace with the actual frame width
-            const frame_height: f32 = 400.0; // Replace with the actual frame height
-
-            const center_x = (@as(f32, @floatFromInt(window_width)) - frame_width) / 2.0;
-            const center_y = (@as(f32, @floatFromInt(window_height)) - frame_height) / 2.0;
-
-            // Draw a fullscreen, semi-transparent rectangle to block interactions
-            rl.drawRectangle(0, 0, window_width, window_height, rl.Color.fade(rl.Color.black, 0.5));
-
-            zgui.pushStyleVar2f(.{ .idx = .window_padding, .v = .{ 10, 10 } });
-            zgui.setNextWindowSize(.{ .w = frame_width, .h = frame_height, .cond = .once });
-            zgui.setNextWindowPos(.{ .x = center_x, .y = center_y, .cond = .always });
-
-            if (zgui.begin("Exportera", .{
-                .popen = &self.open,
-                .flags = .{
-                    .no_scrollbar = true,
-                    .no_scroll_with_mouse = true,
-                    .no_resize = true,
-                    .no_collapse = true,
-                    .no_move = true,
-                },
-            })) {
-                if (zgui.button("Acceptera", .{ .h = 50, .w = 100 })) {
-                    sync.save();
-                }
-                zgui.sameLine(.{});
-                if (zgui.button("Avbryt", .{ .h = 50, .w = 100 })) {
-                    ctx.frame = null;
-                }
-                zgui.end();
-                zgui.popStyleVar(.{});
-            }
-        }
-    };
-    const ImportFrame = struct {
-        open: bool = false,
-
-        pub fn show(self: *ImportFrame, ctx: *Context) void {
-            const window_width: i32 = rl.getScreenWidth();
-            const window_height: i32 = rl.getScreenHeight();
-            const frame_width: f32 = 600.0; // Replace with the actual frame width
-            const frame_height: f32 = 400.0; // Replace with the actual frame height
-
-            const center_x = (@as(f32, @floatFromInt(window_width)) - frame_width) / 2.0;
-            const center_y = (@as(f32, @floatFromInt(window_height)) - frame_height) / 2.0;
-
-            // Draw a fullscreen, semi-transparent rectangle to block interactions
-            rl.drawRectangle(0, 0, window_width, window_height, rl.Color.fade(rl.Color.black, 0.5));
-
-            zgui.pushStyleVar2f(.{ .idx = .window_padding, .v = .{ 10, 10 } });
-            zgui.setNextWindowSize(.{ .w = frame_width, .h = frame_height, .cond = .once });
-            zgui.setNextWindowPos(.{ .x = center_x, .y = center_y, .cond = .always });
-
-            if (zgui.begin("Importera", .{
-                .popen = &self.open,
-                .flags = .{
-                    .no_scrollbar = true,
-                    .no_scroll_with_mouse = true,
-                    .no_resize = true,
-                    .no_collapse = true,
-                    .no_move = true,
-                },
-            })) {
-                if (zgui.button("Acceptera", .{ .h = 50, .w = 100 })) {
-                    sync.load();
-                }
-                zgui.sameLine(.{});
-                if (zgui.button("Avbryt", .{ .h = 50, .w = 100 })) {
-                    ctx.frame = null;
-                }
-                zgui.end();
-                zgui.popStyleVar(.{});
-            }
-        }
-    };
-
-    riskFrame: RiskEditorFrame,
-    exportFrame: ExportFrame,
-    importFrame: ImportFrame,
-
-    pub fn show(self: *Frame, ctx: *Context) void {
-        switch (self.*) {
-            .riskFrame => |*risk_frame| if (risk_frame.open) risk_frame.show(ctx),
-            .exportFrame => |*export_frame| if (export_frame.open) export_frame.*.show(ctx),
-            .importFrame => |*import_frame| if (import_frame.open) import_frame.*.show(ctx),
-        }
     }
 };
 
@@ -333,18 +74,15 @@ const Window = struct {
     pub fn drawMainMenu(_: *Window, ctx: *Context) void {
         if (zgui.beginMainMenuBar()) {
             if (zgui.beginMenu("Fil", true)) {
-                if (zgui.menuItem("Importera", .{})) ctx.frame = Frame{ .importFrame = Frame.ImportFrame{ .open = true } };
-                if (zgui.menuItem("Exportera", .{})) ctx.frame = Frame{ .exportFrame = Frame.ExportFrame{ .open = true } };
-
+                if (zgui.menuItem("Importera", .{})) ctx.modal = Modal{ .importFrame = Modal.ImportModal{ .open = true } };
+                if (zgui.menuItem("Exportera", .{})) ctx.modal = Modal{ .exportFrame = Modal.ExportModal{ .open = true } };
                 zgui.separator();
                 if (zgui.menuItem("Avsluta", .{})) ctx.window.config.quit = true;
                 zgui.endMenu();
             }
 
             if (zgui.beginMenu("Fönster", true)) {
-                if (zgui.menuItem("Riskprofil", .{})) {
-                    ctx.frame = Frame{ .riskFrame = Frame.RiskEditorFrame{ .open = true } };
-                }
+                if (zgui.menuItem("Riskprofil", .{})) ctx.frames.riskEditorFrame.open = !ctx.frames.riskEditorFrame.open;
                 zgui.endMenu();
             }
 
@@ -429,14 +167,11 @@ pub fn main(allocator: std.mem.Allocator) !void {
         try ctx.window.drawPlane(&ctx);
         ctx.window.drawMainMenu(&ctx);
 
-        if (ctx.frame) |*frame| {
-            frame.show(&ctx);
+        if (ctx.frames.riskEditorFrame.open) ctx.frames.riskEditorFrame.show(&ctx);
 
-            camera.enabled = switch (frame.*) {
-                .exportFrame => !frame.exportFrame.open,
-                .importFrame => !frame.importFrame.open,
-                else => true,
-            };
+        if (ctx.modal) |*frame| {
+            camera.enabled = false;
+            frame.show(&ctx);
         }
 
         try ctx.draw_buffer.clear();
