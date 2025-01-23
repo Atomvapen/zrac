@@ -12,7 +12,12 @@
 
 ---
 
-## Design
+<h1 align="center">
+  <img src="/assets/screenshot.png" alt="zrac" width="1202"style="border: 2px solid lightgrey;"/>
+</h1>
+
+
+## Design philosophy
 
 * Exlusively written in [Zig].
 * Use as little dependencies as possible.
