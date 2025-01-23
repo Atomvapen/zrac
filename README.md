@@ -12,9 +12,7 @@
 
 ---
 
-<h1 align="center">
-  <img src="/assets/screenshot.png" alt="zrac" width="1202"style="border: 2px solid lightgrey;"/>
-</h1>
+
 
 
 ## Design philosophy
@@ -34,3 +32,7 @@
 [zgui-rl]:https://github.com/Atomvapen/zgui-rl
 [SÄKR EHV/PV]:https://www.forsvarsmakten.se/siteassets/2-om-forsvarsmakten/dokument/reglementen/sakr-ehv-pv.pdf
 
+## Screenshot
+<h1 align="center">
+  <img src="/assets/screenshot.png" alt="zrac" width="1202"style="border: 2px solid lightgrey;"/>
+</h1>
