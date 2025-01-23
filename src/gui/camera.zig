@@ -1,5 +1,7 @@
 const rl = @import("raylib");
 
+pub var enabled: bool = true;
+
 var camera = rl.Camera2D{
     .target = .{ .x = 9e2, .y = -5e2 },
     .offset = .{ .x = 7e2, .y = 2e2 },
