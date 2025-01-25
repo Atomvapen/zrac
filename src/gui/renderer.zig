@@ -6,18 +6,25 @@ const plane = reg.gui.plane;
 const camera = reg.gui.camera;
 const DrawBuffer = reg.gui.DrawBuffer;
 const Color = reg.gui.Color;
-const Modal = reg.gui.Modals;
+const Modal = reg.gui.Modal;
 const Frame = reg.gui.Frames;
 const State = reg.data.State;
+
+//
+const Frame2 = reg.gui.Frame;
+//
 
 pub const Context = struct {
     state: State,
     draw_buffer: DrawBuffer,
     window: Window,
-    modal: ?Modal = undefined,
+    modal: ?Modal,
     frames: struct {
         riskEditorFrame: Frame.RiskEditorFrame = undefined,
     } = undefined,
+    //frames:struct {
+    //     riskEditorFrame: Frame = undefined,
+    // } = undefined,
 
     pub fn create(allocator: std.mem.Allocator) Context {
         defer std.debug.print("INFO: Context created successfully\n", .{});
@@ -31,6 +38,9 @@ pub const Context = struct {
             .frames = .{
                 .riskEditorFrame = Frame.RiskEditorFrame{ .open = true },
             },
+            // .frames = .{
+            //     .riskEditorFrame = Frame.create(.riskEditorFrame),
+            // },
         };
     }
 
@@ -74,8 +84,8 @@ const Window = struct {
     pub fn drawMainMenu(_: *Window, ctx: *Context) void {
         if (zgui.beginMainMenuBar()) {
             if (zgui.beginMenu("Fil", true)) {
-                if (zgui.menuItem("Importera", .{})) ctx.modal = Modal{ .importFrame = Modal.ImportModal{ .open = true } };
-                if (zgui.menuItem("Exportera", .{})) ctx.modal = Modal{ .exportFrame = Modal.ExportModal{ .open = true } };
+                if (zgui.menuItem("Importera", .{})) ctx.modal = Modal.create(.importModal);
+                if (zgui.menuItem("Exportera", .{})) ctx.modal = Modal.create(.exportModal);
                 zgui.separator();
                 if (zgui.menuItem("Avsluta", .{})) ctx.window.config.quit = true;
                 zgui.endMenu();
@@ -163,19 +173,24 @@ pub fn main(allocator: std.mem.Allocator) !void {
         zgui.rlimgui.begin();
         defer zgui.rlimgui.end();
 
-        rl.clearBackground(rl.Color.white);
-        try ctx.window.drawPlane(&ctx);
-        ctx.window.drawMainMenu(&ctx);
+        try draw(&ctx);
 
-        if (ctx.frames.riskEditorFrame.open) ctx.frames.riskEditorFrame.show(&ctx);
-
-        if (ctx.modal) |*frame| {
-            camera.enabled = false;
-            frame.show(&ctx);
-        }
-
-        try ctx.draw_buffer.clear();
-
+        camera.enabled = (ctx.modal == null);
         if (camera.enabled) camera.handle();
     }
+}
+
+fn draw(ctx: *Context) !void {
+    rl.clearBackground(rl.Color.white);
+    try ctx.window.drawPlane(ctx);
+    ctx.window.drawMainMenu(ctx);
+
+    if (ctx.frames.riskEditorFrame.open) ctx.frames.riskEditorFrame.show(ctx);
+
+    if (ctx.modal) |*modal| {
+        if (!modal.isOpen()) ctx.modal = null;
+        modal.show(ctx);
+    }
+
+    try ctx.draw_buffer.clear();
 }

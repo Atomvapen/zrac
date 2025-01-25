@@ -22,6 +22,7 @@ pub const gui = struct {
     pub const DrawBuffer = @import("gui/drawBuffer.zig");
     pub const plane = @import("gui/plane.zig");
     pub const Color = @import("gui/Color.zig");
-    pub const Modals = @import("gui/modals.zig").Modal;
+    pub const Modal = @import("gui/Modal.zig");
+    // pub const Frame = @import("gui/Frame.zig");
     pub const Frames = @import("gui/frames.zig");
 };

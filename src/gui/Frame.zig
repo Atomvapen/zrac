@@ -4,6 +4,12 @@ const reg = @import("reg");
 const Context = reg.gui.renderer.Context;
 const Color = reg.gui.Color;
 
+const Frame = @This();
+
+const Types = enum {
+    riskEditorFrame,
+};
+
 pub const RiskEditorFrame = struct {
     open: bool = false,
 
@@ -178,3 +184,21 @@ pub const RiskEditorFrame = struct {
         _ = zgui.inputFloat("Vänster", .{ .v = &ctx.state.box.v });
     }
 };
+
+type: Types,
+riskEditorFrame: RiskEditorFrame = undefined,
+
+pub fn create(sort: Types) Frame {
+    return switch (sort) {
+        .riskEditorFrame => Frame{ .type = .riskEditorFrame, .riskEditorFrame = .{ .open = true } },
+    };
+}
+
+pub fn show(self: *Frame, ctx: *Context) void {
+    const zgui_style = zgui.getStyle();
+    zgui_style.setColor(.window_bg, Color.white);
+
+    switch (self.type) {
+        .riskEditorFrame => if (self.riskEditorFrame.open) self.riskEditorFrame.show(ctx),
+    }
+}
