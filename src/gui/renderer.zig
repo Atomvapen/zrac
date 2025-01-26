@@ -10,10 +10,6 @@ const Modal = reg.gui.Modal;
 const Frame = reg.gui.Frames;
 const State = reg.data.State;
 
-//
-const Frame2 = reg.gui.Frame;
-//
-
 pub const Context = struct {
     state: State,
     draw_buffer: DrawBuffer,
@@ -21,10 +17,7 @@ pub const Context = struct {
     modal: ?Modal,
     frames: struct {
         riskEditorFrame: Frame.RiskEditorFrame = undefined,
-    } = undefined,
-    //frames:struct {
-    //     riskEditorFrame: Frame = undefined,
-    // } = undefined,
+    },
 
     pub fn create(allocator: std.mem.Allocator) Context {
         defer std.debug.print("INFO: Context created successfully\n", .{});
@@ -34,13 +27,10 @@ pub const Context = struct {
             .state = State{},
             .draw_buffer = DrawBuffer.init(allocator),
             .window = Window{ .config = .{} },
-            .modal = undefined,
+            .modal = null,
             .frames = .{
                 .riskEditorFrame = Frame.RiskEditorFrame{ .open = true },
             },
-            // .frames = .{
-            //     .riskEditorFrame = Frame.create(.riskEditorFrame),
-            // },
         };
     }
 
@@ -58,7 +48,7 @@ pub const Context = struct {
     }
 };
 
-const Window = struct {
+pub const Window = struct {
     config: struct {
         title: [*:0]const u8 = "ZRAC",
         size: struct { width: i32, height: i32 } = .{ .width = 1200, .height = 800 },
@@ -84,8 +74,8 @@ const Window = struct {
     pub fn drawMainMenu(_: *Window, ctx: *Context) void {
         if (zgui.beginMainMenuBar()) {
             if (zgui.beginMenu("Fil", true)) {
-                if (zgui.menuItem("Importera", .{})) ctx.modal = Modal.create(.importModal);
-                if (zgui.menuItem("Exportera", .{})) ctx.modal = Modal.create(.exportModal);
+                if (zgui.menuItem("Importera", .{})) ctx.modal = Modal.set(.importModal);
+                if (zgui.menuItem("Exportera", .{})) ctx.modal = Modal.set(.exportModal);
                 zgui.separator();
                 if (zgui.menuItem("Avsluta", .{})) ctx.window.config.quit = true;
                 zgui.endMenu();
@@ -189,7 +179,7 @@ fn draw(ctx: *Context) !void {
 
     if (ctx.modal) |*modal| {
         if (!modal.isOpen()) ctx.modal = null;
-        modal.show(ctx);
+        modal.show();
     }
 
     try ctx.draw_buffer.clear();

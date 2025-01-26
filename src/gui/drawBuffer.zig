@@ -1,9 +1,9 @@
+const Self = @This();
+
 const std = @import("std");
 const rl = @import("raylib");
 const reg = @import("reg");
 const geo = reg.math.geometry;
-
-const DrawBuffer = @This();
 
 const Command = union(CommandType) {
     const CommandType = enum {
@@ -104,25 +104,25 @@ const Command = union(CommandType) {
 
 buffer: std.ArrayList(Command),
 
-pub fn init(allocator: std.mem.Allocator) DrawBuffer {
-    return DrawBuffer{ .buffer = std.ArrayList(Command).init(allocator) };
+pub fn init(allocator: std.mem.Allocator) Self {
+    return Self{ .buffer = std.ArrayList(Command).init(allocator) };
 }
 
-pub fn deinit(self: *DrawBuffer) void {
+pub fn deinit(self: *Self) void {
     self.buffer.deinit();
 }
 
-pub fn append(self: *DrawBuffer, item: geo.Shape) !void {
+pub fn append(self: *Self, item: geo.Shape) !void {
     const drawResult: Command = switch (item) {
-        .Line => |line| Command{ .Line = DrawBuffer.Command.create(.Line).init(line.start, line.end, rl.Color.red) },
-        .Point => |point| Command{ .Text = DrawBuffer.Command.create(.Text).init(point.text.text, point.text.textOffsetX, point.text.textOffsetY, point.text.fontSize, point.text.color, point.text.pos, point.text.init == true and point.text.show == true) },
-        .Semicircle => |semi| Command{ .Semicircle = DrawBuffer.Command.create(.Semicircle).init(semi.color, semi.startAngle, semi.endAngle, semi.radius, semi.center, semi.segments) },
+        .Line => |line| Command{ .Line = Self.Command.create(.Line).init(line.start, line.end, rl.Color.red) },
+        .Point => |point| Command{ .Text = Self.Command.create(.Text).init(point.text.text, point.text.textOffsetX, point.text.textOffsetY, point.text.fontSize, point.text.color, point.text.pos, point.text.init == true and point.text.show == true) },
+        .Semicircle => |semi| Command{ .Semicircle = Self.Command.create(.Semicircle).init(semi.color, semi.startAngle, semi.endAngle, semi.radius, semi.center, semi.segments) },
     };
 
     const textResult: Command = switch (item) {
-        .Line => |line| Command{ .Text = DrawBuffer.Command.create(.Text).init(line.text.text, line.text.textOffsetX, line.text.textOffsetY, line.text.fontSize, line.text.color, line.text.pos, line.text.init == true and line.text.show == true) },
-        .Point => |point| Command{ .Text = DrawBuffer.Command.create(.Text).init(point.text.text, point.text.textOffsetX, point.text.textOffsetY, point.text.fontSize, point.text.color, point.text.pos, point.text.init == true and point.text.show == true) },
-        .Semicircle => |semi| Command{ .Text = DrawBuffer.Command.create(.Text).init(semi.text.text, semi.text.textOffsetX, semi.text.textOffsetY, semi.text.fontSize, semi.text.color, semi.text.pos, semi.text.init == true and semi.text.show == true) },
+        .Line => |line| Command{ .Text = Self.Command.create(.Text).init(line.text.text, line.text.textOffsetX, line.text.textOffsetY, line.text.fontSize, line.text.color, line.text.pos, line.text.init == true and line.text.show == true) },
+        .Point => |point| Command{ .Text = Self.Command.create(.Text).init(point.text.text, point.text.textOffsetX, point.text.textOffsetY, point.text.fontSize, point.text.color, point.text.pos, point.text.init == true and point.text.show == true) },
+        .Semicircle => |semi| Command{ .Text = Self.Command.create(.Text).init(semi.text.text, semi.text.textOffsetX, semi.text.textOffsetY, semi.text.fontSize, semi.text.color, semi.text.pos, semi.text.init == true and semi.text.show == true) },
     };
 
     try self.buffer.append(drawResult);
@@ -132,15 +132,15 @@ pub fn append(self: *DrawBuffer, item: geo.Shape) !void {
     errdefer self.buffer.resize(self.buffer.items.len - 1) catch {};
 }
 
-pub fn clearAndFree(self: *DrawBuffer) void {
+pub fn clearAndFree(self: *Self) void {
     self.buffer.clearAndFree();
 }
 
-pub fn clear(self: *DrawBuffer) !void {
+pub fn clear(self: *Self) !void {
     try self.buffer.resize(0);
 }
 
-pub fn execute(self: *DrawBuffer) void {
+pub fn execute(self: *Self) void {
     if (self.buffer.items.len == 0) return;
 
     for (self.buffer.items) |item| {

@@ -1,158 +1,154 @@
+const Self = @This();
+
 const zgui = @import("zgui");
 const rl = @import("raylib");
 const reg = @import("reg");
 const sync = reg.io.sync;
-const Context = reg.gui.renderer.Context;
 const Color = reg.gui.Color;
 
-const Modal = @This();
+pub const Type = union(enum) {
+    const ExportModal = struct {
+        open: bool = false,
 
-const Types = enum {
-    exportModal,
-    importModal,
-    settingsModal,
-};
+        pub fn show(self: *ExportModal) void {
+            const frame_width: f32 = 600.0;
+            const frame_height: f32 = 400.0;
 
-const ExportModal = struct {
-    open: bool = false,
+            setup(frame_width, frame_height);
 
-    pub fn show(self: *ExportModal, ctx: *Context) void {
-        const frame_width: f32 = 600.0;
-        const frame_height: f32 = 400.0;
+            if (zgui.begin("Exportera", .{
+                .popen = &self.open,
+                .flags = .{
+                    .no_scrollbar = true,
+                    .no_scroll_with_mouse = true,
+                    .no_resize = true,
+                    .no_collapse = true,
+                    .no_move = true,
+                },
+            })) {
+                var v: f32 = 0;
+                zgui.pushStyleColor4f(.{ .idx = .text, .c = Color.black });
+                zgui.textUnformatted("Location");
+                zgui.popStyleColor(.{});
+                zgui.sameLine(.{ .offset_from_start_x = 100 });
+                _ = zgui.dragFloat("label", .{ .v = &v });
+                zgui.sameLine(.{ .spacing = 4 });
+                _ = zgui.button("X", .{ .h = 20, .w = 20 });
 
-        setup(frame_width, frame_height);
+                zgui.pushStyleColor4f(.{ .idx = .text, .c = Color.black });
+                zgui.textUnformatted("Name");
+                zgui.popStyleColor(.{});
+                zgui.sameLine(.{ .offset_from_start_x = 100 });
+                _ = zgui.dragFloat("label", .{ .v = &v });
+                zgui.sameLine(.{ .spacing = 4 });
+                _ = zgui.button("X", .{ .h = 20, .w = 20 });
 
-        if (zgui.begin("Exportera", .{
-            .popen = &self.open,
-            .flags = .{
-                .no_scrollbar = true,
-                .no_scroll_with_mouse = true,
-                .no_resize = true,
-                .no_collapse = true,
-                .no_move = true,
-            },
-        })) {
-            var v: f32 = 0;
-            zgui.pushStyleColor4f(.{ .idx = .text, .c = Color.black });
-            zgui.textUnformatted("Location");
-            zgui.popStyleColor(.{});
-            zgui.sameLine(.{ .offset_from_start_x = 100 });
-            _ = zgui.dragFloat("label", .{ .v = &v });
-            zgui.sameLine(.{ .spacing = 4 });
-            _ = zgui.button("X", .{ .h = 20, .w = 20 });
-
-            zgui.pushStyleColor4f(.{ .idx = .text, .c = Color.black });
-            zgui.textUnformatted("Name");
-            zgui.popStyleColor(.{});
-            zgui.sameLine(.{ .offset_from_start_x = 100 });
-            _ = zgui.dragFloat("label", .{ .v = &v });
-            zgui.sameLine(.{ .spacing = 4 });
-            _ = zgui.button("X", .{ .h = 20, .w = 20 });
-
-            if (zgui.button("Acceptera", .{ .h = 20, .w = 100 })) {
-                sync.save();
+                if (zgui.button("Acceptera", .{ .h = 20, .w = 100 })) {
+                    sync.save();
+                }
+                zgui.sameLine(.{});
+                if (zgui.button("Avbryt", .{ .h = 20, .w = 100 })) {
+                    self.open = false;
+                }
+                zgui.end();
+                zgui.popStyleVar(.{});
             }
-            zgui.sameLine(.{});
-            if (zgui.button("Avbryt", .{ .h = 20, .w = 100 })) {
-                ctx.modal = null;
-            }
-            zgui.end();
-            zgui.popStyleVar(.{});
         }
-    }
-};
-const ImportModal = struct {
-    open: bool = false,
+    };
+    const ImportModal = struct {
+        open: bool = false,
 
-    pub fn show(self: *ImportModal, ctx: *Context) void {
-        const frame_width: f32 = 600.0;
-        const frame_height: f32 = 400.0;
+        pub fn show(self: *ImportModal) void {
+            const frame_width: f32 = 600.0;
+            const frame_height: f32 = 400.0;
 
-        setup(frame_width, frame_height);
+            setup(frame_width, frame_height);
 
-        if (zgui.begin("Importera", .{
-            .popen = &self.open,
-            .flags = .{
-                .no_scrollbar = true,
-                .no_scroll_with_mouse = true,
-                .no_resize = true,
-                .no_collapse = true,
-                .no_move = true,
-            },
-        })) {
-            if (zgui.button("Acceptera", .{ .h = 20, .w = 100 })) {
-                sync.load();
+            if (zgui.begin("Importera", .{
+                .popen = &self.open,
+                .flags = .{
+                    .no_scrollbar = true,
+                    .no_scroll_with_mouse = true,
+                    .no_resize = true,
+                    .no_collapse = true,
+                    .no_move = true,
+                },
+            })) {
+                if (zgui.button("Acceptera", .{ .h = 20, .w = 100 })) {
+                    sync.load();
+                }
+                zgui.sameLine(.{});
+                if (zgui.button("Avbryt", .{ .h = 20, .w = 100 })) {
+                    self.open = false;
+                }
+                zgui.end();
+                zgui.popStyleVar(.{});
             }
-            zgui.sameLine(.{});
-            if (zgui.button("Avbryt", .{ .h = 20, .w = 100 })) {
-                ctx.modal = null;
-            }
-            zgui.end();
-            zgui.popStyleVar(.{});
         }
-    }
-};
-const SettingsModal = struct {
-    open: bool = false,
+    };
+    const SettingsModal = struct {
+        open: bool = false,
 
-    pub fn show(self: *SettingsModal, ctx: *Context) void {
-        const frame_width: f32 = 600.0;
-        const frame_height: f32 = 400.0;
+        pub fn show(self: *SettingsModal) void {
+            const frame_width: f32 = 600.0;
+            const frame_height: f32 = 400.0;
 
-        setup(frame_width, frame_height);
+            setup(frame_width, frame_height);
 
-        if (zgui.begin("Inställningar", .{
-            .popen = &self.open,
-            .flags = .{
-                .no_scrollbar = true,
-                .no_scroll_with_mouse = true,
-                .no_resize = true,
-                .no_collapse = true,
-                .no_move = true,
-            },
-        })) {
-            if (zgui.button("Acceptera", .{ .h = 20, .w = 100 })) {
-                sync.load();
+            if (zgui.begin("Inställningar", .{
+                .popen = &self.open,
+                .flags = .{
+                    .no_scrollbar = true,
+                    .no_scroll_with_mouse = true,
+                    .no_resize = true,
+                    .no_collapse = true,
+                    .no_move = true,
+                },
+            })) {
+                if (zgui.button("Acceptera", .{ .h = 20, .w = 100 })) {
+                    sync.load();
+                }
+                zgui.sameLine(.{});
+                if (zgui.button("Avbryt", .{ .h = 20, .w = 100 })) {
+                    self.open = false;
+                }
+                zgui.end();
+                zgui.popStyleVar(.{});
             }
-            zgui.sameLine(.{});
-            if (zgui.button("Avbryt", .{ .h = 20, .w = 100 })) {
-                ctx.modal = null;
-            }
-            zgui.end();
-            zgui.popStyleVar(.{});
         }
-    }
+    };
+
+    exportModal: ExportModal,
+    importModal: ImportModal,
+    settingsModal: SettingsModal,
 };
 
-type: Types,
-exportModal: ExportModal = undefined,
-importModal: ImportModal = undefined,
-settingsModal: SettingsModal = undefined,
+type: Type,
 
-pub fn create(sort: Types) Modal {
+pub fn set(sort: enum { exportModal, importModal, settingsModal }) Self {
     return switch (sort) {
-        .exportModal => Modal{ .type = .exportModal, .exportModal = .{ .open = true } },
-        .importModal => Modal{ .type = .importModal, .importModal = .{ .open = true } },
-        .settingsModal => Modal{ .type = .settingsModal, .settingsModal = .{ .open = true } },
+        .exportModal => Self{ .type = .{ .exportModal = .{ .open = true } } },
+        .importModal => Self{ .type = .{ .importModal = .{ .open = true } } },
+        .settingsModal => Self{ .type = .{ .settingsModal = .{ .open = true } } },
     };
 }
 
-pub fn show(self: *Modal, ctx: *Context) void {
+pub fn show(self: *Self) void {
     const zgui_style = zgui.getStyle();
     zgui_style.setColor(.window_bg, Color.white);
 
     switch (self.type) {
-        .exportModal => if (self.exportModal.open) self.exportModal.show(ctx),
-        .importModal => if (self.importModal.open) self.importModal.show(ctx),
-        .settingsModal => if (self.settingsModal.open) self.settingsModal.show(ctx),
+        .exportModal => |*modal| if (modal.open) modal.show(),
+        .importModal => |*modal| if (modal.open) modal.show(),
+        .settingsModal => |*modal| if (modal.open) modal.show(),
     }
 }
 
-pub fn isOpen(self: *Modal) bool {
+pub fn isOpen(self: *Self) bool {
     return switch (self.type) {
-        .exportModal => self.exportModal.open,
-        .importModal => self.importModal.open,
-        .settingsModal => self.settingsModal.open,
+        .exportModal => |*modal| modal.open,
+        .importModal => |*modal| modal.open,
+        .settingsModal => |*modal| modal.open,
     };
 }
 
