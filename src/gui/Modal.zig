@@ -1,12 +1,13 @@
 const Self = @This();
 
+const std = @import("std");
 const zgui = @import("zgui");
 const rl = @import("raylib");
 const reg = @import("reg");
 const sync = reg.io.sync;
 const Color = reg.gui.Color;
 
-pub const Type = union(enum) {
+pub const Modals = union(enum) {
     const ExportModal = struct {
         open: bool = false,
 
@@ -123,13 +124,13 @@ pub const Type = union(enum) {
     settingsModal: SettingsModal,
 };
 
-type: Type,
+content: Modals,
 
-pub fn set(sort: enum { exportModal, importModal, settingsModal }) Self {
+pub fn create(sort: enum { exportModal, importModal, settingsModal }) Self {
     return switch (sort) {
-        .exportModal => Self{ .type = .{ .exportModal = .{ .open = true } } },
-        .importModal => Self{ .type = .{ .importModal = .{ .open = true } } },
-        .settingsModal => Self{ .type = .{ .settingsModal = .{ .open = true } } },
+        .exportModal => Self{ .content = .{ .exportModal = .{ .open = true } } },
+        .importModal => Self{ .content = .{ .importModal = .{ .open = true } } },
+        .settingsModal => Self{ .content = .{ .settingsModal = .{ .open = true } } },
     };
 }
 
@@ -137,7 +138,7 @@ pub fn show(self: *Self) void {
     const zgui_style = zgui.getStyle();
     zgui_style.setColor(.window_bg, Color.white);
 
-    switch (self.type) {
+    switch (self.content) {
         .exportModal => |*modal| if (modal.open) modal.show(),
         .importModal => |*modal| if (modal.open) modal.show(),
         .settingsModal => |*modal| if (modal.open) modal.show(),
@@ -145,7 +146,7 @@ pub fn show(self: *Self) void {
 }
 
 pub fn isOpen(self: *Self) bool {
-    return switch (self.type) {
+    return switch (self.content) {
         .exportModal => |*modal| modal.open,
         .importModal => |*modal| modal.open,
         .settingsModal => |*modal| modal.open,
@@ -156,19 +157,16 @@ fn setup(frame_width: f32, frame_height: f32) void {
     const window_width: i32 = rl.getScreenWidth();
     const window_height: i32 = rl.getScreenHeight();
 
-    { // Center Position
-        const center_x = (@as(f32, @floatFromInt(window_width)) - frame_width) / 2.0;
-        const center_y = (@as(f32, @floatFromInt(window_height)) - frame_height) / 2.0;
+    // Center Position
+    const center_x = (@as(f32, @floatFromInt(window_width)) - frame_width) / 2.0;
+    const center_y = (@as(f32, @floatFromInt(window_height)) - frame_height) / 2.0;
 
-        zgui.setNextWindowSize(.{ .w = frame_width, .h = frame_height, .cond = .once });
-        zgui.setNextWindowPos(.{ .x = center_x, .y = center_y, .cond = .always });
-    }
+    zgui.setNextWindowSize(.{ .w = frame_width, .h = frame_height, .cond = .once });
+    zgui.setNextWindowPos(.{ .x = center_x, .y = center_y, .cond = .always });
 
-    { // Style
-        zgui.pushStyleVar2f(.{ .idx = .window_padding, .v = .{ 10, 10 } });
-    }
+    // Style
+    zgui.pushStyleVar2f(.{ .idx = .window_padding, .v = .{ 10, 10 } });
 
-    { // Dim Background
-        rl.drawRectangle(0, 0, window_width, window_height, rl.Color.fade(rl.Color.black, 0.5));
-    }
+    // Dim Background
+    rl.drawRectangle(0, 0, window_width, window_height, rl.Color.fade(rl.Color.black, 0.5));
 }

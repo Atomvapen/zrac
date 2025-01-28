@@ -1,7 +1,7 @@
 const zgui = @import("zgui");
 const rl = @import("raylib");
 const reg = @import("reg");
-const Context = reg.gui.renderer.Context;
+const Context = reg.data.Context;
 const Color = reg.gui.Color;
 
 const Frame = @This();
@@ -19,7 +19,7 @@ pub const RiskEditorFrame = struct {
         zgui.setNextWindowPos(.{ .x = 20.0, .y = 40.0, .cond = .once });
 
         const zgui_style = zgui.getStyle();
-        if (ctx.modal != null) zgui_style.setColor(.window_bg, Color.light_grey);
+        if (ctx.window.modal != null) zgui_style.setColor(.window_bg, Color.light_grey);
 
         if (zgui.begin("Riskprofil", .{
             .popen = &self.open,
@@ -29,10 +29,10 @@ pub const RiskEditorFrame = struct {
                 .no_resize = true,
                 .always_auto_resize = true,
                 .no_collapse = true, //TODO Fix crash at : .no_collapse = false
-                .no_bring_to_front_on_focus = if (ctx.modal != null) true else false,
-                .no_mouse_inputs = if (ctx.modal != null) true else false,
-                .no_move = if (ctx.modal != null) true else false,
-                .no_nav_inputs = if (ctx.modal != null) true else false,
+                .no_bring_to_front_on_focus = if (ctx.window.modal != null) true else false,
+                .no_mouse_inputs = if (ctx.window.modal != null) true else false,
+                .no_move = if (ctx.window.modal != null) true else false,
+                .no_nav_inputs = if (ctx.window.modal != null) true else false,
             },
         })) {
             if (zgui.beginTabBar("Type", .{})) {

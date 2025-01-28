@@ -5,16 +5,10 @@ const ammunition = reg.data.ammunition;
 const validation = reg.data.validation;
 const State = @This();
 
-pub const Sort = enum {
-    Box,
-    SST,
-    Halva,
-};
-
 const Config = struct {
     show: bool = true,
     valid: bool = false,
-    sort: Sort = .Halva,
+    sort: enum { Box, SST, Halva } = .Halva,
     showText: bool = false,
 };
 const TerrainValues = struct {
@@ -88,12 +82,4 @@ pub fn update(self: *State) void {
     self.weaponValues.v = if (self.weaponValues.target == .Fast) self.weaponValues.model.v_still else self.weaponValues.model.v_moveable;
 
     self.config.valid = validation.validate(self);
-}
-
-pub fn save(self: *State) !void {
-    try reg.io.sync.save(self.state);
-}
-
-pub fn load(self: *State) !void {
-    try reg.io.sync.load(self.state);
 }

@@ -9,6 +9,7 @@ pub const data = struct {
     pub const validation = @import("data/validation.zig");
     pub const ammunition = @import("data/ammunition.zig");
     pub const weapon = @import("data/weapon.zig");
+    pub const Context = @import("data/Context.zig");
 };
 
 pub const io = struct {
@@ -23,6 +24,6 @@ pub const gui = struct {
     pub const plane = @import("gui/plane.zig");
     pub const Color = @import("gui/Color.zig");
     pub const Modal = @import("gui/Modal.zig");
-    // pub const Frame = @import("gui/Frame.zig");
-    pub const Frames = @import("gui/frames.zig");
+    pub const Frame = @import("gui/Frame.zig");
+    pub const Window = @import("gui/Window.zig");
 };
