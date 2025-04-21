@@ -23,8 +23,9 @@ pub fn handle() void {
 }
 
 fn move() void {
-    const button = rl.isMouseButtonDown(.right);
+    const button = rl.isMouseButtonDown(.left);
     if (!button) return;
+    if (rl.getMousePosition().x < 350) return;
 
     var delta = rl.getMouseDelta();
     delta = rl.math.vector2Scale(delta, -1.0 / camera.zoom);

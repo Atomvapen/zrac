@@ -125,12 +125,13 @@ pub const Modals = union(enum) {
 };
 
 content: Modals,
+open: bool = false,
 
 pub fn create(sort: enum { exportModal, importModal, settingsModal }) Self {
     return switch (sort) {
-        .exportModal => Self{ .content = .{ .exportModal = .{ .open = true } } },
-        .importModal => Self{ .content = .{ .importModal = .{ .open = true } } },
-        .settingsModal => Self{ .content = .{ .settingsModal = .{ .open = true } } },
+        .exportModal => Self{ .open = true, .content = .{ .exportModal = .{ .open = true } } },
+        .importModal => Self{ .open = true, .content = .{ .importModal = .{ .open = true } } },
+        .settingsModal => Self{ .open = true, .content = .{ .settingsModal = .{ .open = true } } },
     };
 }
 
@@ -143,10 +144,8 @@ pub fn show(self: *Self) void {
         .importModal => |*modal| if (modal.open) modal.show(),
         .settingsModal => |*modal| if (modal.open) modal.show(),
     }
-}
 
-pub fn isOpen(self: *Self) bool {
-    return switch (self.content) {
+    self.open = switch (self.content) {
         .exportModal => |*modal| modal.open,
         .importModal => |*modal| modal.open,
         .settingsModal => |*modal| modal.open,

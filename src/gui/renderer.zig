@@ -56,11 +56,13 @@ fn drawMainMenu(ctx: *Context) void {
     }
 }
 
+fn drawSidePanel() void {}
+
 fn drawFrames(ctx: *Context) void {
     if (ctx.window.frames.riskEditorFrame.open) ctx.window.frames.riskEditorFrame.show(ctx);
 
     if (ctx.window.modal) |*modal| {
-        if (!modal.isOpen()) ctx.window.modal = null;
+        if (!modal.open) ctx.window.modal = null;
         modal.show();
     }
 }

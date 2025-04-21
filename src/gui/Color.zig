@@ -1,5 +1,9 @@
-pub const white = [4]f32{ 1.0, 1.0, 1.0, 1.0 };
-pub const black = [4]f32{ 0.0, 0.0, 0.0, 1.0 };
-pub const dark_grey = [4]f32{ 0.094, 0.094, 0.106, 1.0 };
-pub const light_grey = [4]f32{ 0.7, 0.7, 0.7, 1.0 };
-pub const grey = [4]f32{ 0.184, 0.184, 0.192, 1.0 };
+pub const white: [4]f32 = .{ 1.0, 1.0, 1.0, 1.0 };
+pub const black: [4]f32 = .{ 0.0, 0.0, 0.0, 1.0 };
+pub const grey: [4]f32 = .{ 0.184, 0.184, 0.192, 1.0 };
+pub const dark_grey: [4]f32 = .{ 0.094, 0.094, 0.106, 1.0 };
+pub const light_grey: [4]f32 = .{ 0.7, 0.7, 0.7, 1.0 };
+pub const alabaster: [4]f32 = .{ 0.976, 0.976, 0.980, 1.0 }; // A very pale, almost-white tone.
+pub const porcelain: [4]f32 = .{ 0.957, 0.957, 0.961, 1.0 }; // A subtle off-white shade.
+pub const platinum: [4]f32 = .{ 0.898, 0.894, 0.886, 1.0 }; // A light, metallic grayish tone.
+pub const gainsboro: [4]f32 = .{ 0.863, 0.863, 0.863, 1.0 }; // A recognized light gray (as in CSS).

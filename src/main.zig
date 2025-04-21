@@ -13,8 +13,6 @@ pub fn main() !void {
 
     ctx.window.init();
     defer ctx.window.deinit();
-    ctx.window.setProperties(&ctx);
-    ctx.window.style();
 
     try renderer.main(&ctx);
 }

@@ -14,12 +14,11 @@ pub const RiskEditorFrame = struct {
     open: bool = false,
 
     pub fn show(self: *RiskEditorFrame, ctx: *Context) void {
-        zgui.pushStyleVar2f(.{ .idx = .window_padding, .v = .{ 10, 10 } });
-        zgui.setNextWindowSize(.{ .w = 100, .h = 100, .cond = .once });
-        zgui.setNextWindowPos(.{ .x = 20.0, .y = 40.0, .cond = .once });
+        zgui.setNextWindowSize(.{ .w = 350, .h = @as(f32, @floatFromInt(rl.getScreenHeight())) - 10, .cond = .once });
+        zgui.setNextWindowPos(.{ .x = 0.0, .y = 18.0, .cond = .once });
 
         const zgui_style = zgui.getStyle();
-        if (ctx.window.modal != null) zgui_style.setColor(.window_bg, Color.light_grey);
+        zgui_style.setColor(.window_bg, if (ctx.window.modal == null) Color.white else Color.platinum);
 
         if (zgui.begin("Riskprofil", .{
             .popen = &self.open,
@@ -27,14 +26,57 @@ pub const RiskEditorFrame = struct {
                 .no_scrollbar = true,
                 .no_scroll_with_mouse = true,
                 .no_resize = true,
-                .always_auto_resize = true,
-                .no_collapse = true, //TODO Fix crash at : .no_collapse = false
+                // .always_auto_resize = true,
+                .no_collapse = true,
                 .no_bring_to_front_on_focus = if (ctx.window.modal != null) true else false,
                 .no_mouse_inputs = if (ctx.window.modal != null) true else false,
-                .no_move = if (ctx.window.modal != null) true else false,
+                // .no_move = if (ctx.window.modal != null) true else false,
                 .no_nav_inputs = if (ctx.window.modal != null) true else false,
+                //
+                .no_title_bar = true,
+                .no_move = true,
+                .always_auto_resize = false,
             },
         })) {
+            zgui.pushStyleVar1f(.{ .idx = .frame_rounding, .v = 2 });
+            zgui.pushStyleVar1f(.{ .idx = .frame_border_size, .v = 1 });
+
+            zgui.pushStyleVar1f(.{ .idx = .scrollbar_rounding, .v = 2 });
+            zgui.pushStyleVar1f(.{ .idx = .scrollbar_size, .v = 2 });
+
+            zgui.pushStyleColor4f(.{ .idx = .border, .c = Color.gainsboro });
+            zgui.pushStyleColor4f(.{ .idx = .frame_bg, .c = Color.gainsboro });
+            zgui.pushStyleColor4f(.{ .idx = .separator, .c = Color.gainsboro });
+            zgui.pushStyleColor4f(.{ .idx = .header_hovered, .c = Color.alabaster });
+            zgui.pushStyleColor4f(.{ .idx = .header_active, .c = Color.alabaster });
+            zgui.pushStyleColor4f(.{ .idx = .header, .c = Color.porcelain });
+
+            zgui.pushStyleColor4f(.{ .idx = .scrollbar_bg, .c = Color.black });
+            zgui.pushStyleColor4f(.{ .idx = .scrollbar_grab, .c = Color.black });
+            zgui.pushStyleColor4f(.{ .idx = .scrollbar_grab_active, .c = Color.black });
+            zgui.pushStyleColor4f(.{ .idx = .scrollbar_grab_hovered, .c = Color.black });
+
+            zgui.pushStyleColor4f(.{ .idx = .button, .c = Color.porcelain });
+            zgui.pushStyleColor4f(.{ .idx = .button_active, .c = Color.white });
+            zgui.pushStyleColor4f(.{ .idx = .button_hovered, .c = Color.white });
+
+            zgui.pushStyleColor4f(.{ .idx = .check_mark, .c = Color.black });
+            zgui.pushStyleColor4f(.{ .idx = .text, .c = Color.black });
+
+            zgui.pushStyleVar1f(.{ .idx = .tab_rounding, .v = 2 });
+            zgui.pushStyleVar1f(.{ .idx = .tab_border_size, .v = 1 });
+            zgui.pushStyleVar1f(.{ .idx = .tab_bar_border_size, .v = 2 });
+            zgui.pushStyleColor4f(.{ .idx = .tab, .c = Color.white });
+            zgui.pushStyleColor4f(.{ .idx = .tab_hovered, .c = Color.porcelain });
+            zgui.pushStyleColor4f(.{ .idx = .tab_selected, .c = Color.porcelain });
+            zgui.pushStyleColor4f(.{ .idx = .tab_selected_overline, .c = Color.white });
+
+            zgui.pushStyleVar1f(.{ .idx = .frame_rounding, .v = 2 });
+            zgui.pushStyleColor4f(.{ .idx = .frame_bg, .c = Color.white });
+            zgui.pushStyleColor4f(.{ .idx = .frame_bg_active, .c = Color.porcelain });
+            zgui.pushStyleColor4f(.{ .idx = .frame_bg_hovered, .c = Color.porcelain });
+            zgui.pushStyleColor4f(.{ .idx = .popup_bg, .c = Color.white });
+
             if (zgui.beginTabBar("Type", .{})) {
                 if (zgui.beginTabItem("Halva", .{})) {
                     ctx.state.config.sort = .Halva;
@@ -52,7 +94,6 @@ pub const RiskEditorFrame = struct {
             }
 
             drawGeneral(ctx);
-
             switch (ctx.state.config.sort) {
                 .Halva => {},
                 .SST => drawSST(ctx),
@@ -61,14 +102,14 @@ pub const RiskEditorFrame = struct {
 
             drawEnd(ctx);
 
+            zgui.popStyleColor(.{ .count = 23 });
+            zgui.popStyleVar(.{ .count = 8 });
             zgui.end();
-            zgui.popStyleVar(.{});
         }
     }
 
     fn drawEnd(ctx: *Context) void {
         _ = ctx;
-        zgui.pushStyleColor4f(.{ .idx = .text, .c = Color.black });
 
         { // Information text
             zgui.newLine();
@@ -77,44 +118,33 @@ pub const RiskEditorFrame = struct {
             zgui.textUnformatted("Flytta: Höger musknapp.");
             zgui.textUnformatted(" Zooma: Scrollhjul.");
         }
-        zgui.popStyleColor(.{ .count = 1 });
     }
 
     fn drawGeneral(ctx: *Context) void {
-        zgui.pushStyleColor4f(.{ .idx = .text, .c = Color.black });
         { // Config values
-            zgui.pushStyleColor4f(.{ .idx = .text, .c = Color.black });
+
+            _ = zgui.checkbox("Visa linjer", .{ .v = &ctx.state.config.show });
+            zgui.sameLine(.{});
+
+            if (!ctx.state.config.show) zgui.beginDisabled(.{ .disabled = true });
+            _ = zgui.checkbox("Visa text", .{ .v = &ctx.state.config.showText });
+            if (!ctx.state.config.show) zgui.endDisabled();
+
+            zgui.sameLine(.{});
             {
-                _ = zgui.checkbox("Visa linjer", .{ .v = &ctx.state.config.show });
-                zgui.sameLine(.{});
-
-                if (!ctx.state.config.show) zgui.beginDisabled(.{ .disabled = true });
-                _ = zgui.checkbox("Visa text", .{ .v = &ctx.state.config.showText });
-                if (!ctx.state.config.show) zgui.endDisabled();
-
-                zgui.sameLine(.{});
-                zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 1.0, 1.0, 1.0, 1 } });
-                {
-                    if (zgui.button("Återställ", .{})) ctx.state.reset();
-                }
-                zgui.popStyleColor(.{ .count = 1 });
+                if (zgui.button("Återställ", .{})) ctx.state.reset();
             }
-            zgui.popStyleColor(.{ .count = 1 });
         }
 
         { // Terrain Values
             zgui.separatorText("Terrängvärden");
 
-            zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 1.0, 1.0, 1.0, 1 } });
-            {
-                _ = zgui.comboFromEnum("Faktor", &ctx.state.terrainValues.factor);
-                _ = zgui.inputFloat("Amin", .{ .v = &ctx.state.terrainValues.Amin });
-                _ = zgui.inputFloat("Amax", .{ .v = &ctx.state.terrainValues.Amax });
-                _ = zgui.inputFloat("f", .{ .v = &ctx.state.terrainValues.f });
-                zgui.setNextItemWidth(93);
-                _ = zgui.inputFloat("Skogsavstånd", .{ .v = &ctx.state.terrainValues.forestDist });
-            }
-            zgui.popStyleColor(.{ .count = 1 });
+            _ = zgui.comboFromEnum("Faktor", &ctx.state.terrainValues.factor);
+            _ = zgui.inputFloat("Amin", .{ .v = &ctx.state.terrainValues.Amin });
+            _ = zgui.inputFloat("Amax", .{ .v = &ctx.state.terrainValues.Amax });
+            _ = zgui.inputFloat("f", .{ .v = &ctx.state.terrainValues.f });
+            zgui.setNextItemWidth(93);
+            _ = zgui.inputFloat("Skogsavstånd", .{ .v = &ctx.state.terrainValues.forestDist });
 
             zgui.sameLine(.{});
             _ = zgui.checkbox("Uppfångande", .{ .v = &ctx.state.terrainValues.interceptingForest });
@@ -122,37 +152,28 @@ pub const RiskEditorFrame = struct {
 
         { // Weapons & Ammunition Values
             zgui.separatorText("Vapenvärden");
-            zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 1.0, 1.0, 1.0, 1 } });
-            {
-                zgui.setNextItemWidth(121);
-                _ = zgui.comboFromEnum("Vapentyp", &ctx.state.weaponValues.weapon_enum_value);
-                zgui.sameLine(.{});
 
-                if (!ctx.state.weaponValues.model.supportable) {
-                    ctx.state.weaponValues.support = false;
-                    zgui.beginDisabled(.{ .disabled = true });
-                }
+            zgui.setNextItemWidth(121);
+            _ = zgui.comboFromEnum("Vapentyp", &ctx.state.weaponValues.weapon_enum_value);
+            zgui.sameLine(.{});
+
+            if (!ctx.state.weaponValues.model.supportable) {
+                ctx.state.weaponValues.support = false;
+                zgui.beginDisabled(.{ .disabled = true });
             }
-            zgui.popStyleColor(.{ .count = 1 });
 
             _ = zgui.checkbox("Benstöd", .{ .v = &ctx.state.weaponValues.support });
             if (!ctx.state.weaponValues.model.supportable) zgui.endDisabled();
 
-            zgui.pushStyleColor4f(.{ .idx = .text, .c = .{ 1.0, 1.0, 1.0, 1 } });
-            {
-                switch (ctx.state.weaponValues.weapon_enum_value) {
-                    .AK5, .KSP90 => _ = zgui.comboFromEnum("Ammunitionstyp", &ctx.state.weaponValues.amm556),
-                    .KSP58 => _ = zgui.comboFromEnum("Ammunitionstyp", &ctx.state.weaponValues.amm762),
-                    .KSP88, .AG90 => _ = zgui.comboFromEnum("Ammunitionstyp", &ctx.state.weaponValues.amm127),
-                    .P88 => _ = zgui.comboFromEnum("Ammunitionstyp", &ctx.state.weaponValues.amm9),
-                }
-
-                _ = zgui.comboFromEnum("Måltyp", &ctx.state.weaponValues.target);
+            switch (ctx.state.weaponValues.weapon_enum_value) {
+                .AK5, .KSP90 => _ = zgui.comboFromEnum("Ammunitionstyp", &ctx.state.weaponValues.amm556),
+                .KSP58 => _ = zgui.comboFromEnum("Ammunitionstyp", &ctx.state.weaponValues.amm762),
+                .KSP88, .AG90 => _ = zgui.comboFromEnum("Ammunitionstyp", &ctx.state.weaponValues.amm127),
+                .P88 => _ = zgui.comboFromEnum("Ammunitionstyp", &ctx.state.weaponValues.amm9),
             }
-            zgui.popStyleColor(.{ .count = 1 });
-        }
 
-        zgui.popStyleColor(.{ .count = 1 });
+            _ = zgui.comboFromEnum("Måltyp", &ctx.state.weaponValues.target);
+        }
     }
 
     fn drawSST(ctx: *Context) void {
