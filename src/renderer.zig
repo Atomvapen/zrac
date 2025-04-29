@@ -32,8 +32,8 @@ fn drawPlane(ctx: *Context) !void {
 
         try switch (ctx.state.config.sort) {
             .Halva => drawHalf(ctx),
-            .SST => drawSST(ctx),
-            .Box => drawBox(ctx),
+            .SST => {}, //drawSST(ctx),
+            .Box => {}, //drawBox(ctx),
         };
         ctx.draw_buffer.execute();
     }
@@ -63,41 +63,41 @@ pub fn drawHalf(ctx: *Context) !void {
     const angle = 0;
 
     // h
-    var h: geo.Line = geo.Line.init(rl.Vector2{
-        .x = risk_origin.x,
-        .y = risk_origin.y,
-    }, rl.Vector2{
-        .x = risk_origin.x,
-        .y = risk_origin.y - ctx.state.terrainValues.h,
+    var h: geo.Line = geo.Line.init(.{
+        risk_origin.x,
+        risk_origin.y,
+    }, .{
+        risk_origin.x,
+        risk_origin.y - ctx.state.terrainValues.h,
     });
     h.rotate(.End, angle);
     h.addText("h", -20, 0, 40, rl.Color.black, h.end, ctx.state.config.showText);
 
     // Amin
-    var Amin: geo.Point = geo.Point.init(rl.Vector2{
-        .x = risk_origin.x,
-        .y = risk_origin.y - ctx.state.terrainValues.Amin,
+    var Amin: geo.Point = geo.Point.init(.{
+        risk_origin.x,
+        risk_origin.y - ctx.state.terrainValues.Amin,
     });
-    Amin.rotate(risk_origin, angle);
+    Amin.rotate(.{ risk_origin.x, risk_origin.y }, angle);
     Amin.addText("Amin", -100, 0, 40, rl.Color.black, ctx.state.config.showText);
 
     // v
-    var v: geo.Line = geo.Line.init(rl.Vector2{
-        .x = risk_origin.x,
-        .y = risk_origin.y,
-    }, rl.Vector2{
-        .x = risk_origin.x,
-        .y = risk_origin.y - ctx.state.terrainValues.h,
+    var v: geo.Line = geo.Line.init(.{
+        risk_origin.x,
+        risk_origin.y,
+    }, .{
+        risk_origin.x,
+        risk_origin.y - ctx.state.terrainValues.h,
     });
     v.rotate(.End, angle + ctx.state.weaponValues.v);
     v.addText("v", -5, -30, 40, rl.Color.black, v.end, ctx.state.config.showText);
 
     // f
-    var f: geo.Point = geo.Point.init(rl.Vector2{
-        .x = risk_origin.x,
-        .y = Amin.pos.y + ctx.state.terrainValues.f,
+    var f: geo.Point = geo.Point.init(.{
+        risk_origin.x,
+        Amin.pos[1] + ctx.state.terrainValues.f,
     });
-    f.rotate(risk_origin, angle);
+    f.rotate(.{ risk_origin.x, risk_origin.y }, angle);
     f.addText("f", -70, 0, 40, rl.Color.black, ctx.state.config.showText);
 
     // hv
@@ -106,7 +106,7 @@ pub fn drawHalf(ctx: *Context) !void {
         -1600 + angle,
         -1600 + angle + ctx.state.weaponValues.v,
         ctx.state.terrainValues.h,
-        risk_origin,
+        .{ risk_origin.x, risk_origin.y },
         10,
     );
 
@@ -114,45 +114,45 @@ pub fn drawHalf(ctx: *Context) !void {
     var c: geo.Line = try v.getParallelLine(ctx.state.weaponValues.c);
 
     // ch
-    var ch: geo.Line = geo.Line.init(rl.Vector2{
-        .x = v.end.x,
-        .y = v.end.y,
-    }, rl.Vector2{
-        .x = v.end.x - 100.0,
-        .y = v.end.y - 1000.0,
+    var ch: geo.Line = geo.Line.init(.{
+        v.end[0],
+        v.end[1],
+    }, .{
+        v.end[0] - 100.0,
+        v.end[1] - 1000.0,
     });
     ch.rotate(.End, angle + 3200.0 - ctx.state.terrainValues.ch);
     ch.addText("ch", -5, -20, 40, rl.Color.black, ch.end, ctx.state.config.showText);
     ch.end = ch.getIntersectionPoint(c).?;
 
     // q1
-    var q1: geo.Line = geo.Line.init(rl.Vector2{
-        .x = trig.triangleOppositeLeg(ctx.state.terrainValues.Amin - ctx.state.terrainValues.f, angle + ctx.state.weaponValues.v) + risk_origin.x,
-        .y = risk_origin.y - ctx.state.terrainValues.Amin + ctx.state.terrainValues.f,
-    }, rl.Vector2{
-        .x = v.end.x,
-        .y = v.end.y,
+    var q1: geo.Line = geo.Line.init(.{
+        trig.triangleOppositeLeg(ctx.state.terrainValues.Amin - ctx.state.terrainValues.f, angle + ctx.state.weaponValues.v) + risk_origin.x,
+        risk_origin.y - ctx.state.terrainValues.Amin + ctx.state.terrainValues.f,
+    }, .{
+        v.end[0],
+        v.end[1],
     });
     q1.rotate(.End, ctx.state.terrainValues.q1);
     q1.addText("q1", 15, 0, 40, rl.Color.black, q1.end, ctx.state.config.showText);
 
     // q2
-    var q2: geo.Line = geo.Line.init(rl.Vector2{
-        .x = trig.triangleOppositeLeg(ctx.state.terrainValues.forestDist, angle + ctx.state.weaponValues.v) + risk_origin.x,
-        .y = risk_origin.y - ctx.state.terrainValues.forestDist,
-    }, rl.Vector2{
-        .x = v.end.x,
-        .y = v.end.y,
+    var q2: geo.Line = geo.Line.init(.{
+        trig.triangleOppositeLeg(ctx.state.terrainValues.forestDist, angle + ctx.state.weaponValues.v) + risk_origin.x,
+        risk_origin.y - ctx.state.terrainValues.forestDist,
+    }, .{
+        v.end[0],
+        v.end[1],
     });
     q2.rotate(.End, ctx.state.terrainValues.q2);
     q2.addText("q2", 25, 0, 40, rl.Color.black, q2.end, ctx.state.config.showText);
 
     // forestMin
-    var forestMin: geo.Point = geo.Point.init(rl.Vector2{
-        .x = risk_origin.x,
-        .y = Amin.pos.y - ctx.state.terrainValues.forestDist,
+    var forestMin: geo.Point = geo.Point.init(.{
+        risk_origin.x,
+        Amin.pos[1] - ctx.state.terrainValues.forestDist,
     });
-    forestMin.rotate(risk_origin, angle);
+    forestMin.rotate(.{ risk_origin.x, risk_origin.y }, angle);
     forestMin.addText("forestMin", -220, 0, 40, rl.Color.black, ctx.state.config.showText);
 
     // q
@@ -179,12 +179,12 @@ pub fn drawSST(ctx: *Context) !void {
     const risk_origin_v = rl.Vector2{ .x = origin.x - (ctx.state.sst.width / 2), .y = origin.y };
     const angle = ctx.state.sst.hh;
 
-    const sst_b = geo.Line.init(rl.Vector2{
-        .x = origin.x - (ctx.state.sst.width / 2),
-        .y = origin.y,
-    }, rl.Vector2{
-        .x = origin.x + (ctx.state.sst.width / 2),
-        .y = origin.y,
+    const sst_b = geo.Line.init(.{
+        origin.x - (ctx.state.sst.width / 2),
+        origin.y,
+    }, .{
+        origin.x + (ctx.state.sst.width / 2),
+        origin.y,
     });
 
     try ctx.draw_buffer.append(geo.Shape{ .Line = sst_b });

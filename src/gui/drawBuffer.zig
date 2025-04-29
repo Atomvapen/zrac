@@ -3,29 +3,31 @@ const Self = @This();
 const std = @import("std");
 const rl = @import("raylib");
 const geo = @import("../math/geo.zig");
+const vec = @import("../math/vector.zig");
 
-const Command = union(Commands) {
-    const Commands = enum {
-        Line,
-        Semicircle,
-        Text,
-    };
+const Command = union(Tag) {
+    const Tag = enum(u8) { Line, Semicircle, Text };
 
     const SemiCommand = struct {
+        const initArgs = struct {
+            color: rl.Color,
+            startAngle: f32,
+            endAngle: f32,
+            radius: f32,
+            center: vec.Vec2f,
+            segments: i32,
+        };
+
         color: rl.Color,
         startAngle: f32,
         endAngle: f32,
         radius: f32,
-        center: rl.Vector2,
+        center: vec.Vec2f,
         segments: i32,
 
-        pub fn init(color: rl.Color, startAngle: f32, endAngle: f32, radius: f32, center: rl.Vector2, segments: i32) SemiCommand {
-            return SemiCommand{ .color = color, .startAngle = startAngle, .endAngle = endAngle, .radius = radius, .center = center, .segments = segments };
-        }
-
-        pub fn draw(self: *const SemiCommand) void {
+        pub fn render(self: *const SemiCommand) void {
             rl.drawRingLines(
-                .{ .x = self.center.x, .y = self.center.y },
+                .{ .x = self.center[0], .y = self.center[1] },
                 self.radius,
                 self.radius,
                 self.startAngle,
@@ -37,51 +39,47 @@ const Command = union(Commands) {
     };
 
     const LineCommand = struct {
+        const initArgs = struct {
+            color: rl.Color,
+            start: vec.Vec2f,
+            end: vec.Vec2f,
+        };
+
         color: rl.Color,
-        start: rl.Vector2,
-        end: rl.Vector2,
+        start: vec.Vec2f,
+        end: vec.Vec2f,
 
-        pub fn init(start: rl.Vector2, end: rl.Vector2, color: rl.Color) LineCommand {
-            return LineCommand{
-                .start = start,
-                .end = end,
-                .color = color,
-            };
-        }
-
-        pub fn draw(self: *const LineCommand) void {
-            rl.drawLineV(self.start, self.end, self.color);
+        pub fn render(self: *const LineCommand) void {
+            rl.drawLineV(.{ .x = self.start[0], .y = self.start[1] }, .{ .x = self.end[0], .y = self.end[1] }, self.color);
         }
     };
 
     const TextCommand = struct {
+        const initArgs = struct {
+            text: [:0]const u8,
+            textOffsetX: i32,
+            textOffsetY: i32,
+            fontSize: i32,
+            color: rl.Color,
+            pos: vec.Vec2f,
+            show: bool,
+        };
+
         text: [:0]const u8,
         textOffsetX: i32,
         textOffsetY: i32,
         fontSize: i32,
         color: rl.Color,
-        pos: rl.Vector2,
+        pos: vec.Vec2f,
         show: bool,
 
-        pub fn init(text: [:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32, color: rl.Color, pos: rl.Vector2, show: bool) TextCommand {
-            return TextCommand{
-                .text = text,
-                .textOffsetX = textOffsetX,
-                .textOffsetY = textOffsetY,
-                .fontSize = fontSize,
-                .color = color,
-                .pos = pos,
-                .show = show,
-            };
-        }
-
-        pub fn draw(self: *const TextCommand) void {
+        pub fn render(self: *const TextCommand) void {
             if (!self.show) return;
 
             rl.drawText(
                 self.text,
-                @as(i32, @intFromFloat(self.pos.x)) + self.textOffsetX,
-                @as(i32, @intFromFloat(self.pos.y)) + self.textOffsetY,
+                @as(i32, @intFromFloat(self.pos[0])) + self.textOffsetX,
+                @as(i32, @intFromFloat(self.pos[1])) + self.textOffsetY,
                 self.fontSize,
                 self.color,
             );
@@ -92,12 +90,18 @@ const Command = union(Commands) {
     Semicircle: SemiCommand,
     Text: TextCommand,
 
-    pub fn create(comptime sort: Commands) type {
+    pub fn create(comptime sort: Tag, args: @typeInfo(Command).@"union".fields[@intFromEnum(sort)].type.initArgs) Command {
         return switch (sort) {
-            .Line => LineCommand,
-            .Semicircle => SemiCommand,
-            .Text => TextCommand,
+            .Line => Command{ .Line = LineCommand{ .start = args.start, .end = args.end, .color = args.color } },
+            .Semicircle => Command{ .Semicircle = SemiCommand{ .color = args.color, .startAngle = args.startAngle, .endAngle = args.endAngle, .radius = args.radius, .center = args.center, .segments = args.segments } },
+            .Text => Command{ .Text = TextCommand{ .text = args.text, .textOffsetX = args.textOffsetX, .textOffsetY = args.textOffsetY, .fontSize = args.fontSize, .color = args.color, .pos = args.pos, .show = args.show } },
         };
+    }
+
+    pub fn render(self: Command) void {
+        switch (self) {
+            inline else => |c| if (@hasDecl(@TypeOf(c), "render")) c.render(),
+        }
     }
 };
 
@@ -113,12 +117,9 @@ pub fn deinit(self: *Self) void {
 
 pub fn append(self: *Self, item: geo.Shape) !void {
     const drawResult: Command = switch (item) {
-        .Line => |line| Command{ .Line = Self.Command.create(.Line).init(line.start, line.end, rl.Color.red) },
-        // .Point => |point| Command{ .Text = Self.Command.create(.Text).init(point.text.text, point.text.textOffsetX, point.text.textOffsetY, point.text.fontSize, point.text.color, point.text.pos, point.text.init == true and point.text.show == true) },
-        .Semicircle => |semi| Command{ .Semicircle = Self.Command.create(.Semicircle).init(semi.color, semi.startAngle, semi.endAngle, semi.radius, semi.center, semi.segments) },
-        else => {
-            return;
-        },
+        .Line => |line| Command.create(.Line, .{ .start = line.start, .end = line.end, .color = rl.Color.red }),
+        .Semicircle => |semi| Command.create(.Semicircle, .{ .color = semi.color, .startAngle = semi.startAngle, .endAngle = semi.endAngle, .radius = semi.radius, .center = semi.center, .segments = semi.segments }),
+        .Point => |point| Command.create(.Text, .{ .text = point.text.text, .textOffsetX = point.text.textOffsetX, .textOffsetY = point.text.textOffsetY, .fontSize = point.text.fontSize, .color = point.text.color, .pos = point.text.pos, .show = point.text.init == true and point.text.show == true }),
     };
 
     // const textResult: Command = switch (item) {
@@ -149,10 +150,6 @@ pub fn execute(self: *Self) void {
     if (self.buffer.items.len == 0) return;
 
     for (self.buffer.items) |item| {
-        switch (item) {
-            .Line => |line| line.draw(),
-            .Semicircle => |semi| semi.draw(),
-            .Text => |text| text.draw(),
-        }
+        item.render();
     }
 }
