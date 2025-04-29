@@ -1,37 +1,64 @@
 const rl = @import("raylib");
 
-pub fn setup(self: *rl.Camera2D) void {
-    self.begin();
-    defer self.end();
+pub var enabled: bool = true;
+
+var camera = rl.Camera2D{
+    .target = .{ .x = 9e2, .y = -5e2 },
+    .offset = .{ .x = 7e2, .y = 2e2 },
+    .zoom = 4e-1,
+    .rotation = 0,
+};
+
+pub fn begin() void {
+    camera.begin();
 }
 
-pub fn handleCamera(self: *rl.Camera2D) void {
-    if (checkValidity()) return;
-    move(self);
-    zoom(self);
+pub fn end() void {
+    camera.end();
 }
 
-fn move(self: *rl.Camera2D) void {
-    const button = rl.isMouseButtonDown(.mouse_button_right);
-    if (button) {
-        var delta = rl.getMouseDelta();
-        delta = rl.math.vector2Scale(delta, -1.0 / self.zoom);
-        self.target = rl.math.vector2Add(self.target, delta);
-    }
+pub fn handle() void {
+    move();
+    zoomTowardMouse();
 }
 
-fn zoom(self: *rl.Camera2D) void {
+fn move() void {
+    const button = rl.isMouseButtonDown(.left);
+    if (!button) return;
+    if (rl.getMousePosition().x < 350) return;
+
+    var delta = rl.getMouseDelta();
+    delta = rl.math.vector2Scale(delta, -1.0 / camera.zoom);
+    camera.target = rl.math.vector2Add(camera.target, delta);
+}
+
+fn zoom() void {
+    const MIN_ZOOM: f32 = 0.125;
+    const MAX_ZOOM: f32 = 1.0;
+
     const wheel = rl.getMouseWheelMove();
-    if (wheel != 0) {
-        const mouseWorldPos = rl.getScreenToWorld2D(rl.getMousePosition(), self.*);
-        self.offset = rl.getMousePosition();
-        self.target = mouseWorldPos;
-        var scaleFactor = 1.0 + (0.25 * @abs(wheel));
-        if (wheel < 0) scaleFactor = 1.0 / scaleFactor;
-        self.zoom = rl.math.clamp(self.zoom * scaleFactor, 0.125, 64.0);
-    }
+    if (wheel == 0) return;
+
+    const mouseWorldPos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
+    camera.offset = rl.getMousePosition();
+    camera.target = mouseWorldPos;
+    var scaleFactor = 1.0 + (0.25 * @abs(wheel));
+    if (wheel < 0) scaleFactor = 1.0 / scaleFactor;
+    camera.zoom = rl.math.clamp(camera.zoom * scaleFactor, MIN_ZOOM, MAX_ZOOM);
 }
 
-fn checkValidity() bool {
-    return if (rl.getMousePosition().x < 200) true else false;
+fn zoomTowardMouse() void {
+    const MIN_ZOOM: f32 = 0.125;
+    const MAX_ZOOM: f32 = 1.0;
+
+    const wheel = rl.getMouseWheelMove();
+    if (wheel == 0) return;
+
+    const mouseWorldPos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
+    camera.zoom *= if (wheel > 0) 1.25 else 0.8;
+    camera.zoom = rl.math.clamp(camera.zoom, MIN_ZOOM, MAX_ZOOM);
+
+    const newMouseWorldPos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
+    const delta = rl.math.vector2Subtract(mouseWorldPos, newMouseWorldPos);
+    camera.target = rl.math.vector2Add(camera.target, delta);
 }

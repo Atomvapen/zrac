@@ -1,4 +1,8 @@
 .zig-cache/
 zig-out/
-deps/
-temp
+bkp
+lib
+imgui.ini
+*.DS_Store
+test
+*.test.*
