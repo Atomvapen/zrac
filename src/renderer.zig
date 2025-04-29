@@ -1,75 +1,25 @@
-const std = @import("std");
 const rl = @import("raylib");
-const zgui = @import("zgui");
-const reg = @import("reg");
-const camera = reg.gui.camera;
-const Context = reg.data.Context;
-const Modal = reg.gui.Modal;
-const geo = reg.math.geometry;
-const trig = reg.math.trig;
+const Context = @import("Context.zig");
+const Camera = @import("gui/Camera.zig");
 
-const origin: rl.Vector2 = .{ .x = 600, .y = 750 };
+pub fn render(ctx: *Context) !void {
+    try drawWindow(ctx);
 
-pub fn main(ctx: *Context) !void {
-    while (!rl.windowShouldClose() and !ctx.window.config.quit) {
-        ctx.update();
+    Camera.enabled = (ctx.window.modal == null);
+    Camera.handle();
 
-        rl.beginDrawing();
-        defer rl.endDrawing();
+    rl.clearBackground(rl.Color.ray_white);
 
-        zgui.rlimgui.begin();
-        defer zgui.rlimgui.end();
+    try drawPlane(ctx);
+    drawFrames(ctx);
+    try drawModal(ctx);
 
-        camera.enabled = (ctx.window.modal == null);
-        if (camera.enabled) camera.handle();
-
-        rl.clearBackground(rl.Color.white);
-
-        drawMainMenu(ctx);
-        try drawPlane(ctx);
-        drawFrames(ctx);
-
-        try ctx.draw_buffer.clear();
-    }
-}
-
-fn drawMainMenu(ctx: *Context) void {
-    if (zgui.beginMainMenuBar()) {
-        if (zgui.beginMenu("Fil", true)) {
-            if (zgui.menuItem("Importera", .{})) {
-                if (ctx.window.modal == null) ctx.window.modal = Modal.create(.importModal);
-            }
-            if (zgui.menuItem("Exportera", .{})) {
-                if (ctx.window.modal == null) ctx.window.modal = Modal.create(.exportModal);
-            }
-            zgui.separator();
-            if (zgui.menuItem("Avsluta", .{})) ctx.window.config.quit = true;
-            zgui.endMenu();
-        }
-
-        if (zgui.beginMenu("Fönster", true)) {
-            if (zgui.menuItem("Riskprofil", .{})) ctx.window.frames.riskEditorFrame.open = !ctx.window.frames.riskEditorFrame.open;
-            zgui.endMenu();
-        }
-
-        zgui.endMainMenuBar();
-    }
-}
-
-fn drawSidePanel() void {}
-
-fn drawFrames(ctx: *Context) void {
-    if (ctx.window.frames.riskEditorFrame.open) ctx.window.frames.riskEditorFrame.show(ctx);
-
-    if (ctx.window.modal) |*modal| {
-        if (!modal.open) ctx.window.modal = null;
-        modal.show();
-    }
+    try ctx.draw_buffer.clear();
 }
 
 fn drawPlane(ctx: *Context) !void {
-    camera.begin();
-    defer camera.end();
+    Camera.begin();
+    defer Camera.end();
 
     rl.gl.rlPushMatrix();
     rl.gl.rlTranslatef(50 * 50, 50 * 50, 0);
@@ -88,6 +38,25 @@ fn drawPlane(ctx: *Context) !void {
         ctx.draw_buffer.execute();
     }
 }
+
+fn drawWindow(ctx: *Context) !void {
+    ctx.window.draw(ctx);
+}
+
+fn drawFrames(ctx: *Context) void {
+    if (ctx.window.frames.riskEditorFrame.open) ctx.window.frames.riskEditorFrame.show(ctx);
+}
+
+fn drawModal(ctx: *Context) !void {
+    if (ctx.window.modal) |*modal| {
+        if (!modal.open) ctx.window.modal = null;
+        modal.show();
+    }
+}
+
+const origin: rl.Vector2 = .{ .x = 600, .y = 750 };
+const geo = @import("math/geo.zig");
+const trig = @import("math/trig.zig");
 
 pub fn drawHalf(ctx: *Context) !void {
     const risk_origin = origin;

@@ -1,8 +1,7 @@
 const std = @import("std");
 const rl = @import("raylib");
-const reg = @import("reg");
-const trig = reg.math.trig;
-const DrawBuffer = reg.gui.DrawBuffer;
+const trig = @import("trig.zig");
+const DrawBuffer = @import("../gui/DrawBuffer.zig");
 
 pub const Shape = union(enum) {
     Point: Point,

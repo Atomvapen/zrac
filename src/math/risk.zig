@@ -1,5 +1,4 @@
-const reg = @import("reg");
-const State = reg.data.State;
+const State = @import("../Context.zig").State;
 
 pub fn calculateH(state: State) f32 {
     return state.terrainValues.Amax + state.terrainValues.l;

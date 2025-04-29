@@ -1,8 +1,7 @@
 const zgui = @import("zgui");
 const rl = @import("raylib");
-const reg = @import("reg");
-const Context = reg.data.Context;
-const Color = reg.gui.Color;
+const Context = @import("../Context.zig");
+const Color = @import("Color.zig");
 
 const Frame = @This();
 

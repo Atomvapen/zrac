@@ -2,11 +2,10 @@ const Self = @This();
 
 const std = @import("std");
 const rl = @import("raylib");
-const reg = @import("reg");
-const geo = reg.math.geometry;
+const geo = @import("../math/geo.zig");
 
-const Command = union(CommandType) {
-    const CommandType = enum {
+const Command = union(Commands) {
+    const Commands = enum {
         Line,
         Semicircle,
         Text,
@@ -56,7 +55,7 @@ const Command = union(CommandType) {
     };
 
     const TextCommand = struct {
-        text: [*:0]const u8,
+        text: [:0]const u8,
         textOffsetX: i32,
         textOffsetY: i32,
         fontSize: i32,
@@ -64,7 +63,7 @@ const Command = union(CommandType) {
         pos: rl.Vector2,
         show: bool,
 
-        pub fn init(text: [*:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32, color: rl.Color, pos: rl.Vector2, show: bool) TextCommand {
+        pub fn init(text: [:0]const u8, textOffsetX: i32, textOffsetY: i32, fontSize: i32, color: rl.Color, pos: rl.Vector2, show: bool) TextCommand {
             return TextCommand{
                 .text = text,
                 .textOffsetX = textOffsetX,
@@ -93,7 +92,7 @@ const Command = union(CommandType) {
     Semicircle: SemiCommand,
     Text: TextCommand,
 
-    pub fn create(comptime sort: CommandType) type {
+    pub fn create(comptime sort: Commands) type {
         return switch (sort) {
             .Line => LineCommand,
             .Semicircle => SemiCommand,
@@ -115,21 +114,27 @@ pub fn deinit(self: *Self) void {
 pub fn append(self: *Self, item: geo.Shape) !void {
     const drawResult: Command = switch (item) {
         .Line => |line| Command{ .Line = Self.Command.create(.Line).init(line.start, line.end, rl.Color.red) },
-        .Point => |point| Command{ .Text = Self.Command.create(.Text).init(point.text.text, point.text.textOffsetX, point.text.textOffsetY, point.text.fontSize, point.text.color, point.text.pos, point.text.init == true and point.text.show == true) },
+        // .Point => |point| Command{ .Text = Self.Command.create(.Text).init(point.text.text, point.text.textOffsetX, point.text.textOffsetY, point.text.fontSize, point.text.color, point.text.pos, point.text.init == true and point.text.show == true) },
         .Semicircle => |semi| Command{ .Semicircle = Self.Command.create(.Semicircle).init(semi.color, semi.startAngle, semi.endAngle, semi.radius, semi.center, semi.segments) },
+        else => {
+            return;
+        },
     };
 
-    const textResult: Command = switch (item) {
-        .Line => |line| Command{ .Text = Self.Command.create(.Text).init(line.text.text, line.text.textOffsetX, line.text.textOffsetY, line.text.fontSize, line.text.color, line.text.pos, line.text.init == true and line.text.show == true) },
-        .Point => |point| Command{ .Text = Self.Command.create(.Text).init(point.text.text, point.text.textOffsetX, point.text.textOffsetY, point.text.fontSize, point.text.color, point.text.pos, point.text.init == true and point.text.show == true) },
-        .Semicircle => |semi| Command{ .Text = Self.Command.create(.Text).init(semi.text.text, semi.text.textOffsetX, semi.text.textOffsetY, semi.text.fontSize, semi.text.color, semi.text.pos, semi.text.init == true and semi.text.show == true) },
-    };
+    // const textResult: Command = switch (item) {
+    //     .Line => |line| Command{ .Text = Self.Command.create(.Text).init(line.text.text, line.text.textOffsetX, line.text.textOffsetY, line.text.fontSize, line.text.color, line.text.pos, line.text.init == true and line.text.show == true) },
+    //     // .Point => |point| Command{ .Text = Self.Command.create(.Text).init(point.text.text, point.text.textOffsetX, point.text.textOffsetY, point.text.fontSize, point.text.color, point.text.pos, point.text.init == true and point.text.show == true) },
+    //     .Semicircle => |semi| Command{ .Text = Self.Command.create(.Text).init(semi.text.text, semi.text.textOffsetX, semi.text.textOffsetY, semi.text.fontSize, semi.text.color, semi.text.pos, semi.text.init == true and semi.text.show == true) },
+    //     else => {
+    //         return;
+    //     },
+    // };
 
     try self.buffer.append(drawResult);
     errdefer self.buffer.resize(self.buffer.items.len - 1) catch {};
 
-    try self.buffer.append(textResult);
-    errdefer self.buffer.resize(self.buffer.items.len - 1) catch {};
+    // try self.buffer.append(textResult);
+    // errdefer self.buffer.resize(self.buffer.items.len - 1) catch {};
 }
 
 pub fn clearAndFree(self: *Self) void {

@@ -3,9 +3,7 @@ const Self = @This();
 const std = @import("std");
 const zgui = @import("zgui");
 const rl = @import("raylib");
-const reg = @import("reg");
-const sync = reg.io.sync;
-const Color = reg.gui.Color;
+const Color = @import("Color.zig");
 
 pub const Modals = union(enum) {
     const ExportModal = struct {
@@ -44,9 +42,7 @@ pub const Modals = union(enum) {
                 zgui.sameLine(.{ .spacing = 4 });
                 _ = zgui.button("X", .{ .h = 20, .w = 20 });
 
-                if (zgui.button("Acceptera", .{ .h = 20, .w = 100 })) {
-                    sync.save();
-                }
+                if (zgui.button("Acceptera", .{ .h = 20, .w = 100 })) {}
                 zgui.sameLine(.{});
                 if (zgui.button("Avbryt", .{ .h = 20, .w = 100 })) {
                     self.open = false;
@@ -75,9 +71,7 @@ pub const Modals = union(enum) {
                     .no_move = true,
                 },
             })) {
-                if (zgui.button("Acceptera", .{ .h = 20, .w = 100 })) {
-                    sync.load();
-                }
+                if (zgui.button("Acceptera", .{ .h = 20, .w = 100 })) {}
                 zgui.sameLine(.{});
                 if (zgui.button("Avbryt", .{ .h = 20, .w = 100 })) {
                     self.open = false;
@@ -106,9 +100,7 @@ pub const Modals = union(enum) {
                     .no_move = true,
                 },
             })) {
-                if (zgui.button("Acceptera", .{ .h = 20, .w = 100 })) {
-                    sync.load();
-                }
+                if (zgui.button("Acceptera", .{ .h = 20, .w = 100 })) {}
                 zgui.sameLine(.{});
                 if (zgui.button("Avbryt", .{ .h = 20, .w = 100 })) {
                     self.open = false;

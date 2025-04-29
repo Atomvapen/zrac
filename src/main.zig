@@ -1,18 +1,30 @@
 const std = @import("std");
-const reg = @import("reg");
-const renderer = reg.gui.renderer;
-const Context = reg.data.Context;
+const rl = @import("raylib");
+const zgui = @import("zgui");
+const Context = @import("Context.zig");
+const Renderer = @import("renderer.zig");
+
+var gpa: std.heap.DebugAllocator(.{}) = std.heap.DebugAllocator(.{}).init;
+pub const allocator: std.mem.Allocator = gpa.allocator();
+// pub const allocator: std.mem.Allocator = std.heap.c_allocator;
 
 pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    defer _ = gpa.deinit();
+    var ctx: *Context = try Context.create(allocator);
+    defer ctx.destroy(allocator);
 
-    var ctx: Context = Context.create(allocator);
-    defer ctx.destroy();
+    zgui.rlimgui.setup(true);
+    defer zgui.rlimgui.shutdown();
 
-    ctx.window.init();
-    defer ctx.window.deinit();
+    while (!rl.windowShouldClose() and ctx.window.quit != true) {
+        ctx.update();
+        ctx.window.update();
 
-    try renderer.main(&ctx);
+        rl.beginDrawing();
+        defer rl.endDrawing();
+
+        zgui.rlimgui.begin();
+        defer zgui.rlimgui.end();
+
+        try Renderer.render(ctx);
+    }
 }
