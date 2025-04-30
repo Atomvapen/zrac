@@ -27,6 +27,7 @@ quit: bool,
 dragging: bool,
 modal: ?Modal,
 frames: struct { riskEditorFrame: Frame.RiskEditorFrame = undefined } = undefined,
+dragable: bool = true,
 
 var drag_offset = rl.Vector2{ .x = 0, .y = 0 };
 
@@ -195,16 +196,18 @@ fn lerp(a: f32, b: f32, alpha: f32) f32 {
 
 pub const Drag = struct {
     var dragging: bool = false;
-    var window_pos: rl.Vector2 = .{ .x = 500, .y = 200 };
+    var drag_origin_mouse: rl.Vector2 = .{ .x = 0, .y = 0 };
+    var drag_origin_window: rl.Vector2 = .{ .x = 0, .y = 0 };
 
     pub fn start() void {
-        const mousePos = rl.getMousePosition();
-        const y: f32 = mousePos.y;
-        const x: f32 = mousePos.x;
-        if (y >= 30) return;
-        if (x <= 240) return;
-        if (x >= @as(f32, @floatFromInt(rl.getScreenWidth())) - 100) return;
+        const mouse = rl.getMousePosition();
+        if (mouse.y >= 30) return;
+        if (mouse.x <= 240) return;
+        if (mouse.x >= @as(f32, @floatFromInt(rl.getScreenWidth())) - 100) return;
+
         dragging = true;
+        drag_origin_mouse = mouse;
+        drag_origin_window = rl.getWindowPosition();
     }
 
     pub fn stop() void {
@@ -214,19 +217,14 @@ pub const Drag = struct {
     pub fn handle() void {
         if (!dragging) return;
 
-        // Get the mouse delta (movement since last frame)
-        const mouseDelta = rl.getMouseDelta();
+        const current_mouse = rl.getMousePosition();
 
-        // Smooth the movement by interpolating between the old position and the new position
-        const smooth_factor: f32 = 0.8; // How fast the window follows the cursor
-        window_pos.x = lerp(window_pos.x, window_pos.x + mouseDelta.x, smooth_factor);
-        window_pos.y = lerp(window_pos.y, window_pos.y + mouseDelta.y, smooth_factor);
+        const offset_x = current_mouse.x - drag_origin_mouse.x;
+        const offset_y = current_mouse.y - drag_origin_mouse.y;
 
-        // Round to avoid non-integer positions that might cause jitter
-        window_pos.x = @round(window_pos.x);
-        window_pos.y = @round(window_pos.y);
+        const new_x = drag_origin_window.x + offset_x;
+        const new_y = drag_origin_window.y + offset_y;
 
-        // Set the new window position
-        rl.setWindowPosition(@as(i32, @intFromFloat(window_pos.x)), @as(i32, @intFromFloat(window_pos.y)));
+        rl.setWindowPosition(@intFromFloat(new_x), @intFromFloat(new_y));
     }
 };

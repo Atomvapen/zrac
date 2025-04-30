@@ -12,6 +12,19 @@
             .url = "git+https://github.com/Not-Nik/raylib-zig?ref=devel#0de5f8aed0565f2dbd8bc6851499c85df9e73534",
             .hash = "raylib_zig-5.6.0-dev-KE8REGMrBQCs5X69dptNzjw9Z7MYM1fgdaKrnuKf8zyr",
         },
+        // .zglfw = .{
+        //     .url = "https://github.com/zig-gamedev/zglfw/archive/refs/heads/main.zip",
+        //     .hash = "1220d1dbe8beab3f85951eae51d3833740cd3d003d5f51b4df8aab1e20dda144bc68",
+        // },
+        // .zgpu = .{
+        //     .url = "https://github.com/zig-gamedev/zgpu/archive/refs/heads/main.zip",
+        //     .hash = "1220eace0f7966fa26251129ea8225dcd4ee6dfca250d1dcd7c3eb4cc874426a0a05",
+        // },
+        // .dawn_x86_64_windows_gnu = .{
+        //     .url = "https://github.com/michal-z/webgpu_dawn-x86_64-windows-gnu/archive/main.zip",
+        //     .hash = "1220f9448cde02ef3cd51bde2e0850d4489daa0541571d748154e89c6eb46c76a267",
+        //     .lazy = true,
+        // },
     },
     .paths = .{
         "build.zig",

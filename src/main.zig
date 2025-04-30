@@ -3,6 +3,7 @@ const rl = @import("raylib");
 const zgui = @import("zgui");
 const Context = @import("Context.zig");
 const Renderer = @import("renderer.zig");
+const zglfw = @import("zglfw");
 
 var gpa: std.heap.DebugAllocator(.{}) = std.heap.DebugAllocator(.{}).init;
 pub const allocator: std.mem.Allocator = gpa.allocator();

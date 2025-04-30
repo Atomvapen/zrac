@@ -9,7 +9,7 @@ const Command = union(Tag) {
     const Tag = enum(u8) { Line, Semicircle, Text };
 
     const SemiCommand = struct {
-        const initArgs = struct {
+        const InitArgs = struct {
             color: rl.Color,
             startAngle: f32,
             endAngle: f32,
@@ -39,7 +39,7 @@ const Command = union(Tag) {
     };
 
     const LineCommand = struct {
-        const initArgs = struct {
+        const InitArgs = struct {
             color: rl.Color,
             start: vec.Vec2f,
             end: vec.Vec2f,
@@ -55,7 +55,7 @@ const Command = union(Tag) {
     };
 
     const TextCommand = struct {
-        const initArgs = struct {
+        const InitArgs = struct {
             text: [:0]const u8,
             textOffsetX: i32,
             textOffsetY: i32,
@@ -90,12 +90,12 @@ const Command = union(Tag) {
     Semicircle: SemiCommand,
     Text: TextCommand,
 
-    pub fn create(comptime sort: Tag, args: @typeInfo(Command).@"union".fields[@intFromEnum(sort)].type.initArgs) Command {
-        return switch (sort) {
-            .Line => Command{ .Line = LineCommand{ .start = args.start, .end = args.end, .color = args.color } },
-            .Semicircle => Command{ .Semicircle = SemiCommand{ .color = args.color, .startAngle = args.startAngle, .endAngle = args.endAngle, .radius = args.radius, .center = args.center, .segments = args.segments } },
-            .Text => Command{ .Text = TextCommand{ .text = args.text, .textOffsetX = args.textOffsetX, .textOffsetY = args.textOffsetY, .fontSize = args.fontSize, .color = args.color, .pos = args.pos, .show = args.show } },
-        };
+    pub fn create(comptime tag: Tag, args: @typeInfo(Command).@"union".fields[@intFromEnum(tag)].type.InitArgs) Command {
+        const PayloadType = @typeInfo(Command).@"union".fields[@intFromEnum(tag)].type;
+        const field_names: []const std.builtin.Type.StructField = @typeInfo(PayloadType).@"struct".fields;
+        var payload: PayloadType = undefined;
+        inline for (field_names) |field| @field(payload, field.name) = @field(args, field.name);
+        return @unionInit(Command, @tagName(tag), payload);
     }
 
     pub fn render(self: Command) void {

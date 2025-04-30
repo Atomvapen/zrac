@@ -25,7 +25,7 @@ pub fn create(allocator: std.mem.Allocator) !*Self {
 }
 
 pub fn destroy(self: *Self, allocator: std.mem.Allocator) void {
-    self.window.destroy(allocator);
+    // self.window.destroy(allocator);
     allocator.destroy(self);
 }
 
@@ -195,4 +195,73 @@ pub const State = struct {
                 state.terrainValues.forestDist < max);
         }
     };
+};
+
+pub fn draw(ctx: *Self) void {
+    Toolbar.draw(ctx);
+}
+
+const zgui = @import("zgui");
+const Color = @import("gui/Color.zig");
+const Toolbar = struct {
+    pub fn draw(_: *Self) void {
+        zgui.pushStyleColor4f(.{ .idx = .header, .c = Color.dark_grey });
+        zgui.pushStyleColor4f(.{ .idx = .border, .c = Color.grey });
+        zgui.pushStyleVar1f(.{ .idx = .popup_rounding, .v = 2 });
+        zgui.pushStyleVar1f(.{ .idx = .child_rounding, .v = 2 });
+
+        if (zgui.beginMainMenuBar()) {
+            zgui.popStyleColor(.{ .count = 1 });
+            if (zgui.beginMenu("File", true)) {
+                if (zgui.menuItem("Import", .{})) {
+                    // ctx.window.modal = .create(.importModal);
+                }
+
+                if (zgui.menuItem("Export", .{})) {
+                    // ctx.window.modal = .create(.exportModal);
+                }
+
+                zgui.separator();
+                if (zgui.menuItem("Quit", .{})) {
+                    // ctx.window.deinit();
+                }
+                zgui.endMenu();
+            }
+
+            if (zgui.beginMenu("Edit", true)) {
+                zgui.endMenu();
+            }
+
+            if (zgui.beginMenu("Window", true)) {
+                // if (zgui.menuItem("Riskprofil", .{})) ctx.window.frames.riskEditorFrame.open = !ctx.window.frames.riskEditorFrame.open;
+                zgui.endMenu();
+            }
+
+            if (zgui.beginMenu("Tools", true)) {
+                if (zgui.menuItem("Settings", .{})) {
+                    // ctx.window.modal = .create(.settingsModal);
+                }
+
+                zgui.endMenu();
+            }
+            // zgui.sameLine(.{ .offset_from_start_x = @as(f32, @floatFromInt(rl.getScreenWidth())) - 100 });
+            zgui.pushStyleVar1f(.{ .idx = .frame_rounding, .v = 0 });
+            zgui.pushStyleColor4f(.{ .idx = .text, .c = Color.white });
+
+            zgui.pushStyleColor4f(.{ .idx = .button, .c = Color.dark_grey });
+            zgui.pushStyleColor4f(.{ .idx = .button_hovered, .c = Color.grey });
+            // if (zgui.button("_", .{})) ctx.window.deinit();
+            // if (zgui.button("[]", .{})) ctx.window.deinit();
+            // if (zgui.button("X", .{})) ctx.window.deinit();
+            zgui.popStyleColor(.{ .count = 2 });
+
+            zgui.popStyleVar(.{ .count = 1 });
+            zgui.popStyleColor(.{ .count = 1 });
+            zgui.endMainMenuBar();
+        } else {
+            zgui.popStyleColor(.{ .count = 1 });
+        }
+        zgui.popStyleColor(.{ .count = 1 });
+        zgui.popStyleVar(.{ .count = 2 });
+    }
 };
