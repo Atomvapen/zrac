@@ -1,588 +1,210 @@
-const rl = @import("raylib");
+const zgui = @import("zgui");
+const zgpu = @import("zgpu");
+const zglfw = @import("zglfw");
+
 const Context = @import("Context.zig");
-const Camera = @import("gui/Camera.zig");
+const Window = @import("gui/Window.zig");
+const ContextMenu = @import("gui/ContextMenu.zig");
 
-pub fn render(ctx: *Context) !void {
-    try drawWindow(ctx);
+pub var camera: Camera2D = .{};
+var grid: Grid = undefined;
 
-    Camera.enabled = (ctx.window.modal == null);
-    Camera.handle();
-
-    rl.clearBackground(rl.Color.ray_white);
-
-    try drawPlane(ctx);
-    drawFrames(ctx);
-    try drawModal(ctx);
-
-    try ctx.draw_buffer.clear();
+pub fn init() void {
+    grid = Grid.init(100, 100, 200, 150); // Starting position and size
 }
 
-fn drawPlane(ctx: *Context) !void {
-    Camera.begin();
-    defer Camera.end();
+pub fn update(ctx: *Context) void {
+    Window.Drag.handle(ctx.window);
+    camera.update(ctx.window);
 
-    rl.gl.rlPushMatrix();
-    rl.gl.rlTranslatef(50 * 50, 50 * 50, 0);
-    rl.gl.rlRotatef(90, 1, 0, 0);
-    rl.drawGrid(200, 200);
-    rl.gl.rlPopMatrix();
+    zglfw.pollEvents();
 
-    if (ctx.state.config.valid) {
-        errdefer ctx.draw_buffer.clear() catch {};
+    zgui.backend.newFrame(
+        ctx.gctx.swapchain_descriptor.width,
+        ctx.gctx.swapchain_descriptor.height,
+    );
 
-        try switch (ctx.state.config.sort) {
-            .Halva => drawHalf(ctx),
-            .SST => {}, //drawSST(ctx),
-            .Box => {}, //drawBox(ctx),
+    grid.draw();
+    grid.addLine(10.0, 10.0, 50.0, 50.0, 0xFFFF0000); // Red line
+
+    Window.draw(ctx);
+}
+
+pub fn draw(ctx: *Context) void {
+    const gctx: *zgpu.GraphicsContext = ctx.gctx;
+
+    const swapchain_texv: zgpu.wgpu.TextureView = gctx.swapchain.getCurrentTextureView();
+    defer swapchain_texv.release();
+
+    const commands: zgpu.wgpu.CommandBuffer = commands: {
+        const encoder: zgpu.wgpu.CommandEncoder = gctx.device.createCommandEncoder(null);
+        defer encoder.release();
+
+        {
+            const pass: zgpu.wgpu.RenderPassEncoder = zgpu.beginRenderPassSimple(encoder, .load, swapchain_texv, null, null, null);
+            defer zgpu.endReleasePass(pass);
+            zgui.backend.draw(pass);
+        }
+
+        break :commands encoder.finish(null);
+    };
+    defer commands.release();
+
+    gctx.submit(&.{commands});
+    _ = gctx.present();
+}
+
+pub const Camera2D = struct {
+    offsetX: f32 = 0,
+    offsetY: f32 = 0,
+    isDragging: bool = false,
+    lastMouseX: f64 = 0,
+    lastMouseY: f64 = 0,
+    zoom: f32 = 1.0,
+
+    pub fn onScroll(window: *zglfw.Window, xoffset: f64, yoffset: f64) callconv(.C) void {
+        _ = xoffset;
+
+        // Calculate mouse position in world space
+        const mousePos = window.getCursorPos();
+        const mouseX: f32 = @floatCast(mousePos[0]);
+        const mouseY: f32 = @floatCast(mousePos[1]);
+
+        // Convert mouse position to world space
+        const mouseWorld = camera.screenToWorld(.{ mouseX, mouseY });
+
+        // Calculate new zoom level
+        var newZoom: f32 = camera.zoom + @as(f32, @floatCast(yoffset * 0.1));
+        if (newZoom < 0.1) {
+            newZoom = 0.1;
+        } else if (newZoom > 5.0) {
+            newZoom = 5.0;
+        }
+
+        // Adjust camera offset to zoom toward the mouse position
+        const zoomFactor: f32 = @as(f32, @floatCast(newZoom)) / camera.zoom;
+        camera.offsetX = mouseWorld[0] - (mouseWorld[0] - camera.offsetX) * zoomFactor;
+        camera.offsetY = mouseWorld[1] - (mouseWorld[1] - camera.offsetY) * zoomFactor;
+
+        camera.zoom = newZoom;
+    }
+
+    pub fn update(self: *Camera2D, window: *zglfw.Window) void {
+        const mousePos = window.getCursorPos();
+        const mouseX = mousePos[0];
+        const mouseY = mousePos[1];
+
+        if (self.isDragging) {
+            self.offsetX += @floatCast(mouseX - self.lastMouseX);
+            self.offsetY += @floatCast(mouseY - self.lastMouseY);
+        }
+
+        const mouseButton = window.getMouseButton(.left);
+        switch (mouseButton) {
+            .press => {
+                if (!self.isDragging) {
+                    self.isDragging = true;
+                    self.lastMouseX = mouseX;
+                    self.lastMouseY = mouseY;
+                }
+            },
+            .release => self.isDragging = false,
+            else => {},
+        }
+
+        self.lastMouseX = mouseX;
+        self.lastMouseY = mouseY;
+    }
+    pub fn screenToWorld(self: Camera2D, screen: [2]f32) [2]f32 {
+        return .{
+            (screen[0] - self.offsetX) / self.zoom,
+            (screen[1] - self.offsetY) / self.zoom,
         };
-        ctx.draw_buffer.execute();
     }
-}
 
-fn drawWindow(ctx: *Context) !void {
-    ctx.window.draw(ctx);
-}
-
-fn drawFrames(ctx: *Context) void {
-    if (ctx.window.frames.riskEditorFrame.open) ctx.window.frames.riskEditorFrame.show(ctx);
-}
-
-fn drawModal(ctx: *Context) !void {
-    if (ctx.window.modal) |*modal| {
-        if (!modal.open) ctx.window.modal = null;
-        modal.show();
+    pub fn worldToScreen(self: Camera2D, world: [2]f32) [2]f32 {
+        return .{
+            world[0] * self.zoom + self.offsetX,
+            world[1] * self.zoom + self.offsetY,
+        };
     }
-}
-
-const origin: rl.Vector2 = .{ .x = 600, .y = 750 };
-const geo = @import("math/geo.zig");
-const trig = @import("math/trig.zig");
-
-pub fn drawHalf(ctx: *Context) !void {
-    const risk_origin = origin;
-    const angle = 0;
-
-    // h
-    var h: geo.Line = geo.Line.init(.{
-        risk_origin.x,
-        risk_origin.y,
-    }, .{
-        risk_origin.x,
-        risk_origin.y - ctx.state.terrainValues.h,
-    });
-    h.rotate(.End, angle);
-    h.addText("h", -20, 0, 40, rl.Color.black, h.end, ctx.state.config.showText);
-
-    // Amin
-    var Amin: geo.Point = geo.Point.init(.{
-        risk_origin.x,
-        risk_origin.y - ctx.state.terrainValues.Amin,
-    });
-    Amin.rotate(.{ risk_origin.x, risk_origin.y }, angle);
-    Amin.addText("Amin", -100, 0, 40, rl.Color.black, ctx.state.config.showText);
-
-    // v
-    var v: geo.Line = geo.Line.init(.{
-        risk_origin.x,
-        risk_origin.y,
-    }, .{
-        risk_origin.x,
-        risk_origin.y - ctx.state.terrainValues.h,
-    });
-    v.rotate(.End, angle + ctx.state.weaponValues.v);
-    v.addText("v", -5, -30, 40, rl.Color.black, v.end, ctx.state.config.showText);
-
-    // f
-    var f: geo.Point = geo.Point.init(.{
-        risk_origin.x,
-        Amin.pos[1] + ctx.state.terrainValues.f,
-    });
-    f.rotate(.{ risk_origin.x, risk_origin.y }, angle);
-    f.addText("f", -70, 0, 40, rl.Color.black, ctx.state.config.showText);
-
-    // hv
-    const hv: geo.Semicircle = geo.Semicircle.init(
-        rl.Color.red,
-        -1600 + angle,
-        -1600 + angle + ctx.state.weaponValues.v,
-        ctx.state.terrainValues.h,
-        .{ risk_origin.x, risk_origin.y },
-        10,
-    );
-
-    //c
-    var c: geo.Line = try v.getParallelLine(ctx.state.weaponValues.c);
-
-    // ch
-    var ch: geo.Line = geo.Line.init(.{
-        v.end[0],
-        v.end[1],
-    }, .{
-        v.end[0] - 100.0,
-        v.end[1] - 1000.0,
-    });
-    ch.rotate(.End, angle + 3200.0 - ctx.state.terrainValues.ch);
-    ch.addText("ch", -5, -20, 40, rl.Color.black, ch.end, ctx.state.config.showText);
-    ch.end = ch.getIntersectionPoint(c).?;
-
-    // q1
-    var q1: geo.Line = geo.Line.init(.{
-        trig.triangleOppositeLeg(ctx.state.terrainValues.Amin - ctx.state.terrainValues.f, angle + ctx.state.weaponValues.v) + risk_origin.x,
-        risk_origin.y - ctx.state.terrainValues.Amin + ctx.state.terrainValues.f,
-    }, .{
-        v.end[0],
-        v.end[1],
-    });
-    q1.rotate(.End, ctx.state.terrainValues.q1);
-    q1.addText("q1", 15, 0, 40, rl.Color.black, q1.end, ctx.state.config.showText);
-
-    // q2
-    var q2: geo.Line = geo.Line.init(.{
-        trig.triangleOppositeLeg(ctx.state.terrainValues.forestDist, angle + ctx.state.weaponValues.v) + risk_origin.x,
-        risk_origin.y - ctx.state.terrainValues.forestDist,
-    }, .{
-        v.end[0],
-        v.end[1],
-    });
-    q2.rotate(.End, ctx.state.terrainValues.q2);
-    q2.addText("q2", 25, 0, 40, rl.Color.black, q2.end, ctx.state.config.showText);
-
-    // forestMin
-    var forestMin: geo.Point = geo.Point.init(.{
-        risk_origin.x,
-        Amin.pos[1] - ctx.state.terrainValues.forestDist,
-    });
-    forestMin.rotate(.{ risk_origin.x, risk_origin.y }, angle);
-    forestMin.addText("forestMin", -220, 0, 40, rl.Color.black, ctx.state.config.showText);
-
-    // q
-    var q: geo.Line = if (ctx.state.terrainValues.forestDist > 0) q2 else q1;
-    q.end = q.getIntersectionPoint(c).?;
-
-    v.end = v.getIntersectionPoint(q).?;
-    c.end = c.getIntersectionPoint(ch).?;
-    c.start = c.getIntersectionPoint(q).?;
-
-    try ctx.draw_buffer.append(geo.Shape{ .Line = h });
-    try ctx.draw_buffer.append(geo.Shape{ .Line = v });
-    try ctx.draw_buffer.append(geo.Shape{ .Line = ch });
-    try ctx.draw_buffer.append(geo.Shape{ .Line = c });
-    try ctx.draw_buffer.append(geo.Shape{ .Line = q });
-    try ctx.draw_buffer.append(geo.Shape{ .Semicircle = hv });
-    try ctx.draw_buffer.append(geo.Shape{ .Point = Amin });
-    try ctx.draw_buffer.append(geo.Shape{ .Point = f });
-    try ctx.draw_buffer.append(geo.Shape{ .Point = forestMin });
-}
-
-pub fn drawSST(ctx: *Context) !void {
-    const risk_origin_h = rl.Vector2{ .x = origin.x + (ctx.state.sst.width / 2), .y = origin.y };
-    const risk_origin_v = rl.Vector2{ .x = origin.x - (ctx.state.sst.width / 2), .y = origin.y };
-    const angle = ctx.state.sst.hh;
-
-    const sst_b = geo.Line.init(.{
-        origin.x - (ctx.state.sst.width / 2),
-        origin.y,
-    }, .{
-        origin.x + (ctx.state.sst.width / 2),
-        origin.y,
-    });
-
-    try ctx.draw_buffer.append(geo.Shape{ .Line = sst_b });
-
-    // h2
-    var h_h: geo.Line = geo.Line.init(rl.Vector2{
-        .x = risk_origin_v.x,
-        .y = risk_origin_v.y,
-    }, rl.Vector2{
-        .x = risk_origin_v.x,
-        .y = risk_origin_v.y - ctx.state.terrainValues.h,
-    });
-    h_h.rotate(.End, -angle);
-    h_h.addText("h", -20, 0, 40, rl.Color.black, h_h.end, ctx.state.config.showText);
-
-    // v2
-    var v_h: geo.Line = geo.Line.init(rl.Vector2{
-        .x = risk_origin_v.x,
-        .y = risk_origin_v.y,
-    }, rl.Vector2{
-        .x = risk_origin_v.x,
-        .y = risk_origin_v.y - ctx.state.terrainValues.h,
-    });
-    v_h.rotate(.End, -angle - ctx.state.weaponValues.v);
-    v_h.addText("v", -5, -30, 40, rl.Color.black, v_h.end, ctx.state.config.showText);
-
-    // Amin2
-    var Amin_h: geo.Line = geo.Line.init(rl.Vector2{
-        .x = risk_origin_v.x,
-        .y = risk_origin_v.y,
-    }, rl.Vector2{
-        .x = risk_origin_v.x,
-        .y = risk_origin_v.y - ctx.state.terrainValues.Amin,
-    });
-    Amin_h.rotate(.End, angle);
-    Amin_h.addText("Amin", -100, 0, 40, rl.Color.black, Amin_h.end, ctx.state.config.showText);
-
-    // hv2
-    const hv_h: geo.Semicircle = geo.Semicircle.init(
-        rl.Color.red,
-        -1600 - angle,
-        -1600 - angle - ctx.state.weaponValues.v,
-        ctx.state.terrainValues.h,
-        risk_origin_v,
-        10,
-    );
-
-    //c2
-    var c_h: geo.Line = try v_h.getParallelLine(-ctx.state.weaponValues.c);
-
-    // ch2
-    var ch_h: geo.Line = geo.Line.init(rl.Vector2{
-        .x = v_h.end.x,
-        .y = v_h.end.y,
-    }, rl.Vector2{
-        .x = v_h.end.x + 100.0,
-        .y = v_h.end.y - 1000.0,
-    });
-    ch_h.rotate(.End, -angle - 3200.0 + ctx.state.terrainValues.ch);
-    ch_h.addText("ch", -5, -20, 40, rl.Color.black, ch_h.end, ctx.state.config.showText);
-    ch_h.end = ch_h.getIntersectionPoint(c_h).?;
-
-    // q1
-    // var q1_h: geo.Line = geo.Line.init(rl.Vector2{
-    //     .x = trig.triangleOppositeLeg(ctx.state.terrainValues.Amin - ctx.state.terrainValues.f, -angle - ctx.state.weaponValues.v) - risk_origin_v.x,
-    //     .y = risk_origin_v.y - ctx.state.terrainValues.Amin + ctx.state.terrainValues.f,
-    // }, rl.Vector2{
-    //     .x = v_h.end.x,
-    //     .y = v_h.end.y,
-    // });
-    // q1_h.rotate(.End, ctx.state.terrainValues.q1);
-    // q1_h.addText("q1", 15, 0, 40, rl.Color.black, q1_h.end, ctx.state.config.showText);
-
-    // q2
-    var q2_h: geo.Line = geo.Line.init(rl.Vector2{
-        .x = trig.triangleOppositeLeg(ctx.state.terrainValues.forestDist, -angle - ctx.state.weaponValues.v) - risk_origin_v.x,
-        .y = risk_origin_v.y - ctx.state.terrainValues.forestDist,
-    }, rl.Vector2{
-        .x = v_h.end.x,
-        .y = v_h.end.y,
-    });
-    q2_h.rotate(.End, ctx.state.terrainValues.q2);
-    q2_h.addText("q2", 25, 0, 40, rl.Color.black, q2_h.end, ctx.state.config.showText);
-
-    // forestMin
-    var forestMin_h: geo.Line = geo.Line.init(rl.Vector2{
-        .x = undefined,
-        .y = undefined,
-    }, rl.Vector2{
-        .x = risk_origin_v.x,
-        .y = risk_origin_v.y - ctx.state.terrainValues.forestDist,
-    });
-    forestMin_h.addText("forestMin", -220, 0, 40, rl.Color.black, forestMin_h.end, ctx.state.config.showText);
-
-    // q
-    // var q_h: geo.Line = if (ctx.state.terrainValues.forestDist > 0) q2_h else q1_h;
-    var q_h: geo.Line = q2_h;
-    q_h.end = q2_h.getIntersectionPoint(c_h).?;
-
-    v_h.end = v_h.getIntersectionPoint(q_h).?;
-    c_h.end = c_h.getIntersectionPoint(ch_h).?;
-    c_h.start = c_h.getIntersectionPoint(q_h).?;
-
-    // // hv3
-    // var hv3: geo.Semicircle = geo.Semicircle.init(
-    //     rl.Color.red,
-    //     -1600 - angle,
-    //     -1600 + angle + ctx.state.weaponValues.v,
-    //     ctx.state.terrainValues.h,
-    //     risk_origin,
-    //     10,
-    // );
-
-    //
-
-    // h
-    var h: geo.Line = geo.Line.init(rl.Vector2{
-        .x = risk_origin_h.x,
-        .y = risk_origin_h.y,
-    }, rl.Vector2{
-        .x = risk_origin_h.x,
-        .y = risk_origin_h.y - ctx.state.terrainValues.h,
-    });
-    h.rotate(.End, angle);
-    h.addText("h", -20, 0, 40, rl.Color.black, h.end, ctx.state.config.showText);
-
-    // Amin
-    var Amin: geo.Line = geo.Line.init(rl.Vector2{
-        .x = risk_origin_h.x,
-        .y = risk_origin_h.y,
-    }, rl.Vector2{
-        .x = risk_origin_h.x,
-        .y = risk_origin_h.y - ctx.state.terrainValues.Amin,
-    });
-    Amin.rotate(.End, angle);
-    Amin.addText("Amin", -100, 0, 40, rl.Color.black, Amin.end, ctx.state.config.showText);
-
-    // v
-    var v: geo.Line = geo.Line.init(rl.Vector2{
-        .x = risk_origin_h.x,
-        .y = risk_origin_h.y,
-    }, rl.Vector2{
-        .x = risk_origin_h.x,
-        .y = risk_origin_h.y - ctx.state.terrainValues.h,
-    });
-    v.rotate(.End, angle + ctx.state.weaponValues.v);
-    v.addText("v", -5, -30, 40, rl.Color.black, v.end, ctx.state.config.showText);
-
-    var f: geo.Line = geo.Line.init(rl.Vector2{
-        .x = risk_origin_h.x,
-        .y = risk_origin_h.y - ctx.state.terrainValues.Amin + ctx.state.terrainValues.f,
-    }, rl.Vector2{
-        .x = risk_origin_h.x,
-        .y = Amin.end.y + ctx.state.terrainValues.f,
-    });
-    f.addText("f", -70, 0, 40, rl.Color.black, f.end, ctx.state.config.showText);
-
-    // hv
-    const hv: geo.Semicircle = geo.Semicircle.init(
-        rl.Color.red,
-        -1600 + angle,
-        -1600 + angle + ctx.state.weaponValues.v,
-        ctx.state.terrainValues.h,
-        risk_origin_h,
-        10,
-    );
-
-    //c
-    var c: geo.Line = try v.getParallelLine(ctx.state.weaponValues.c);
-
-    // ch
-    var ch: geo.Line = geo.Line.init(rl.Vector2{
-        .x = v.end.x,
-        .y = v.end.y,
-    }, rl.Vector2{
-        .x = v.end.x - 100.0,
-        .y = v.end.y - 1000.0,
-    });
-    ch.rotate(.End, angle + 3200.0 - ctx.state.terrainValues.ch);
-    ch.addText("ch", -5, -20, 40, rl.Color.black, ch.end, ctx.state.config.showText);
-    ch.end = ch.getIntersectionPoint(c).?;
-
-    // q1
-    var q1: geo.Line = geo.Line.init(rl.Vector2{
-        .x = trig.triangleOppositeLeg(ctx.state.terrainValues.Amin - ctx.state.terrainValues.f, angle + ctx.state.weaponValues.v) + risk_origin_h.x,
-        .y = risk_origin_h.y - ctx.state.terrainValues.Amin + ctx.state.terrainValues.f,
-    }, rl.Vector2{
-        .x = v.end.x,
-        .y = v.end.y,
-    });
-    q1.rotate(.End, ctx.state.terrainValues.q1);
-    q1.addText("q1", 15, 0, 40, rl.Color.black, q1.end, ctx.state.config.showText);
-
-    // q2
-    var q2: geo.Line = geo.Line.init(rl.Vector2{
-        .x = trig.triangleOppositeLeg(ctx.state.terrainValues.forestDist, angle + ctx.state.weaponValues.v) + risk_origin_h.x,
-        .y = risk_origin_h.y - ctx.state.terrainValues.forestDist,
-    }, rl.Vector2{
-        .x = v.end.x,
-        .y = v.end.y,
-    });
-    q2.rotate(.End, ctx.state.terrainValues.q2);
-    q2.addText("q2", 25, 0, 40, rl.Color.black, q2.end, ctx.state.config.showText);
-
-    // forestMin
-    var forestMin: geo.Line = geo.Line.init(rl.Vector2{
-        .x = undefined,
-        .y = undefined,
-    }, rl.Vector2{
-        .x = risk_origin_h.x,
-        .y = risk_origin_h.y - ctx.state.terrainValues.forestDist,
-    });
-    forestMin.addText("forestMin", -220, 0, 40, rl.Color.black, forestMin.end, ctx.state.config.showText);
-
-    // q
-    var q: geo.Line = if (ctx.state.terrainValues.forestDist > 0) q2 else q1;
-    q.end = q.getIntersectionPoint(c).?;
-
-    v.end = v.getIntersectionPoint(q).?;
-    c.end = c.getIntersectionPoint(ch).?;
-    c.start = c.getIntersectionPoint(q).?;
-
-    try ctx.draw_buffer.append(geo.Shape{ .Line = h_h });
-    try ctx.draw_buffer.append(geo.Shape{ .Line = v_h });
-    try ctx.draw_buffer.append(geo.Shape{ .Semicircle = hv_h });
-    try ctx.draw_buffer.append(geo.Shape{ .Line = c_h });
-    try ctx.draw_buffer.append(geo.Shape{ .Line = q_h });
-    try ctx.draw_buffer.append(geo.Shape{ .Line = ch_h });
-
-    try ctx.draw_buffer.append(geo.Shape{ .Line = h });
-    try ctx.draw_buffer.append(geo.Shape{ .Line = v });
-    try ctx.draw_buffer.append(geo.Shape{ .Line = ch });
-    try ctx.draw_buffer.append(geo.Shape{ .Line = c });
-    try ctx.draw_buffer.append(geo.Shape{ .Line = q });
-    try ctx.draw_buffer.append(geo.Shape{ .Semicircle = hv });
-    // try ctx.draw_buffer.append(geo.Shape{ .Point = Amin });
-    // try ctx.draw_buffer.append(geo.Shape{ .Point = f });
-    // try ctx.draw_buffer.append(geo.Shape{ .Point = forestMin });
-}
-
-pub fn drawBox(ctx: *Context) !void {
-    const box_b = geo.Line.init(rl.Vector2{
-        .x = origin.x - (ctx.state.box.width / 2),
-        .y = origin.y,
-    }, rl.Vector2{
-        .x = origin.x + (ctx.state.box.width / 2),
-        .y = origin.y,
-    });
-
-    const box_t = geo.Line.init(rl.Vector2{
-        .x = origin.x - (ctx.state.box.width / 2),
-        .y = origin.y - ctx.state.box.length,
-    }, rl.Vector2{
-        .x = origin.x + (ctx.state.box.width / 2),
-        .y = origin.y - ctx.state.box.length,
-    });
-
-    const box_r = geo.Line.init(rl.Vector2{
-        .x = origin.x + (ctx.state.box.width / 2),
-        .y = origin.y,
-    }, rl.Vector2{
-        .x = origin.x + (ctx.state.box.width / 2),
-        .y = origin.y - ctx.state.box.length,
-    });
-
-    const box_l = geo.Line.init(rl.Vector2{
-        .x = origin.x - (ctx.state.box.width / 2),
-        .y = origin.y,
-    }, rl.Vector2{
-        .x = origin.x - (ctx.state.box.width / 2),
-        .y = origin.y - ctx.state.box.length,
-    });
-
-    try ctx.draw_buffer.append(geo.Shape{ .Line = box_b });
-    try ctx.draw_buffer.append(geo.Shape{ .Line = box_t });
-    try ctx.draw_buffer.append(geo.Shape{ .Line = box_r });
-    try ctx.draw_buffer.append(geo.Shape{ .Line = box_l });
-
-    try drawRisk(ctx, .{
-        .x = origin.x + (ctx.state.box.width / 2),
-        .y = origin.y,
-    }, ctx.state.box.h);
-
-    try drawRisk(ctx, .{
-        .x = origin.x + (ctx.state.box.width / 2),
-        .y = origin.y - ctx.state.box.length,
-    }, ctx.state.box.h);
-}
-
-pub fn drawRisk(ctx: *Context, risk_origin: rl.Vector2, angle: f32) !void {
-    // h
-    var h: geo.Line = geo.Line.init(rl.Vector2{
-        .x = risk_origin.x,
-        .y = risk_origin.y,
-    }, rl.Vector2{
-        .x = risk_origin.x,
-        .y = risk_origin.y - ctx.state.terrainValues.h,
-    });
-    h.rotate(.End, angle);
-    h.addText("h", -20, 0, 40, rl.Color.black, h.end, ctx.state.config.showText);
-
-    // Amin
-    var Amin: geo.Point = geo.Point.init(rl.Vector2{
-        .x = risk_origin.x,
-        .y = risk_origin.y - ctx.state.terrainValues.Amin,
-    });
-    Amin.rotate(risk_origin, angle);
-    Amin.addText("Amin", -100, 0, 40, rl.Color.black, ctx.state.config.showText);
-
-    // v
-    var v: geo.Line = geo.Line.init(rl.Vector2{
-        .x = risk_origin.x,
-        .y = risk_origin.y,
-    }, rl.Vector2{
-        .x = risk_origin.x,
-        .y = risk_origin.y - ctx.state.terrainValues.h,
-    });
-    v.rotate(.End, angle + ctx.state.weaponValues.v);
-    v.addText("v", -5, -30, 40, rl.Color.black, v.end, ctx.state.config.showText);
-
-    // f
-    var f: geo.Point = geo.Point.init(rl.Vector2{
-        .x = risk_origin.x,
-        .y = Amin.pos.y + ctx.state.terrainValues.f,
-    });
-    f.rotate(risk_origin, angle);
-    f.addText("f", -70, 0, 40, rl.Color.black, ctx.state.config.showText);
-
-    // hv
-    const hv: geo.Semicircle = geo.Semicircle.init(
-        rl.Color.red,
-        -1600 + angle,
-        -1600 + angle + ctx.state.weaponValues.v,
-        ctx.state.terrainValues.h,
-        risk_origin,
-        10,
-    );
-
-    //c
-    var c: geo.Line = try v.getParallelLine(ctx.state.weaponValues.c);
-
-    // ch
-    var ch: geo.Line = geo.Line.init(rl.Vector2{
-        .x = v.end.x,
-        .y = v.end.y,
-    }, rl.Vector2{
-        .x = v.end.x - 100.0,
-        .y = v.end.y - 1000.0,
-    });
-    ch.rotate(.End, angle + 3200.0 - ctx.state.terrainValues.ch);
-    ch.addText("ch", -5, -20, 40, rl.Color.black, ch.end, ctx.state.config.showText);
-    ch.end = ch.getIntersectionPoint(c).?;
-
-    // q1
-    var q1: geo.Line = geo.Line.init(rl.Vector2{
-        .x = trig.triangleOppositeLeg(ctx.state.terrainValues.Amin - ctx.state.terrainValues.f, angle + ctx.state.weaponValues.v) + risk_origin.x,
-        .y = risk_origin.y - ctx.state.terrainValues.Amin + ctx.state.terrainValues.f,
-    }, rl.Vector2{
-        .x = v.end.x,
-        .y = v.end.y,
-    });
-    q1.rotate(.End, ctx.state.terrainValues.q1);
-    q1.addText("q1", 15, 0, 40, rl.Color.black, q1.end, ctx.state.config.showText);
-
-    // q2
-    var q2: geo.Line = geo.Line.init(rl.Vector2{
-        .x = trig.triangleOppositeLeg(ctx.state.terrainValues.forestDist, angle + ctx.state.weaponValues.v) + risk_origin.x,
-        .y = risk_origin.y - ctx.state.terrainValues.forestDist,
-    }, rl.Vector2{
-        .x = v.end.x,
-        .y = v.end.y,
-    });
-    q2.rotate(.End, ctx.state.terrainValues.q2);
-    q2.addText("q2", 25, 0, 40, rl.Color.black, q2.end, ctx.state.config.showText);
-
-    // forestMin
-    var forestMin: geo.Point = geo.Point.init(rl.Vector2{
-        .x = risk_origin.x,
-        .y = Amin.pos.y - ctx.state.terrainValues.forestDist,
-    });
-    forestMin.rotate(risk_origin, angle);
-    forestMin.addText("forestMin", -220, 0, 40, rl.Color.black, ctx.state.config.showText);
-
-    // q
-    var q: geo.Line = if (ctx.state.terrainValues.forestDist > 0) q2 else q1;
-    q.end = q.getIntersectionPoint(c).?;
-
-    v.end = v.getIntersectionPoint(q).?;
-    c.end = c.getIntersectionPoint(ch).?;
-    c.start = c.getIntersectionPoint(q).?;
-
-    try ctx.draw_buffer.append(geo.Shape{ .Line = h });
-    try ctx.draw_buffer.append(geo.Shape{ .Line = v });
-    try ctx.draw_buffer.append(geo.Shape{ .Line = ch });
-    try ctx.draw_buffer.append(geo.Shape{ .Line = c });
-    try ctx.draw_buffer.append(geo.Shape{ .Line = q });
-    try ctx.draw_buffer.append(geo.Shape{ .Semicircle = hv });
-    try ctx.draw_buffer.append(geo.Shape{ .Point = Amin });
-    try ctx.draw_buffer.append(geo.Shape{ .Point = f });
-    try ctx.draw_buffer.append(geo.Shape{ .Point = forestMin });
-}
+};
+
+pub const Grid = struct {
+    x: f64,
+    y: f64,
+    width: f32,
+    height: f32,
+    isDragging: bool,
+    dragOffsetX: f64,
+    dragOffsetY: f64,
+
+    const cellSize: f32 = 40.0; // Each cell is 20x20 pixels
+    const gridSize: usize = 100;
+
+    pub fn init(x: f64, y: f64, width: f32, height: f32) Grid {
+        return Grid{
+            .x = x,
+            .y = y,
+            .width = width,
+            .height = height,
+            .isDragging = false,
+            .dragOffsetX = 0,
+            .dragOffsetY = 0,
+        };
+    }
+
+    pub fn addLine(_: *Grid, x1: f32, y1: f32, x2: f32, y2: f32, color: u32) void {
+        const draw_list = zgui.getBackgroundDrawList();
+
+        // Convert line start and end points from screen space to world space
+        const start = camera.worldToScreen(.{ x1, y1 });
+        const end = camera.worldToScreen(.{ x2, y2 });
+
+        // Draw the line using transformed world-space coordinates
+        draw_list.addLine(.{
+            .p1 = .{ start[0], start[1] },
+            .p2 = .{ end[0], end[1] },
+            .col = color,
+            .thickness = 2.0,
+        });
+    }
+
+    pub fn draw(_: *Grid) void {
+        const draw_list = zgui.getBackgroundDrawList();
+
+        const color: u32 = 0xFFAAAAAA; // Light gray grid
+
+        for (0..gridSize) |i| {
+            const pos = @as(f32, @floatFromInt(i)) * cellSize;
+
+            // Vertical lines (world to screen with zoom and offset)
+            draw_list.addLine(.{
+                .p1 = .{
+                    (pos + camera.offsetX) * camera.zoom,
+                    (0.0 + camera.offsetY) * camera.zoom,
+                },
+                .p2 = .{
+                    (pos + camera.offsetX) * camera.zoom,
+                    (cellSize * gridSize + camera.offsetY) * camera.zoom,
+                },
+                .col = color,
+                .thickness = 1.0,
+            });
+
+            // Horizontal lines
+            draw_list.addLine(.{
+                .p1 = .{
+                    (0.0 + camera.offsetX) * camera.zoom,
+                    (pos + camera.offsetY) * camera.zoom,
+                },
+                .p2 = .{
+                    (cellSize * gridSize + camera.offsetX) * camera.zoom,
+                    (pos + camera.offsetY) * camera.zoom,
+                },
+                .col = color,
+                .thickness = 1.0,
+            });
+        }
+    }
+};
