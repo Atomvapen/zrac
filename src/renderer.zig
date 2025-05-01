@@ -10,7 +10,7 @@ var camera: Camera2D = undefined;
 var grid: Grid = undefined;
 
 pub fn init(ctx: *Context) void {
-    grid = Grid.init(100, 100, 200, 150);
+    grid = .{};
     camera = ctx.camera;
 }
 
@@ -28,9 +28,11 @@ pub fn update(ctx: *Context) void {
     camera.update(ctx);
 
     grid.draw();
-    grid.addLine(10.0, 10.0, 50.0, 50.0, 0xFFFF0000); // Red line
+    grid.addLine(10.0, 10.0, 50.0, 50.0, 0xFFFF0000);
     grid.addRect(10.0, 10.0, 50.0, 50.0, 0xFF00FF00, 5.0, 2.0);
-    grid.addCircle(20.0, 20.0, 15.0, 0xFF0000FF); // Blue circle
+    grid.addCircle(20.0, 20.0, 15.0, 0xFF0000FF);
+    grid.addCircleSector(100.0, 100.0, 50.0, 0xFF00FF00, 0.0, 3.14159);
+    grid.addCircleSector(100.0, 100.0, 50.0, 0xFFFF0000, 3.14159, 6.28319);
 
     Window.draw(ctx);
     ContextMenu.draw(ctx);
@@ -82,7 +84,7 @@ pub const Camera2D = struct {
 
     pub fn zoomToward(self: *Camera2D, screenPos: [2]f32, zoomDelta: f32) void {
         const oldZoom = self.zoom;
-        self.zoom = @max(@min(self.zoom + zoomDelta, 1.0), 0.1);
+        self.zoom = @max(@min(self.zoom + zoomDelta, 1.5), 0.1);
         const zoomFactor = self.zoom / oldZoom;
 
         self.offsetX = screenPos[0] - (screenPos[0] - self.offsetX) * zoomFactor;
@@ -137,28 +139,55 @@ pub const Grid = struct {
     const cellSize: f32 = 40.0;
     const gridSize: usize = 100;
 
-    x: f64,
-    y: f64,
-    width: f32,
-    height: f32,
-    isDragging: bool,
-    dragOffsetX: f64,
-    dragOffsetY: f64,
+    pub fn addCircleSector(_: *Grid, cx: f32, cy: f32, radius: f32, color: u32, angle_start: f32, angle_end: f32) void {
+        const draw_list: zgui.DrawList = zgui.getBackgroundDrawList();
 
-    pub fn init(x: f64, y: f64, width: f32, height: f32) Grid {
-        return Grid{
-            .x = x,
-            .y = y,
-            .width = width,
-            .height = height,
-            .isDragging = false,
-            .dragOffsetX = 0,
-            .dragOffsetY = 0,
-        };
+        const num_segments = 36; // Number of segments for a smoother arc
+
+        // Array to hold the points along the sector (in world space)
+        var points: [36][2]f32 = undefined; // Array size to hold 36 points
+        var point_count: usize = 0;
+
+        // Calculate points for the sector in world space
+        for (0..num_segments) |i| {
+            const t = @as(f32, @floatFromInt(i)) / @as(f32, num_segments);
+            const angle = angle_start + (angle_end - angle_start) * t;
+
+            const x = cx + radius * @cos(angle);
+            const y = cy + radius * @sin(angle);
+
+            points[point_count] = .{ x, y };
+            point_count += 1;
+        }
+
+        // Convert points from world space to screen space (camera transformation)
+        var screen_points: [36][2]f32 = undefined;
+        for (0..point_count) |i| {
+            screen_points[i] = camera.worldToScreen(points[i]);
+        }
+
+        // Now, convert the center to screen space (apply camera transformations)
+        // const center_screen = camera.worldToScreen(.{ cx, cy });
+
+        // Draw the arc (sector) as a polyline in screen space
+        draw_list.addPolyline(screen_points[0..point_count], .{
+            .col = color,
+            .flags = .{}, // No special flags
+            .thickness = 2.0,
+        });
+
+        // Optionally, draw a line back to the center to close the sector
+        // Uncomment this if you want the sector to be closed with a line back to the center
+        // draw_list.addLine(.{
+        //     .p1 = .{ center_screen[0], center_screen[1] },
+        //     .p2 = .{ screen_points[0][0], screen_points[0][1] },
+        //     .col = color,
+        //     .thickness = 2.0,
+        // });
     }
 
     pub fn addRect(_: *Grid, x1: f32, y1: f32, x2: f32, y2: f32, color: u32, rounding: f32, thickness: f32) void {
-        const draw_list = zgui.getBackgroundDrawList();
+        const draw_list: zgui.DrawList = zgui.getBackgroundDrawList();
 
         // Convert rectangle corners from world space to screen space
         const screen_pmin = camera.worldToScreen(.{ x1, y1 });
@@ -176,7 +205,7 @@ pub const Grid = struct {
     }
 
     pub fn addLine(_: *Grid, x1: f32, y1: f32, x2: f32, y2: f32, color: u32) void {
-        const draw_list = zgui.getBackgroundDrawList();
+        const draw_list: zgui.DrawList = zgui.getBackgroundDrawList();
 
         // Convert line start and end points from screen space to world space
         const start: [2]f32 = camera.worldToScreen(.{ x1, y1 });
@@ -192,7 +221,7 @@ pub const Grid = struct {
     }
 
     pub fn addCircle(_: *Grid, cx: f32, cy: f32, radius: f32, color: u32) void {
-        const draw_list = zgui.getBackgroundDrawList();
+        const draw_list: zgui.DrawList = zgui.getBackgroundDrawList();
 
         // Convert center position from world space to screen space
         const center = camera.worldToScreen(.{ cx, cy });
@@ -207,7 +236,7 @@ pub const Grid = struct {
     }
 
     pub fn draw(_: *Grid) void {
-        const draw_list = zgui.getBackgroundDrawList();
+        const draw_list: zgui.DrawList = zgui.getBackgroundDrawList();
         const color: u32 = 0xFFAAAAAA;
 
         for (0..gridSize) |i| {
