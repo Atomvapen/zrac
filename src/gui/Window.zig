@@ -1,8 +1,10 @@
+const Self = @This();
 const std = @import("std");
 const zglfw = @import("zglfw");
 const zstbi = @import("zstbi");
 const zgui = @import("zgui");
 const Context = @import("../Context.zig");
+const renderer = @import("../renderer.zig");
 
 const InitError = error{
     FailedToCreateWindow,
@@ -11,15 +13,14 @@ const InitError = error{
     FailedToLoadIcon,
 };
 
-const WindowError = InitError;
+pub const WindowError = InitError;
 
 pub const Config = struct {
-    pub const title: [:0]const u8 = "zrac";
-    pub const width: i32 = 900;
-    pub const height: i32 = 600;
-    pub const refresh_rate: i32 = 60;
-    pub const icon_path: [:0]const u8 = "../../assets/icon.png";
-    pub var contextmenu_is_open: bool = false;
+    const title: [:0]const u8 = "zrac";
+    const width: i32 = 900;
+    const height: i32 = 600;
+    const refresh_rate: i32 = 60;
+    const icon_path: [:0]const u8 = "../../assets/icon.png";
 };
 
 pub fn init() WindowError!*zglfw.Window {
@@ -28,37 +29,29 @@ pub fn init() WindowError!*zglfw.Window {
     zglfw.windowHint(.decorated, false);
     zglfw.windowHint(.resizable, false);
 
-    std.debug.print("info: [zrac] Creating GLFW window ({d}x{d}) titled \"{s}\"\n", .{ Config.width, Config.height, Config.title });
-    const window: *zglfw.Window = zglfw.Window.create(Config.width, Config.height, Config.title, null) catch {
-        return InitError.FailedToCreateWindow;
-    };
+    std.log.info("[zrac]      Creating GLFW window ({d}x{d}) titled \"{s}\"", .{ Config.width, Config.height, Config.title });
+    const window: *zglfw.Window = zglfw.Window.create(Config.width, Config.height, Config.title, null) catch return InitError.FailedToCreateWindow;
     window.setSizeLimits(Config.width, Config.height, Config.width, Config.height);
     window.setPos(100, 100);
 
-    std.debug.print("info: [zrac]   Setting input callbacks\n", .{});
+    std.log.info("[zrac]      Setting input callbacks", .{});
     _ = zglfw.setKeyCallback(window, Keybinds.keyCallback);
-    // _ = zglfw.setDropCallback(window, fs.dropCallback);
     _ = zglfw.setCursorPosCallback(window, cursorPositionCallback);
     _ = zglfw.setMouseButtonCallback(window, mouseButtonCallback);
+    _ = zglfw.setScrollCallback(window, renderer.Camera2D.scrollCallback);
+    // _ = zglfw.setDropCallback(window, fs.dropCallback);
 
     // Use Relative Paths
-    std.debug.print("info: [zrac]   Changing working directory to executable location\n", .{});
+    std.log.info("[zrac]      Changing working directory to executable location", .{});
     var buffer: [std.fs.max_path_bytes]u8 = undefined;
-    const path: []const u8 = std.fs.selfExeDirPath(buffer[0..]) catch {
-        return InitError.FailedToGetExecutableDirectory;
-    };
-    std.posix.chdir(path) catch {
-        return InitError.FailedToChangeExecutableDirectory;
-    };
+    const path: []const u8 = std.fs.selfExeDirPath(buffer[0..]) catch return InitError.FailedToGetExecutableDirectory;
+    std.posix.chdir(path) catch return InitError.FailedToChangeExecutableDirectory;
 
     // Set Icon
-    std.debug.print("info: [zrac]   Loading icon image from path: {s}\n", .{Config.icon_path});
-    var zstbi_icon: zstbi.Image = zstbi.Image.loadFromFile(Config.icon_path, 4) catch {
-        return InitError.FailedToLoadIcon;
-    };
-
+    std.log.info("[zrac]      Loading icon image from path: {s}", .{Config.icon_path});
+    var zstbi_icon: zstbi.Image = zstbi.Image.loadFromFile(Config.icon_path, 4) catch return InitError.FailedToLoadIcon;
     defer zstbi_icon.deinit();
-    std.debug.print("info: [zrac]   Setting window icon\n", .{});
+    std.log.info("[zrac]      Setting window icon", .{});
     const zglfw_icon: zglfw.Image = zglfw.Image{
         .width = @intCast(zstbi_icon.width),
         .height = @intCast(zstbi_icon.height),
@@ -66,7 +59,7 @@ pub fn init() WindowError!*zglfw.Window {
     };
     zglfw.setWindowIcon(window, &.{zglfw_icon});
 
-    std.debug.print("info: [zrac]   Window initialization complete\n", .{});
+    std.log.info("[zrac]      Window initialization complete", .{});
     return window;
 }
 
@@ -122,7 +115,7 @@ pub const Drag = struct {
     var cp_y: i32 = 0;
     var offset_cpx: i32 = 0;
     var offset_cpy: i32 = 0;
-    var dragging: bool = false;
+    pub var dragging: bool = false;
 
     fn start(window: *zglfw.Window) void {
         const x: f64 = window.getCursorPos()[0];
@@ -216,10 +209,10 @@ pub const Keybinds = struct {
         if (key == bindigns._test) {
             switch (action) {
                 zglfw.Action.press => {
-                    std.debug.print("F1 Pressed!\n", .{});
+                    std.log.info("F1 Pressed!\n", .{});
                 },
                 zglfw.Action.release => {
-                    std.debug.print("F1 Released!\n", .{});
+                    std.log.info("F1 Released!\n", .{});
                 },
                 else => {},
             }

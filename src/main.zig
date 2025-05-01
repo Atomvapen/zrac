@@ -19,9 +19,10 @@ pub fn main() !void {
     var ctx: *Context = try Context.create(allocator);
     defer ctx.destroy(allocator);
 
-    _ = zglfw.setScrollCallback(ctx.window, renderer.Camera2D.onScroll);
+    renderer.init(ctx);
 
     while (!ctx.window.shouldClose() and ctx.window.getKey(.escape) != .press) {
+        renderer.beginFrame(ctx);
         renderer.update(ctx);
         renderer.draw(ctx);
     }
