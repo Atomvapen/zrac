@@ -33,7 +33,7 @@ fn update(ctx: *Context) void {
     }
 }
 
-pub fn draw(ctx: *Context) void {
+pub fn draw(_: *Self, ctx: *Context) void {
     update(ctx);
     if (!menu_open or current_menu == .none) return;
 

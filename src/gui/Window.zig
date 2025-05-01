@@ -1,10 +1,8 @@
-const Self = @This();
 const std = @import("std");
 const zglfw = @import("zglfw");
 const zstbi = @import("zstbi");
 const zgui = @import("zgui");
 const Context = @import("../Context.zig");
-const renderer = @import("../renderer.zig");
 
 const InitError = error{
     FailedToCreateWindow,
@@ -23,7 +21,11 @@ pub const Config = struct {
     const icon_path: [:0]const u8 = "../../assets/icon.png";
 };
 
-pub fn init() WindowError!*zglfw.Window {
+var context: *Context = undefined;
+
+pub fn init(ctx: *Context) WindowError!*zglfw.Window {
+    context = ctx;
+
     zglfw.windowHint(.client_api, .no_api);
     zglfw.windowHint(.refresh_rate, Config.refresh_rate);
     zglfw.windowHint(.decorated, false);
@@ -38,7 +40,7 @@ pub fn init() WindowError!*zglfw.Window {
     _ = zglfw.setKeyCallback(window, Keybinds.keyCallback);
     _ = zglfw.setCursorPosCallback(window, cursorPositionCallback);
     _ = zglfw.setMouseButtonCallback(window, mouseButtonCallback);
-    _ = zglfw.setScrollCallback(window, renderer.Camera2D.scrollCallback);
+    _ = zglfw.setScrollCallback(window, scrollCallback);
     // _ = zglfw.setDropCallback(window, fs.dropCallback);
 
     // Use Relative Paths
@@ -65,6 +67,12 @@ pub fn init() WindowError!*zglfw.Window {
 
 pub fn draw(ctx: *Context) void {
     Toolbar.draw(ctx);
+}
+
+fn scrollCallback(window: *zglfw.Window, xoffset: f64, yoffset: f64) callconv(.C) void {
+    _ = xoffset;
+
+    context.camera.zoomToward(window, @floatCast(yoffset * 0.1));
 }
 
 fn cursorPositionCallback(window: *zglfw.Window, x: f64, y: f64) callconv(.c) void {
@@ -179,11 +187,6 @@ pub const Keybinds = struct {
     };
 
     pub var bindigns: Bindings = .{};
-    pub var ctx: ?*Context = undefined;
-
-    pub fn init(context: *Context) void {
-        ctx = context;
-    }
 
     pub fn set(command: Commands, key: Key) void {
         switch (command) {
@@ -203,8 +206,6 @@ pub const Keybinds = struct {
         _ = scancode;
         _ = mods;
         _ = window;
-
-        if (ctx == null) return;
 
         if (key == bindigns._test) {
             switch (action) {

@@ -19,7 +19,7 @@ pub fn main() !void {
     var ctx: *Context = try Context.create(allocator);
     defer ctx.destroy(allocator);
 
-    renderer.init(ctx);
+    // renderer.init(ctx);
 
     while (!ctx.window.shouldClose() and ctx.window.getKey(.escape) != .press) {
         renderer.beginFrame(ctx);

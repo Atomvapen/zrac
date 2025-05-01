@@ -1,13 +1,13 @@
 const Self = @This();
-
 const std = @import("std");
 const zgui = @import("zgui");
 const zgpu = @import("zgpu");
 const zglfw = @import("zglfw");
 
-pub const Window = @import("gui/Window.zig"); //TODO make not pub
-
-const Camera2D = @import("renderer.zig").Camera2D;
+pub const Window = @import("gui/Window.zig");
+const Camera2D = @import("gui/Camera.zig");
+const Grid = @import("gui/Grid.zig");
+const ContextMenu = @import("gui/ContextMenu.zig");
 
 const CreateError = error{
     FailedToCreateGraphicsContext,
@@ -20,11 +20,16 @@ draw_list: zgui.DrawList,
 allocator: std.mem.Allocator,
 window: *zglfw.Window,
 camera: Camera2D,
+grid: Grid,
+contextMenu: ContextMenu,
 
 pub fn create(allocator: std.mem.Allocator) ContextError!*Self {
     std.log.info("[zrac] Creating Context", .{});
+    std.log.info("[zrac]   Creating context object", .{});
+    const context: *Self = allocator.create(Self) catch return CreateError.OutOfMemory;
+
     std.log.info("[zrac]   Creating window", .{});
-    const window: *zglfw.Window = try Window.init();
+    const window: *zglfw.Window = try Window.init(context);
     errdefer window.destroy();
 
     std.log.info("[zrac]   Creating Graphics Context", .{});
@@ -60,19 +65,16 @@ pub fn create(allocator: std.mem.Allocator) ContextError!*Self {
     const style: *zgui.Style = zgui.getStyle();
     style.scaleAllSizes(scale_factor);
 
-    std.log.info("[zrac]   Creating context object", .{});
-    const context: *Self = allocator.create(Self) catch return CreateError.OutOfMemory;
     context.* = .{
         .gctx = gctx,
         .draw_list = zgui.createDrawList(),
         .allocator = allocator,
         .window = window,
         .camera = .{},
+        .grid = .{},
+        .contextMenu = .{},
     };
     errdefer context.destroy(allocator);
-
-    std.log.info("[zrac]   Initializing window keybinds", .{});
-    Window.Keybinds.init(context);
 
     return context;
 }

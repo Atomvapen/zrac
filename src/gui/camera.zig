@@ -1,66 +1,69 @@
-const rl = @import("raylib");
+const Self = @This();
+const Context = @import("../Context.zig");
+const Window = @import("Window.zig");
+const zglfw = @import("zglfw");
 
-pub var enabled: bool = true;
+offsetX: f32 = 0,
+offsetY: f32 = 0,
+isDragging: bool = false,
+lastMouseX: f64 = 0,
+lastMouseY: f64 = 0,
+zoom: f32 = 1.0,
 
-var camera: rl.Camera2D = rl.Camera2D{
-    .target = .{ .x = 9e2, .y = -5e2 },
-    .offset = .{ .x = 7e2, .y = 2e2 },
-    .zoom = 4e-1,
-    .rotation = 0,
-};
+pub fn zoomToward(self: *Self, window: *zglfw.Window, zoomDelta: f32) void {
+    const mousePos: [2]f64 = window.getCursorPos();
+    const screenPos: [2]f32 = .{
+        @floatCast(mousePos[0]),
+        @floatCast(mousePos[1]),
+    };
 
-pub fn begin() void {
-    camera.begin();
+    const oldZoom = self.zoom;
+    self.zoom = @max(@min(self.zoom + zoomDelta, 1.5), 0.1);
+    const zoomFactor = self.zoom / oldZoom;
+
+    self.offsetX = screenPos[0] - (screenPos[0] - self.offsetX) * zoomFactor;
+    self.offsetY = screenPos[1] - (screenPos[1] - self.offsetY) * zoomFactor;
 }
 
-pub fn end() void {
-    camera.end();
+pub fn update(self: *Self, ctx: *Context) void {
+    const mousePos: [2]f64 = ctx.window.getCursorPos();
+    const mouseX: f64 = mousePos[0];
+    const mouseY: f64 = mousePos[1];
+
+    if (mouseY < 25 or Window.Drag.dragging) return;
+
+    if (self.isDragging) {
+        self.offsetX += @floatCast(mouseX - self.lastMouseX);
+        self.offsetY += @floatCast(mouseY - self.lastMouseY);
+    }
+
+    const mouseButton: zglfw.Action = ctx.window.getMouseButton(.left);
+    switch (mouseButton) {
+        .press => {
+            if (!self.isDragging) {
+                self.isDragging = true;
+                self.lastMouseX = mouseX;
+                self.lastMouseY = mouseY;
+            }
+        },
+        .release => self.isDragging = false,
+        else => {},
+    }
+
+    self.lastMouseX = mouseX;
+    self.lastMouseY = mouseY;
 }
 
-pub fn handle() void {
-    if (!enabled) return;
-    move();
-    zoomTowardMouse();
+pub fn screenToWorld(self: Self, screen: [2]f32) [2]f32 {
+    return .{
+        (screen[0] - self.offsetX) / self.zoom,
+        (screen[1] - self.offsetY) / self.zoom,
+    };
 }
 
-fn move() void {
-    const button: bool = rl.isMouseButtonDown(.left);
-    if (!button) return;
-    if (rl.getMousePosition().y <= 30) return;
-    if (rl.getMousePosition().x < 350) return;
-    var delta: rl.Vector2 = rl.getMouseDelta();
-    delta = rl.math.vector2Scale(delta, -1.0 / camera.zoom);
-    camera.target = rl.math.vector2Add(camera.target, delta);
-}
-
-fn zoom() void {
-    const min_zoom: f32 = 0.125;
-    const max_zoom: f32 = 1.0;
-
-    const wheel: f32 = rl.getMouseWheelMove();
-    if (wheel == 0) return;
-
-    const mouseWorldPos: rl.Vector2 = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
-    camera.offset = rl.getMousePosition();
-    camera.target = mouseWorldPos;
-
-    var scaleFactor = 1.0 + (0.25 * @abs(wheel));
-    if (wheel < 0) scaleFactor = 1.0 / scaleFactor;
-    camera.zoom = rl.math.clamp(camera.zoom * scaleFactor, min_zoom, max_zoom);
-}
-
-fn zoomTowardMouse() void {
-    const min_zoom: f32 = 0.125;
-    const max_zoom: f32 = 1.0;
-
-    const wheel: f32 = rl.getMouseWheelMove();
-    if (wheel == 0) return;
-
-    const mouseWorldPos: rl.Vector2 = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
-    camera.zoom *= if (wheel > 0) 1.25 else 0.8;
-    camera.zoom = rl.math.clamp(camera.zoom, min_zoom, max_zoom);
-
-    const newMouseWorldPos: rl.Vector2 = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
-    const delta: rl.Vector2 = rl.math.vector2Subtract(mouseWorldPos, newMouseWorldPos);
-    camera.target = rl.math.vector2Add(camera.target, delta);
+pub fn worldToScreen(self: Self, world: [2]f32) [2]f32 {
+    return .{
+        world[0] * self.zoom + self.offsetX,
+        world[1] * self.zoom + self.offsetY,
+    };
 }
