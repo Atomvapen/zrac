@@ -208,10 +208,11 @@ pub const Keybinds = struct {
         if (key == bindigns._test) {
             switch (action) {
                 zglfw.Action.press => {
-                    std.log.info("F1 Pressed!\n", .{});
+                    std.log.info("F1 Pressed!", .{});
+                    std.log.info("{any}", .{context.camera});
                 },
                 zglfw.Action.release => {
-                    std.log.info("F1 Released!\n", .{});
+                    std.log.info("F1 Released!", .{});
                 },
                 else => {},
             }

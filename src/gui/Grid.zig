@@ -99,13 +99,14 @@ pub fn addLine(_: *Self, ctx: *Context, start: [2]f32, end: [2]f32, color: u32, 
 pub fn draw(self: *Self, ctx: *Context, thickness: f32) void {
     const draw_list: zgui.DrawList = zgui.getBackgroundDrawList();
     const color: u32 = 0xFFAAAAAA;
+    const halfSize = (self.gridSize * self.cellSize) / 2.0;
 
     for (0..@intFromFloat(self.gridSize)) |i| {
-        const pos = @as(f32, @floatFromInt(i)) * self.cellSize;
+        const pos = @as(f32, @floatFromInt(i)) * self.cellSize - halfSize;
 
         // Vertical lines
-        const v1: [2]f32 = ctx.camera.worldToScreen(.{ pos, 0.0 });
-        const v2: [2]f32 = ctx.camera.worldToScreen(.{ pos, self.cellSize * self.gridSize });
+        const v1: [2]f32 = ctx.camera.worldToScreen(.{ pos, -halfSize });
+        const v2: [2]f32 = ctx.camera.worldToScreen(.{ pos, halfSize });
         draw_list.addLine(.{
             .p1 = .{ v1[0], v1[1] },
             .p2 = .{ v2[0], v2[1] },
@@ -114,8 +115,8 @@ pub fn draw(self: *Self, ctx: *Context, thickness: f32) void {
         });
 
         // Horizontal lines
-        const h1: [2]f32 = ctx.camera.worldToScreen(.{ 0.0, pos });
-        const h2: [2]f32 = ctx.camera.worldToScreen(.{ self.cellSize * self.gridSize, pos });
+        const h1: [2]f32 = ctx.camera.worldToScreen(.{ -halfSize, pos });
+        const h2: [2]f32 = ctx.camera.worldToScreen(.{ halfSize, pos });
         draw_list.addLine(.{
             .p1 = .{ h1[0], h1[1] },
             .p2 = .{ h2[0], h2[1] },

@@ -139,7 +139,6 @@ pub fn drawHalf(ctx: *Context) void {
         Amin.pos[1] + ctx.state.terrainValues.f,
     } };
     f.pos = vec.rotate2D(f.pos, angle * millsToRad);
-    // ctx.grid.addTextUnformatted(ctx, f.pos, 0xFF00FF00, "f");
 
     //hv
     const hv: SemiCircle = .{
@@ -173,4 +172,39 @@ pub fn drawHalf(ctx: *Context) void {
 
     c.end = if (trig.getIntersectionPoint(c.start, c.end, ch.start, ch.end)) |val| val else c.end;
     ctx.grid.addLine(ctx, c.start, c.end, 0xFF00FF00, 2);
+
+    // forestMin
+    var forestMin: Point = .{ .pos = .{
+        origin[0],
+        Amin.pos[1] - ctx.state.terrainValues.forestDist,
+    } };
+    forestMin.pos = vec.rotate2D(forestMin.pos, angle * millsToRad);
+
+    // q1
+    var q1: Line = .{
+        .start = .{
+            trig.triangleOppositeLeg(ctx.state.terrainValues.Amin - ctx.state.terrainValues.f, angle + ctx.state.weaponValues.v) + origin[0],
+            origin[1] - ctx.state.terrainValues.Amin + ctx.state.terrainValues.f,
+        },
+        .end = .{
+            v.end[0],
+            v.end[1],
+        },
+    };
+    q1.end = vec.rotate2D(q1.end, ctx.state.terrainValues.q1 * millsToRad);
+    // q1.addText("q1", 15, 0, 40, rl.Color.black, q1.end, ctx.state.config.showText);
+
+    // q2
+    var q2: Line = .{
+        .start = .{
+            trig.triangleOppositeLeg(ctx.state.terrainValues.forestDist, angle + ctx.state.weaponValues.v) + origin[0],
+            origin[1] - ctx.state.terrainValues.forestDist,
+        },
+        .end = .{
+            v.end[0],
+            v.end[1],
+        },
+    };
+    q2.end = vec.rotate2D(q2.end, ctx.state.terrainValues.q2 * millsToRad);
+    // q2.addText("q2", 25, 0, 40, rl.Color.black, q2.end, ctx.state.config.showText);
 }
