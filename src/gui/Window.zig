@@ -231,10 +231,17 @@ pub const Toolbar = struct {
         if (zgui.beginMainMenuBar()) {
             zgui.popStyleColor(.{ .count = 1 });
             if (zgui.beginMenu("Archive", true)) {
-                if (zgui.menuItem("Open file", .{})) {}
+                if (zgui.menuItem("Import", .{})) {
+                    ctx.modal = .init(.importModal);
+                }
 
-                if (zgui.menuItem("Open folder", .{})) {
-                    // try fs.setDirInfoUnpathed(ctx);
+                if (zgui.menuItem("Export", .{})) {
+                    ctx.modal = .init(.exportModal);
+                }
+
+                zgui.separator();
+                if (zgui.menuItem("Settings", .{})) {
+                    ctx.modal = .init(.settingsModal);
                 }
 
                 zgui.separator();
@@ -245,22 +252,11 @@ pub const Toolbar = struct {
                 zgui.endMenu();
             }
 
-            if (zgui.beginMenu("Edit", true)) {
-                zgui.endMenu();
-            }
-
-            if (zgui.beginMenu("Window", true)) {
+            if (zgui.beginMenu("View", true)) {
                 if (zgui.menuItem("Riskprofil", .{})) ctx.frames.riskEditorFrame.open = !ctx.frames.riskEditorFrame.open;
                 zgui.endMenu();
             }
 
-            if (zgui.beginMenu("Tools", true)) {
-                if (zgui.menuItem("Settings", .{})) {
-                    ctx.modal = .create(.settingsModal);
-                }
-
-                zgui.endMenu();
-            }
             zgui.sameLine(.{ .offset_from_start_x = @as(f32, @floatFromInt(ctx.window.getSize()[0])) - 100 });
             zgui.pushStyleVar1f(.{ .idx = .frame_rounding, .v = 0 });
             zgui.pushStyleColor4f(.{ .idx = .text, .c = Color.white });

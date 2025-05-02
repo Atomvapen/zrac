@@ -24,7 +24,7 @@ camera: Camera2D,
 grid: Grid,
 contextMenu: ContextMenu,
 modal: ?Modal,
-frames: struct { riskEditorFrame: Frame.RiskEditorFrame },
+frames: Frame,
 state: State,
 
 pub fn create(allocator: std.mem.Allocator) CreateContextError!*Self {
@@ -79,9 +79,7 @@ pub fn create(allocator: std.mem.Allocator) CreateContextError!*Self {
         .grid = Grid.init(40, 100),
         .contextMenu = .{},
         .modal = null,
-        .frames = .{
-            .riskEditorFrame = Frame.RiskEditorFrame{ .open = true },
-        },
+        .frames = .{},
         .state = .{},
     };
     errdefer context.destroy(allocator);
@@ -106,6 +104,7 @@ pub fn destroy(self: *Self, allocator: std.mem.Allocator) void {
 }
 
 pub const State = struct {
+    const RenderMode = enum { Half, SST, Box };
     const weapon = @import("data/weapon.zig");
     const ammunition = @import("data/ammunition.zig");
     const risk = @import("math/risk.zig");
@@ -155,7 +154,7 @@ pub const State = struct {
         vh: f32 = 100,
     };
 
-    renderMode: enum(u8) { Half, SST, Box } = .Half,
+    renderMode: RenderMode = .Half,
     showLines: bool = true,
     showText: bool = false,
     valid: bool = false,
@@ -198,14 +197,6 @@ pub const State = struct {
     }
 
     const Validate = struct {
-        // const ValidationError = error{
-        //     NoValue,
-        //     NegativeValue,
-        //     InvalidRange,
-        //     Overflow,
-        //     UnknownError,
-        // };
-
         pub fn validate(state: *State) bool {
             if (!state.config.show) return false;
             if (!validateZeroValues(state)) return false;

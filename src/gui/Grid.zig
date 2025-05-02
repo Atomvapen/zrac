@@ -12,6 +12,28 @@ pub fn init(cellSize: f32, gridSize: f32) Self {
     };
 }
 
+pub fn addText(_: *Self, pos: [2]f32, col: u32, comptime fmt: []const u8, args: anytype) void {
+    const draw_list: zgui.DrawList = zgui.getBackgroundDrawList();
+
+    draw_list.addText(
+        pos,
+        col,
+        fmt,
+        args,
+    );
+}
+
+pub fn addTextUnformatted(_: *Self, ctx: *Context, pos: [2]f32, col: u32, txt: []const u8) void {
+    const draw_list: zgui.DrawList = zgui.getBackgroundDrawList();
+    const screen_pos: [2]f32 = ctx.camera.worldToScreen(pos);
+
+    draw_list.addTextUnformatted(
+        screen_pos,
+        col,
+        txt,
+    );
+}
+
 pub fn addCircle(_: *Self, ctx: *Context, center: [2]f32, radius: f32, color: u32) void {
     const draw_list: zgui.DrawList = zgui.getBackgroundDrawList();
     const num_segments: usize = 36;

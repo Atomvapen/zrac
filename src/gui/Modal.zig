@@ -122,7 +122,7 @@ pub const Modals = union(enum) {
 content: Modals,
 open: bool = false,
 
-pub fn create(sort: enum { exportModal, importModal, settingsModal }) Self {
+pub fn init(sort: enum { exportModal, importModal, settingsModal }) Self {
     return switch (sort) {
         .exportModal => Self{ .open = true, .content = .{ .exportModal = .{ .open = true } } },
         .importModal => Self{ .open = true, .content = .{ .importModal = .{ .open = true } } },
@@ -131,7 +131,7 @@ pub fn create(sort: enum { exportModal, importModal, settingsModal }) Self {
 }
 
 pub fn show(self: *Self) void {
-    const zgui_style = zgui.getStyle();
+    const zgui_style: *zgui.Style = zgui.getStyle();
     zgui_style.setColor(.window_bg, Color.white);
 
     switch (self.content) {

@@ -1,5 +1,7 @@
 const std = @import("std");
-const reg = @import("reg");
+const vec = @import("vector.zig");
+
+const Vec2f = vec.Vec2f;
 
 pub const AngleUnit = enum {
     Mils,
@@ -10,36 +12,27 @@ pub const AngleUnit = enum {
 /// Calculates the length of one leg of a right triangle given the other leg and an angle.
 ///
 /// ### Paramaters
-/// - `angle` Angle θ (where 0<θ<90∘) in mils
+/// - `angle` Angle θ (where 0<θ<90∘) in rad
 /// - `length` Length of the adjacent leg a
 pub fn triangleOppositeLeg(length: f32, angle: f32) f32 {
-    return length * @tan(convertAngle(angle, .Mils, .Radians));
+    return length * @tan(angle);
 }
 
-/// Converts an angle measurement from one unit to another.
-///
-/// ### Parameters
-/// - `value` (`f32`): The angle value to convert.
-/// - `from` (`AngleUnit`): The unit of the input angle. Must be one of:
-///   - `.Mils`: Milliradians
-///   - `.Degrees`: Degrees
-///   - `.Radians`: Radians
-/// - `to` (`AngleUnit`): The desired unit for the output angle. Must also be one of the options in `AngleUnit`.
-pub fn convertAngle(value: f32, from: AngleUnit, to: AngleUnit) f32 {
-    const MILS_TO_DEGREES: f32 = 0.05625;
-    const DEGREES_TO_RADIANS: f32 = std.math.pi / 180.0;
+pub fn getIntersectionPoint(a1: Vec2f, a2: Vec2f, b1: Vec2f, b2: Vec2f) ?Vec2f {
+    const denom = (a1[0] - a2[0]) * (b1[1] - b2[1]) - (a1[1] - a2[1]) * (b1[0] - b2[0]);
+    if (denom == 0.0) return null;
 
-    if (from == to) return value;
+    const t = ((a1[0] - b1[0]) * (b1[1] - b2[1]) - (a1[1] - b1[1]) * (b1[0] - b2[0])) / denom;
 
-    const intermediateDegrees: f32 = switch (from) {
-        .Mils => value * MILS_TO_DEGREES,
-        .Degrees => value,
-        .Radians => value / DEGREES_TO_RADIANS,
-    };
+    return a1 + @as(Vec2f, @splat(t)) * (a2 - a1);
+}
 
-    return switch (to) {
-        .Mils => intermediateDegrees / MILS_TO_DEGREES,
-        .Degrees => intermediateDegrees,
-        .Radians => intermediateDegrees * DEGREES_TO_RADIANS,
-    };
+pub fn getParallelLine(start: Vec2f, end: Vec2f, offset: f32) [2]Vec2f {
+    const dir = end - start;
+    const perp: Vec2f = .{ -dir[1], dir[0] };
+    const length = std.math.sqrt(perp[0] * perp[0] + perp[1] * perp[1]);
+    const norm = perp / @as(Vec2f, @splat(length));
+    const offset_vec = norm * @as(Vec2f, @splat(offset));
+
+    return .{ start + offset_vec, end + offset_vec };
 }

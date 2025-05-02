@@ -4,11 +4,7 @@ const Color = @import("Color.zig");
 const Window = @import("Window.zig");
 const Frame = @This();
 
-const Types = enum(u8) {
-    riskEditorFrame,
-};
-
-pub const RiskEditorFrame = struct {
+const RiskEditorFrame = struct {
     open: bool = false,
 
     pub fn show(self: *RiskEditorFrame, ctx: *Context) void {
@@ -18,7 +14,7 @@ pub const RiskEditorFrame = struct {
         zgui.setNextWindowSize(.{ .w = frame_width, .h = frame_height - 10, .cond = .once });
         zgui.setNextWindowPos(.{ .x = 0.0, .y = 18.0, .cond = .once });
 
-        const zgui_style = zgui.getStyle();
+        const zgui_style: *zgui.Style = zgui.getStyle();
         zgui_style.setColor(.window_bg, if (ctx.modal == null) Color.white else Color.platinum);
 
         if (zgui.begin("Riskprofil", .{
@@ -120,7 +116,6 @@ pub const RiskEditorFrame = struct {
 
     fn drawGeneral(ctx: *Context) void {
         { // Config values
-
             _ = zgui.checkbox("Visa linjer", .{ .v = &ctx.state.config.show });
             zgui.sameLine(.{});
 
@@ -204,20 +199,11 @@ pub const RiskEditorFrame = struct {
     }
 };
 
-type: Types,
-riskEditorFrame: RiskEditorFrame = undefined,
-
-pub fn create(sort: Types) Frame {
-    return switch (sort) {
-        .riskEditorFrame => Frame{ .type = .riskEditorFrame, .riskEditorFrame = .{ .open = true } },
-    };
-}
+riskEditorFrame: RiskEditorFrame = .{ .open = true },
 
 pub fn show(self: *Frame, ctx: *Context) void {
-    const zgui_style = zgui.getStyle();
+    const zgui_style: *zgui.Style = zgui.getStyle();
     zgui_style.setColor(.window_bg, Color.white);
 
-    switch (self.type) {
-        .riskEditorFrame => if (self.riskEditorFrame.open) self.riskEditorFrame.show(ctx),
-    }
+    if (self.riskEditorFrame.open) self.riskEditorFrame.show(ctx);
 }

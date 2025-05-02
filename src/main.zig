@@ -22,7 +22,7 @@ pub fn main() !void {
     defer ctx.destroy(allocator);
 
     while (!ctx.window.shouldClose() and ctx.window.getKey(.escape) != .press) {
-        renderer.beginFrame(ctx);
+        renderer.begin(ctx);
         renderer.update(ctx);
         renderer.draw(ctx);
     }
