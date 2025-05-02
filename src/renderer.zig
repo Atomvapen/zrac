@@ -18,11 +18,11 @@ pub fn update(ctx: *Context) void {
     ctx.camera.update(ctx);
 
     ctx.grid.draw(ctx);
-    ctx.grid.addLine(ctx, 10.0, 10.0, 50.0, 50.0, 0xFFFF0000);
-    ctx.grid.addRect(ctx, 10.0, 10.0, 50.0, 50.0, 0xFF00FF00, 5.0, 2.0);
-    ctx.grid.addCircle(ctx, 20.0, 20.0, 15.0, 0xFF0000FF);
-    ctx.grid.addCircleSector(ctx, 100.0, 100.0, 50.0, 0xFF00FF00, 0.0, 3.14159);
-    ctx.grid.addCircleSector(ctx, 100.0, 100.0, 50.0, 0xFFFF0000, 3.14159, 6.28319);
+    ctx.grid.addLine(ctx, .{ 10.0, 10.0 }, .{ 50.0, 50.0 }, 0xFFFF0000);
+    ctx.grid.addRect(ctx, .{ 10.0, 10.0 }, .{ 50.0, 50.0 }, 0xFF00FF00, 5.0, 2.0);
+    ctx.grid.addCircle(ctx, .{ 20.0, 20.0 }, 15.0, 0xFF0000FF);
+    ctx.grid.addCircleSector(ctx, .{ 100.0, 100.0 }, 50.0, 0xFF00FF00, 0.0, 3.14159);
+    ctx.grid.addCircleSector(ctx, .{ 100.0, 100.0 }, 50.0, 0xFFFF0000, 3.14159, 6.28319);
 
     Context.Window.draw(ctx);
     ctx.contextMenu.draw(ctx);

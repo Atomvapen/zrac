@@ -10,6 +10,8 @@ pub const allocator: std.mem.Allocator = gpa.allocator();
 // pub const allocator: std.mem.Allocator = std.heap.c_allocator;
 
 pub fn main() !void {
+    defer _ = gpa.deinit();
+
     zstbi.init(allocator);
     defer zstbi.deinit();
 
@@ -18,8 +20,6 @@ pub fn main() !void {
 
     var ctx: *Context = try Context.create(allocator);
     defer ctx.destroy(allocator);
-
-    // renderer.init(ctx);
 
     while (!ctx.window.shouldClose() and ctx.window.getKey(.escape) != .press) {
         renderer.beginFrame(ctx);

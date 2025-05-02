@@ -5,7 +5,7 @@ const Context = @import("../Context.zig");
 const cellSize: f32 = 40.0;
 const gridSize: usize = 100;
 
-pub fn addCircleSector(_: *Self, ctx: *Context, cx: f32, cy: f32, radius: f32, color: u32, angle_start: f32, angle_end: f32) void {
+pub fn addCircleSector(_: *Self, ctx: *Context, center: [2]f32, radius: f32, color: u32, angle_start: f32, angle_end: f32) void {
     const draw_list: zgui.DrawList = zgui.getBackgroundDrawList();
     const num_segments: usize = 36;
 
@@ -16,8 +16,8 @@ pub fn addCircleSector(_: *Self, ctx: *Context, cx: f32, cy: f32, radius: f32, c
         const t = @as(f32, @floatFromInt(i)) / @as(f32, num_segments);
         const angle = angle_start + (angle_end - angle_start) * t;
 
-        const x = cx + radius * @cos(angle);
-        const y = cy + radius * @sin(angle);
+        const x = center[0] + radius * @cos(angle);
+        const y = center[1] + radius * @sin(angle);
 
         points[point_count] = .{ x, y };
         point_count += 1;
@@ -35,15 +35,14 @@ pub fn addCircleSector(_: *Self, ctx: *Context, cx: f32, cy: f32, radius: f32, c
     });
 }
 
-pub fn addRect(_: *Self, ctx: *Context, x1: f32, y1: f32, x2: f32, y2: f32, color: u32, rounding: f32, thickness: f32) void {
+pub fn addRect(_: *Self, ctx: *Context, pmin: [2]f32, pmax: [2]f32, color: u32, rounding: f32, thickness: f32) void {
     const draw_list: zgui.DrawList = zgui.getBackgroundDrawList();
-
-    const screen_pmin: [2]f32 = ctx.camera.worldToScreen(.{ x1, y1 });
-    const screen_pmax: [2]f32 = ctx.camera.worldToScreen(.{ x2, y2 });
+    const screen_pmin: [2]f32 = ctx.camera.worldToScreen(pmin);
+    const screen_pmax: [2]f32 = ctx.camera.worldToScreen(pmax);
 
     draw_list.addRect(.{
-        .pmin = .{ screen_pmin[0], screen_pmin[1] },
-        .pmax = .{ screen_pmax[0], screen_pmax[1] },
+        .pmin = screen_pmin,
+        .pmax = screen_pmax,
         .col = color,
         .rounding = rounding,
         .flags = .{},
@@ -51,28 +50,26 @@ pub fn addRect(_: *Self, ctx: *Context, x1: f32, y1: f32, x2: f32, y2: f32, colo
     });
 }
 
-pub fn addLine(_: *Self, ctx: *Context, x1: f32, y1: f32, x2: f32, y2: f32, color: u32) void {
+pub fn addLine(_: *Self, ctx: *Context, start: [2]f32, end: [2]f32, color: u32) void {
     const draw_list: zgui.DrawList = zgui.getBackgroundDrawList();
-
-    const start: [2]f32 = ctx.camera.worldToScreen(.{ x1, y1 });
-    const end: [2]f32 = ctx.camera.worldToScreen(.{ x2, y2 });
+    const start_screen: [2]f32 = ctx.camera.worldToScreen(start);
+    const end_screen: [2]f32 = ctx.camera.worldToScreen(end);
 
     draw_list.addLine(.{
-        .p1 = .{ start[0], start[1] },
-        .p2 = .{ end[0], end[1] },
+        .p1 = start_screen,
+        .p2 = end_screen,
         .col = color,
         .thickness = 2.0,
     });
 }
 
-pub fn addCircle(_: *Self, ctx: *Context, cx: f32, cy: f32, radius: f32, color: u32) void {
+pub fn addCircle(_: *Self, ctx: *Context, center: [2]f32, radius: f32, color: u32) void {
     const draw_list: zgui.DrawList = zgui.getBackgroundDrawList();
     const num_segments: usize = 36;
-
-    const center: [2]f32 = ctx.camera.worldToScreen(.{ cx, cy });
+    const center_screen: [2]f32 = ctx.camera.worldToScreen(center);
 
     draw_list.addCircle(.{
-        .p = .{ center[0], center[1] },
+        .p = center_screen,
         .r = radius * ctx.camera.zoom,
         .col = color,
         .num_segments = num_segments,

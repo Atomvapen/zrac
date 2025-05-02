@@ -83,10 +83,10 @@ pub fn destroy(self: *Self, allocator: std.mem.Allocator) void {
     std.log.info("[zrac] Destroying Context", .{});
     std.log.info("[zrac]   Destroying window", .{});
     self.window.destroy();
-    std.log.info("[zrac]   Destroying drawlist", .{});
-    zgui.destroyDrawList(self.draw_list);
     std.log.info("[zrac]   Deinitializing ZGUI backend", .{});
     zgui.backend.deinit();
+    std.log.info("[zrac]   Destroying drawlist", .{});
+    zgui.destroyDrawList(self.draw_list);
     std.log.info("[zrac]   Deinitializing ZGUI", .{});
     zgui.deinit();
     std.log.info("[zrac]   Destroying Graphics Context", .{});
