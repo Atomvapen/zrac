@@ -249,8 +249,8 @@ pub const Toolbar = struct {
                 zgui.endMenu();
             }
 
-            if (zgui.beginMenu("Show", true)) {
-                // if (zgui.menuItem("Archiver", .{})) ctx.archiver.show = !ctx.archiver.show;
+            if (zgui.beginMenu("Window", true)) {
+                if (zgui.menuItem("Riskprofil", .{})) ctx.frames.riskEditorFrame.open = !ctx.frames.riskEditorFrame.open;
                 zgui.endMenu();
             }
 

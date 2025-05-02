@@ -23,6 +23,8 @@ pub fn update(ctx: *Context) void {
     ctx.grid.addCircleSector(ctx, .{ 100.0, 100.0 }, 50.0, 0xFF00FF00, 0.0, 3.14159, 2);
     ctx.grid.addCircleSector(ctx, .{ 100.0, 100.0 }, 50.0, 0xFFFF0000, 3.14159, 6.28319, 2);
 
+    if (ctx.frames.riskEditorFrame.open) ctx.frames.riskEditorFrame.show(ctx);
+
     if (ctx.modal) |*modal| {
         if (!modal.open) ctx.modal = null;
         modal.show();

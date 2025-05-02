@@ -16,7 +16,7 @@ pub const RiskEditorFrame = struct {
         zgui.setNextWindowPos(.{ .x = 0.0, .y = 18.0, .cond = .once });
 
         const zgui_style = zgui.getStyle();
-        zgui_style.setColor(.window_bg, if (ctx.window.modal == null) Color.white else Color.platinum);
+        zgui_style.setColor(.window_bg, if (ctx.modal == null) Color.white else Color.platinum);
 
         if (zgui.begin("Riskprofil", .{
             .popen = &self.open,
@@ -26,10 +26,10 @@ pub const RiskEditorFrame = struct {
                 .no_resize = true,
                 // .always_auto_resize = true,
                 .no_collapse = true,
-                .no_bring_to_front_on_focus = if (ctx.window.modal != null) true else false,
-                .no_mouse_inputs = if (ctx.window.modal != null) true else false,
-                // .no_move = if (ctx.window.modal != null) true else false,
-                .no_nav_inputs = if (ctx.window.modal != null) true else false,
+                .no_bring_to_front_on_focus = if (ctx.modal != null) true else false,
+                .no_mouse_inputs = if (ctx.modal != null) true else false,
+                // .no_move = if (ctx.modal != null) true else false,
+                .no_nav_inputs = if (ctx.modal != null) true else false,
                 //
                 .no_title_bar = true,
                 .no_move = true,
