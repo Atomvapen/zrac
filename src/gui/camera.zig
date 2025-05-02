@@ -17,7 +17,7 @@ pub fn zoomToward(self: *Self, window: *zglfw.Window, zoomDelta: f32) void {
         @floatCast(mousePos[1]),
     };
 
-    const oldZoom = self.zoom;
+    const oldZoom: f32 = self.zoom;
     self.zoom = @max(@min(self.zoom + zoomDelta, 1.5), 0.1);
     const zoomFactor = self.zoom / oldZoom;
 
@@ -27,31 +27,25 @@ pub fn zoomToward(self: *Self, window: *zglfw.Window, zoomDelta: f32) void {
 
 pub fn update(self: *Self, ctx: *Context) void {
     const mousePos: [2]f64 = ctx.window.getCursorPos();
-    const mouseX: f64 = mousePos[0];
-    const mouseY: f64 = mousePos[1];
-
-    if (mouseY < 25 or Window.Drag.dragging) return;
+    if (mousePos[1] < 25 or Window.Drag.dragging) return;
 
     if (self.isDragging) {
-        self.offsetX += @floatCast(mouseX - self.lastMouseX);
-        self.offsetY += @floatCast(mouseY - self.lastMouseY);
+        self.offsetX += @floatCast(mousePos[0] - self.lastMouseX);
+        self.offsetY += @floatCast(mousePos[1] - self.lastMouseY);
     }
 
-    const mouseButton: zglfw.Action = ctx.window.getMouseButton(.left);
-    switch (mouseButton) {
-        .press => {
-            if (!self.isDragging) {
-                self.isDragging = true;
-                self.lastMouseX = mouseX;
-                self.lastMouseY = mouseY;
-            }
+    switch (ctx.window.getMouseButton(.left)) {
+        .press => if (!self.isDragging) {
+            self.isDragging = true;
+            self.lastMouseX = mousePos[0];
+            self.lastMouseY = mousePos[1];
         },
         .release => self.isDragging = false,
         else => {},
     }
 
-    self.lastMouseX = mouseX;
-    self.lastMouseY = mouseY;
+    self.lastMouseX = mousePos[0];
+    self.lastMouseY = mousePos[1];
 }
 
 pub fn screenToWorld(self: Self, screen: [2]f32) [2]f32 {
@@ -63,7 +57,7 @@ pub fn screenToWorld(self: Self, screen: [2]f32) [2]f32 {
 
 pub fn worldToScreen(self: Self, world: [2]f32) [2]f32 {
     return .{
-        world[0] * self.zoom + self.offsetX,
-        world[1] * self.zoom + self.offsetY,
+        (world[0] * self.zoom) + self.offsetX,
+        (world[1] * self.zoom) + self.offsetY,
     };
 }

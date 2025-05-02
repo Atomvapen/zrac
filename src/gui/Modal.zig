@@ -2,8 +2,8 @@ const Self = @This();
 
 const std = @import("std");
 const zgui = @import("zgui");
-const rl = @import("raylib");
 const Color = @import("Color.zig");
+const Window = @import("Window.zig");
 
 pub const Modals = union(enum) {
     const ExportModal = struct {
@@ -23,6 +23,7 @@ pub const Modals = union(enum) {
                     .no_resize = true,
                     .no_collapse = true,
                     .no_move = true,
+                    .no_title_bar = true,
                 },
             })) {
                 var v: f32 = 0;
@@ -69,6 +70,7 @@ pub const Modals = union(enum) {
                     .no_resize = true,
                     .no_collapse = true,
                     .no_move = true,
+                    .no_title_bar = true,
                 },
             })) {
                 if (zgui.button("Acceptera", .{ .h = 20, .w = 100 })) {}
@@ -98,6 +100,7 @@ pub const Modals = union(enum) {
                     .no_resize = true,
                     .no_collapse = true,
                     .no_move = true,
+                    .no_title_bar = true,
                 },
             })) {
                 if (zgui.button("Acceptera", .{ .h = 20, .w = 100 })) {}
@@ -145,12 +148,12 @@ pub fn show(self: *Self) void {
 }
 
 fn setup(frame_width: f32, frame_height: f32) void {
-    const window_width: i32 = rl.getScreenWidth();
-    const window_height: i32 = rl.getScreenHeight();
+    const window_width: f32 = @floatFromInt(Window.Config.width);
+    const window_height: f32 = @floatFromInt(Window.Config.height);
 
     // Center Position
-    const center_x = (@as(f32, @floatFromInt(window_width)) - frame_width) / 2.0;
-    const center_y = (@as(f32, @floatFromInt(window_height)) - frame_height) / 2.0;
+    const center_x: f32 = (window_width - frame_width) / 2.0;
+    const center_y: f32 = (window_height - frame_height) / 2.0;
 
     zgui.setNextWindowSize(.{ .w = frame_width, .h = frame_height, .cond = .once });
     zgui.setNextWindowPos(.{ .x = center_x, .y = center_y, .cond = .always });
@@ -159,5 +162,10 @@ fn setup(frame_width: f32, frame_height: f32) void {
     zgui.pushStyleVar2f(.{ .idx = .window_padding, .v = .{ 10, 10 } });
 
     // Dim Background
-    rl.drawRectangle(0, 0, window_width, window_height, rl.Color.fade(rl.Color.black, 0.5));
+    const draw_list: zgui.DrawList = zgui.getBackgroundDrawList();
+    draw_list.addRectFilled(.{
+        .pmin = .{ 0, 0 },
+        .pmax = .{ window_width, window_height },
+        .col = zgui.colorConvertFloat4ToU32(.{ 0, 0, 0, 128 }),
+    });
 }

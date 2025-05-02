@@ -4,26 +4,24 @@ const zstbi = @import("zstbi");
 const zgui = @import("zgui");
 const Context = @import("../Context.zig");
 
-const InitError = error{
+pub const CreateWindowError = error{
     FailedToCreateWindow,
     FailedToGetExecutableDirectory,
     FailedToChangeExecutableDirectory,
     FailedToLoadIcon,
 };
 
-pub const WindowError = InitError;
-
 pub const Config = struct {
-    const title: [:0]const u8 = "zrac";
-    const width: i32 = 900;
-    const height: i32 = 600;
-    const refresh_rate: i32 = 60;
-    const icon_path: [:0]const u8 = "../../assets/icon.png";
+    pub const title: [:0]const u8 = "zrac";
+    pub const width: i32 = 900;
+    pub const height: i32 = 600;
+    pub const refresh_rate: i32 = 60;
+    pub const icon_path: [:0]const u8 = "../../assets/icon.png";
 };
 
 var context: *Context = undefined;
 
-pub fn init(ctx: *Context) WindowError!*zglfw.Window {
+pub fn init(ctx: *Context) CreateWindowError!*zglfw.Window {
     context = ctx;
 
     zglfw.windowHint(.client_api, .no_api);
@@ -32,7 +30,7 @@ pub fn init(ctx: *Context) WindowError!*zglfw.Window {
     zglfw.windowHint(.resizable, false);
 
     std.log.info("[zrac]      Creating GLFW window ({d}x{d}) titled \"{s}\"", .{ Config.width, Config.height, Config.title });
-    const window: *zglfw.Window = zglfw.Window.create(Config.width, Config.height, Config.title, null) catch return InitError.FailedToCreateWindow;
+    const window: *zglfw.Window = zglfw.Window.create(Config.width, Config.height, Config.title, null) catch return CreateWindowError.FailedToCreateWindow;
     window.setSizeLimits(Config.width, Config.height, Config.width, Config.height);
     window.setPos(100, 100);
 
@@ -46,12 +44,12 @@ pub fn init(ctx: *Context) WindowError!*zglfw.Window {
     // Use Relative Paths
     std.log.info("[zrac]      Changing working directory to executable location", .{});
     var buffer: [std.fs.max_path_bytes]u8 = undefined;
-    const path: []const u8 = std.fs.selfExeDirPath(buffer[0..]) catch return InitError.FailedToGetExecutableDirectory;
-    std.posix.chdir(path) catch return InitError.FailedToChangeExecutableDirectory;
+    const path: []const u8 = std.fs.selfExeDirPath(buffer[0..]) catch return CreateWindowError.FailedToGetExecutableDirectory;
+    std.posix.chdir(path) catch return CreateWindowError.FailedToChangeExecutableDirectory;
 
     // Set Icon
     std.log.info("[zrac]      Loading icon image from path: {s}", .{Config.icon_path});
-    var zstbi_icon: zstbi.Image = zstbi.Image.loadFromFile(Config.icon_path, 4) catch return InitError.FailedToLoadIcon;
+    var zstbi_icon: zstbi.Image = zstbi.Image.loadFromFile(Config.icon_path, 4) catch return CreateWindowError.FailedToLoadIcon;
     defer zstbi_icon.deinit();
     std.log.info("[zrac]      Setting window icon", .{});
     const zglfw_icon: zglfw.Image = zglfw.Image{
@@ -72,7 +70,7 @@ pub fn draw(ctx: *Context) void {
 fn scrollCallback(window: *zglfw.Window, xoffset: f64, yoffset: f64) callconv(.C) void {
     _ = xoffset;
 
-    context.camera.zoomToward(window, @floatCast(yoffset * 0.1));
+    if (context.modal == null) context.camera.zoomToward(window, @floatCast(yoffset * 0.1));
 }
 
 fn cursorPositionCallback(window: *zglfw.Window, x: f64, y: f64) callconv(.c) void {
@@ -257,7 +255,9 @@ pub const Toolbar = struct {
             }
 
             if (zgui.beginMenu("Tools", true)) {
-                if (zgui.menuItem("Settings", .{})) {}
+                if (zgui.menuItem("Settings", .{})) {
+                    ctx.modal = .create(.settingsModal);
+                }
 
                 zgui.endMenu();
             }

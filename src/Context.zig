@@ -8,12 +8,12 @@ pub const Window = @import("gui/Window.zig");
 const Camera2D = @import("gui/Camera.zig");
 const Grid = @import("gui/Grid.zig");
 const ContextMenu = @import("gui/ContextMenu.zig");
+const Modal = @import("gui/Modal.zig");
 
-const CreateError = error{
+const CreateContextError = error{
     FailedToCreateGraphicsContext,
     OutOfMemory,
-};
-const ContextError = CreateError || Window.WindowError;
+} || Window.CreateWindowError;
 
 gctx: *zgpu.GraphicsContext,
 draw_list: zgui.DrawList,
@@ -22,11 +22,12 @@ window: *zglfw.Window,
 camera: Camera2D,
 grid: Grid,
 contextMenu: ContextMenu,
+modal: ?Modal,
 
-pub fn create(allocator: std.mem.Allocator) ContextError!*Self {
+pub fn create(allocator: std.mem.Allocator) CreateContextError!*Self {
     std.log.info("[zrac] Creating Context", .{});
     std.log.info("[zrac]   Creating context object", .{});
-    const context: *Self = allocator.create(Self) catch return CreateError.OutOfMemory;
+    const context: *Self = allocator.create(Self) catch return CreateContextError.OutOfMemory;
 
     std.log.info("[zrac]   Creating window", .{});
     const window: *zglfw.Window = try Window.init(context);
@@ -43,7 +44,7 @@ pub fn create(allocator: std.mem.Allocator) ContextError!*Self {
         .fn_getWaylandDisplay = @ptrCast(&zglfw.getWaylandDisplay),
         .fn_getWaylandSurface = @ptrCast(&zglfw.getWaylandWindow),
         .fn_getCocoaWindow = @ptrCast(&zglfw.getCocoaWindow),
-    }, .{}) catch return CreateError.FailedToCreateGraphicsContext;
+    }, .{}) catch return CreateContextError.FailedToCreateGraphicsContext;
     errdefer gctx.destroy(allocator);
 
     std.log.info("[zrac]   Initializing ZGUI", .{});
@@ -65,14 +66,16 @@ pub fn create(allocator: std.mem.Allocator) ContextError!*Self {
     const style: *zgui.Style = zgui.getStyle();
     style.scaleAllSizes(scale_factor);
 
+    std.log.info("[zrac]   Settings context object fields", .{});
     context.* = .{
         .gctx = gctx,
         .draw_list = zgui.createDrawList(),
         .allocator = allocator,
         .window = window,
         .camera = .{},
-        .grid = .{},
+        .grid = Grid.init(40, 100),
         .contextMenu = .{},
+        .modal = null,
     };
     errdefer context.destroy(allocator);
 

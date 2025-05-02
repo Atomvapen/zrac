@@ -1,5 +1,4 @@
 const zgui = @import("zgui");
-const rl = @import("raylib");
 const Context = @import("../Context.zig");
 const Color = @import("Color.zig");
 
@@ -13,7 +12,7 @@ pub const RiskEditorFrame = struct {
     open: bool = false,
 
     pub fn show(self: *RiskEditorFrame, ctx: *Context) void {
-        zgui.setNextWindowSize(.{ .w = 350, .h = @as(f32, @floatFromInt(rl.getScreenHeight())) - 10, .cond = .once });
+        zgui.setNextWindowSize(.{ .w = 350, .h = zgui.getWindowHeight() - 10, .cond = .once });
         zgui.setNextWindowPos(.{ .x = 0.0, .y = 18.0, .cond = .once });
 
         const zgui_style = zgui.getStyle();
