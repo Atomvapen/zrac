@@ -198,13 +198,13 @@ pub const State = struct {
     }
 
     const Validate = struct {
-        const ValidationError = error{
-            NoValue,
-            NegativeValue,
-            InvalidRange,
-            Overflow,
-            UnknownError,
-        };
+        // const ValidationError = error{
+        //     NoValue,
+        //     NegativeValue,
+        //     InvalidRange,
+        //     Overflow,
+        //     UnknownError,
+        // };
 
         pub fn validate(state: *State) bool {
             if (!state.config.show) return false;

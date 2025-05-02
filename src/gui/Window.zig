@@ -13,8 +13,8 @@ pub const CreateWindowError = error{
 
 pub const Config = struct {
     pub const title: [:0]const u8 = "zrac";
-    pub const width: i32 = 900;
-    pub const height: i32 = 600;
+    pub const width: i32 = 1200;
+    pub const height: i32 = 800;
     pub const refresh_rate: i32 = 60;
     pub const icon_path: [:0]const u8 = "../../assets/icon.png";
 };

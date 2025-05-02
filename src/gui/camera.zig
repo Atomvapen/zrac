@@ -27,7 +27,7 @@ pub fn zoomToward(self: *Self, window: *zglfw.Window, zoomDelta: f32) void {
 
 pub fn update(self: *Self, ctx: *Context) void {
     const mousePos: [2]f64 = ctx.window.getCursorPos();
-    if (mousePos[1] < 25 or Window.Drag.dragging) return;
+    if (mousePos[1] < 25 or Window.Drag.dragging or mousePos[0] < 350) return;
 
     if (self.isDragging) {
         self.offsetX += @floatCast(mousePos[0] - self.lastMouseX);

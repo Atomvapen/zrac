@@ -1,10 +1,10 @@
 const zgui = @import("zgui");
 const Context = @import("../Context.zig");
 const Color = @import("Color.zig");
-
+const Window = @import("Window.zig");
 const Frame = @This();
 
-const Types = enum {
+const Types = enum(u8) {
     riskEditorFrame,
 };
 
@@ -12,7 +12,10 @@ pub const RiskEditorFrame = struct {
     open: bool = false,
 
     pub fn show(self: *RiskEditorFrame, ctx: *Context) void {
-        zgui.setNextWindowSize(.{ .w = 350, .h = zgui.getWindowHeight() - 10, .cond = .once });
+        const frame_width: f32 = 350.0;
+        const frame_height: f32 = Window.Config.height;
+
+        zgui.setNextWindowSize(.{ .w = frame_width, .h = frame_height - 10, .cond = .once });
         zgui.setNextWindowPos(.{ .x = 0.0, .y = 18.0, .cond = .once });
 
         const zgui_style = zgui.getStyle();
@@ -24,13 +27,10 @@ pub const RiskEditorFrame = struct {
                 .no_scrollbar = true,
                 .no_scroll_with_mouse = true,
                 .no_resize = true,
-                // .always_auto_resize = true,
                 .no_collapse = true,
                 .no_bring_to_front_on_focus = if (ctx.modal != null) true else false,
                 .no_mouse_inputs = if (ctx.modal != null) true else false,
-                // .no_move = if (ctx.modal != null) true else false,
                 .no_nav_inputs = if (ctx.modal != null) true else false,
-                //
                 .no_title_bar = true,
                 .no_move = true,
                 .always_auto_resize = false,
