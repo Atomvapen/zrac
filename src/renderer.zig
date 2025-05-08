@@ -88,7 +88,7 @@ pub fn draw(ctx: *Context) void {
 pub fn drawHalf(ctx: *Context) void {
     const origin: Vec2f = .{ 0, 0 };
     const angle: f32 = 0;
-    const millsToRad = std.math.tau / 6400.0;
+    const millsToRad: f32 = std.math.tau / 6400.0;
 
     // h
     var h: Line = .{
@@ -140,7 +140,7 @@ pub fn drawHalf(ctx: *Context) void {
 
     //c
     var c: Line = blk: {
-        const val: [2]Vec2f = trig.getParallelLine(v.start, v.end, ctx.state.weaponValues.c);
+        const val: [2]Vec2f = vec.getParallelVector2(v.start, v.end, ctx.state.weaponValues.c);
         break :blk .{ .start = val[0], .end = val[1] };
     };
 
@@ -156,9 +156,9 @@ pub fn drawHalf(ctx: *Context) void {
         },
     };
     ch.end = vec.rotate2D(ch.end, (angle + 3200.0 - ctx.state.terrainValues.ch) * millsToRad);
-    ch.end = if (trig.getIntersectionPoint(ch.start, ch.end, c.start, c.end)) |val| val else c.end;
+    ch.end = if (vec.getVector2Intersection(ch.start, ch.end, c.start, c.end)) |val| val else c.end;
 
-    c.end = if (trig.getIntersectionPoint(c.start, c.end, ch.start, ch.end)) |val| val else c.end;
+    c.end = if (vec.getVector2Intersection(c.start, c.end, ch.start, ch.end)) |val| val else c.end;
 
     // forestMin
     var forestMin: Point = .{
@@ -199,12 +199,12 @@ pub fn drawHalf(ctx: *Context) void {
 
     // q
     var q: Line = if (ctx.state.terrainValues.forestDist > 0) q2 else q1;
-    q.end = if (trig.getIntersectionPoint(q.start, q.end, c.start, c.end)) |val| val else q.end;
-    q.start = if (trig.getIntersectionPoint(q.start, q.end, v.start, v.end)) |val| val else q.start;
+    q.end = if (vec.getVector2Intersection(q.start, q.end, c.start, c.end)) |val| val else q.end;
+    q.start = if (vec.getVector2Intersection(q.start, q.end, v.start, v.end)) |val| val else q.start;
 
-    v.end = if (trig.getIntersectionPoint(v.start, v.end, q.start, q.end)) |val| val else v.end;
-    c.end = if (trig.getIntersectionPoint(c.start, c.end, ch.start, ch.end)) |val| val else c.end;
-    c.start = if (trig.getIntersectionPoint(c.start, c.end, q.start, q.end)) |val| val else c.start;
+    v.end = if (vec.getVector2Intersection(v.start, v.end, q.start, q.end)) |val| val else v.end;
+    c.end = if (vec.getVector2Intersection(c.start, c.end, ch.start, ch.end)) |val| val else c.end;
+    c.start = if (vec.getVector2Intersection(c.start, c.end, q.start, q.end)) |val| val else c.start;
 
     h.draw(ctx);
     v.draw(ctx);
@@ -280,7 +280,7 @@ pub fn drawSST(ctx: *Context) void {
 
     // //c
     // var h_c: Line = blk: {
-    //     const val: [2]Vec2f = trig.getParallelLine(h_v.start, h_v.end, ctx.state.weaponValues.c);
+    //     const val: [2]Vec2f = vec.getParallelVector2(h_v.start, h_v.end, ctx.state.weaponValues.c);
     //     break :blk .{ .start = val[0], .end = val[1] };
     // };
 
@@ -296,9 +296,9 @@ pub fn drawSST(ctx: *Context) void {
     //     },
     // };
     // h_ch.end = vec.rotate2D(h_ch.end, (angle + 3200.0 - ctx.state.terrainValues.ch) * millsToRad);
-    // h_ch.end = if (trig.getIntersectionPoint(h_ch.start, h_ch.end, h_c.start, h_c.end)) |val| val else h_c.end;
+    // h_ch.end = if (vec.getVector2Intersection(h_ch.start, h_ch.end, h_c.start, h_c.end)) |val| val else h_c.end;
 
-    // h_c.end = if (trig.getIntersectionPoint(h_c.start, h_c.end, h_ch.start, h_ch.end)) |val| val else h_c.end;
+    // h_c.end = if (vec.getVector2Intersection(h_c.start, h_c.end, h_ch.start, h_ch.end)) |val| val else h_c.end;
 
     // // forestMin
     // var h_forestMin: Point = .{
@@ -339,12 +339,12 @@ pub fn drawSST(ctx: *Context) void {
 
     // // q
     // var h_q: Line = if (ctx.state.terrainValues.forestDist > 0) h_q2 else h_q1;
-    // h_q.end = if (trig.getIntersectionPoint(h_q.start, h_q.end, h_c.start, h_c.end)) |val| val else h_q.end;
-    // h_q.start = if (trig.getIntersectionPoint(h_q.start, h_q.end, h_v.start, h_v.end)) |val| val else h_q.start;
+    // h_q.end = if (vec.getVector2Intersection(h_q.start, h_q.end, h_c.start, h_c.end)) |val| val else h_q.end;
+    // h_q.start = if (vec.getVector2Intersection(h_q.start, h_q.end, h_v.start, h_v.end)) |val| val else h_q.start;
 
-    // h_v.end = if (trig.getIntersectionPoint(h_v.start, h_v.end, h_q.start, h_q.end)) |val| val else h_v.end;
-    // h_c.end = if (trig.getIntersectionPoint(h_c.start, h_c.end, h_ch.start, h_ch.end)) |val| val else h_c.end;
-    // h_c.start = if (trig.getIntersectionPoint(h_c.start, h_c.end, h_q.start, h_q.end)) |val| val else h_c.start;
+    // h_v.end = if (vec.getVector2Intersection(h_v.start, h_v.end, h_q.start, h_q.end)) |val| val else h_v.end;
+    // h_c.end = if (vec.getVector2Intersection(h_c.start, h_c.end, h_ch.start, h_ch.end)) |val| val else h_c.end;
+    // h_c.start = if (vec.getVector2Intersection(h_c.start, h_c.end, h_q.start, h_q.end)) |val| val else h_c.start;
 
     // h
     var v_h: Line = .{
@@ -396,7 +396,7 @@ pub fn drawSST(ctx: *Context) void {
 
     //c
     var v_c: Line = blk: {
-        const val: [2]Vec2f = trig.getParallelLine(v_v.start, v_v.end, -ctx.state.weaponValues.c);
+        const val: [2]Vec2f = vec.getParallelVector2(v_v.start, v_v.end, -ctx.state.weaponValues.c);
         break :blk .{ .start = val[0], .end = val[1] };
     };
 
@@ -412,9 +412,9 @@ pub fn drawSST(ctx: *Context) void {
         },
     };
     v_ch.end = vec.rotate2D(v_ch.end, (-angle - 3200.0 + ctx.state.terrainValues.ch) * millsToRad);
-    v_ch.end = if (trig.getIntersectionPoint(v_ch.start, v_ch.end, v_c.start, v_c.end)) |val| val else v_c.end;
+    v_ch.end = if (vec.getVector2Intersection(v_ch.start, v_ch.end, v_c.start, v_c.end)) |val| val else v_c.end;
 
-    // v_c.end = if (trig.getIntersectionPoint(v_c.start, v_c.end, v_ch.start, v_ch.end)) |val| val else v_c.end;
+    // v_c.end = if (vec.getVector2Intersection(v_c.start, v_c.end, v_ch.start, v_ch.end)) |val| val else v_c.end;
 
     // forestMin
     var v_forestMin: Point = .{
@@ -452,17 +452,17 @@ pub fn drawSST(ctx: *Context) void {
     };
     v_q2.end = vec.rotate2D(v_q2.end, ctx.state.terrainValues.q2 * millsToRad);
     // // q2.addText("q2", 25, 0, 40, rl.Color.black, q2.end, ctx.state.config.showText);
-    v_q2.end = if (trig.getIntersectionPoint(v_q2.start, v_q2.end, v_c.start, v_c.end)) |val| val else v_q2.end;
-    v_q2.start = if (trig.getIntersectionPoint(v_q2.start, v_q2.end, v_v.start, v_v.end)) |val| val else v_q2.start;
+    v_q2.end = if (vec.getVector2Intersection(v_q2.start, v_q2.end, v_c.start, v_c.end)) |val| val else v_q2.end;
+    v_q2.start = if (vec.getVector2Intersection(v_q2.start, v_q2.end, v_v.start, v_v.end)) |val| val else v_q2.start;
 
     // // q
     // var v_q: Line = if (ctx.state.terrainValues.forestDist > 0) v_q2 else v_q1;
-    // v_q.end = if (trig.getIntersectionPoint(v_q.start, v_q.end, v_c.start, v_c.end)) |val| val else v_q.end;
-    // v_q.start = if (trig.getIntersectionPoint(v_q.start, v_q.end, v_v.start, v_v.end)) |val| val else v_q.start;
+    // v_q.end = if (vec.getVector2Intersection(v_q.start, v_q.end, v_c.start, v_c.end)) |val| val else v_q.end;
+    // v_q.start = if (vec.getVector2Intersection(v_q.start, v_q.end, v_v.start, v_v.end)) |val| val else v_q.start;
 
-    // v_v.end = if (trig.getIntersectionPoint(v_v.start, v_v.end, v_q.start, v_q.end)) |val| val else v_v.end;
-    v_c.end = if (trig.getIntersectionPoint(v_c.start, v_c.end, v_ch.start, v_ch.end)) |val| val else v_c.end;
-    // v_c.start = if (trig.getIntersectionPoint(v_c.start, v_c.end, v_q.start, v_q.end)) |val| val else v_c.start;
+    // v_v.end = if (vec.getVector2Intersection(v_v.start, v_v.end, v_q.start, v_q.end)) |val| val else v_v.end;
+    v_c.end = if (vec.getVector2Intersection(v_c.start, v_c.end, v_ch.start, v_ch.end)) |val| val else v_c.end;
+    // v_c.start = if (vec.getVector2Intersection(v_c.start, v_c.end, v_q.start, v_q.end)) |val| val else v_c.start;
 
     sst.draw(ctx);
     // h_h.draw(ctx);

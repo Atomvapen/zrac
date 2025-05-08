@@ -1,8 +1,25 @@
 const vec = @import("vector.zig");
-const trig = @import("trig.zig");
 const Context = @import("../Context.zig");
 
 const Vec2f = vec.Vec2f;
+
+// pub fn Line2(comptime T: type) type {
+//     return struct {
+//         const Self = @This();
+
+//         start: @Vector(2, T),
+//         end: @Vector(2, T),
+//         color: u32,
+
+//         pub fn init(color: u32, start: @Vector(2, T), end: @Vector(2, T)) Self {
+//             return Self{ .color = color, .start = start, .end = end };
+//         }
+
+//         pub fn draw(self: *Self, ctx: *Context) void {
+//             ctx.grid.addLine(ctx, self.start, self.end, self.color, 2);
+//         }
+//     };
+// }
 
 pub const Line = struct {
     start: Vec2f,

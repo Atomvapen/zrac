@@ -11,13 +11,13 @@ pub const Vec4f = @Vector(4, f32);
 // ------------------------------------------------------------------------------
 
 pub inline fn dimensions(v: anytype) comptime_int {
-    const info = @typeInfo(@TypeOf(v));
+    const info: type = @typeInfo(@TypeOf(v));
     if (info != .vector) @compileError("any() can only be used on vectors.");
     return @typeInfo(@TypeOf(v)).vector.len;
 }
 
 pub inline fn Element(v: anytype) type {
-    const info = @typeInfo(@TypeOf(v));
+    const info: type = @typeInfo(@TypeOf(v));
     if (info != .vector) @compileError("any() can only be used on vectors.");
     return @typeInfo(@TypeOf(v)).vector.child;
 }
@@ -147,7 +147,7 @@ pub inline fn isNan(v: anytype) @Vector(@typeInfo(@TypeOf(v)).vector.len, bool) 
 pub inline fn isFinite(v: anytype) @Vector(@typeInfo(@TypeOf(v)).vector.len, bool) {
     const info = @typeInfo(@TypeOf(v));
     if (info != .vector) @compileError("isFinite() can only be used on vectors.");
-    if (info.vector.child != .float) @compileError("isFinite() can only be used on float vectors.");
+    if (@typeInfo(info.vector.child) != .float) @compileError("isFinite() can only be used on float vectors.");
     return v - v == @as(@TypeOf(v), @splat(0));
 }
 
@@ -158,7 +158,7 @@ pub inline fn isFinite(v: anytype) @Vector(@typeInfo(@TypeOf(v)).vector.len, boo
 pub inline fn isInfinity(v: anytype) @Vector(@typeInfo(@TypeOf(v)).vector.len, bool) {
     const info = @typeInfo(@TypeOf(v));
     if (info != .vector) @compileError("isInfinity() can only be used on vectors.");
-    if (info.vector.child != .float) @compileError("isInfinity() can only be used on float vectors.");
+    if (@typeInfo(info.vector.child) != .float) @compileError("isInfinity() can only be used on float vectors.");
     return v - v == v;
 }
 
@@ -170,8 +170,8 @@ pub inline fn isInfinity(v: anytype) @Vector(@typeInfo(@TypeOf(v)).vector.len, b
 pub inline fn isInBounds(v: anytype, bounds: @TypeOf(v)) @Vector(@typeInfo(@TypeOf(v)).vector.len, bool) {
     const info = @typeInfo(@TypeOf(v));
     if (info != .vector) @compileError("isInBounds() can only be used on vectors.");
-    const b0 = v <= bounds;
-    const b1 = (bounds * @as(@TypeOf(v), @splat(-1.0))) <= v;
+    const b0: bool = v <= bounds;
+    const b1: bool = (bounds * @as(@TypeOf(v), @splat(-1.0))) <= v;
     const b0u: @Vector(info.vector.len, u1) = @bitCast(b0);
     const b1u: @Vector(info.vector.len, u1) = @bitCast(b1);
     return @bitCast(b0u & b1u);
@@ -186,8 +186,8 @@ pub inline fn isInBounds(v: anytype, bounds: @TypeOf(v)) @Vector(@typeInfo(@Type
 pub inline fn isInBoundsRange(v: anytype, min_v: @TypeOf(v), max_v: @TypeOf(v)) @Vector(@typeInfo(@TypeOf(v)).vector.len, bool) {
     const info = @typeInfo(@TypeOf(v));
     if (info != .vector) @compileError("isInBoundsRange() can only be used on vectors.");
-    const ge = v >= min_v;
-    const le = v <= max_v;
+    const ge: bool = v >= min_v;
+    const le: bool = v <= max_v;
     const Tu = @Vector(info.vector.len, u1);
     return @bitCast(@as(Tu, @bitCast(ge)) & @as(Tu, @bitCast(le)));
 }
@@ -219,24 +219,10 @@ pub inline fn round(v: anytype, mode: enum { nearest, floor, ceil, trunc }) @Typ
 pub fn slice(v: anytype, comptime n: usize) @Vector(n, @typeInfo(@TypeOf(v)).vector.child) {
     const info = @typeInfo(@TypeOf(v));
     if (info != .vector) @compileError("slice() can only be used on vectors.");
-    if (info.vector.len < n) @compileError("Amount cannot be greater than vector length.");
+    if (info.vector.len < n) @compileError("slice() amount cannot be greater than vector length.");
     var result: @Vector(n, @typeInfo(@TypeOf(v)).vector.child) = undefined;
     inline for (0..n) |i| result[i] = v[i];
     return result;
-}
-
-pub fn rotate2D(v: anytype, angle: f32) @TypeOf(v) {
-    const info = @typeInfo(@TypeOf(v));
-    if (info != .vector) @compileError("rotate2D() can only be used on vectors.");
-    if (info.vector.len == 3) @compileError("Vector must have 2 elements.");
-
-    const cosTheta = @cos(angle);
-    const sinTheta = @sin(angle);
-
-    return .{
-        v[0] * cosTheta - v[1] * sinTheta, // x′ = x * cos(θ) − y * sin(θ)
-        v[0] * sinTheta + v[1] * cosTheta, // y' = x * sin(θ) + y * cos(θ)
-    };
 }
 
 /// Returns the `.x` component of a vector.
@@ -245,7 +231,7 @@ pub fn rotate2D(v: anytype, angle: f32) @TypeOf(v) {
 pub fn x(v: anytype) @typeInfo(@TypeOf(v)).vector.child {
     const info = @typeInfo(@TypeOf(v));
     if (info != .vector) @compileError("x() can only be used on vectors.");
-    if (info.vector.len < 1) @compileError("Vector must have at least 1 element.");
+    if (info.vector.len < 1) @compileError("x() must have at least 1 element.");
     return v[0];
 }
 
@@ -255,7 +241,7 @@ pub fn x(v: anytype) @typeInfo(@TypeOf(v)).vector.child {
 pub fn y(v: anytype) @typeInfo(@TypeOf(v)).vector.child {
     const info = @typeInfo(@TypeOf(v));
     if (info != .vector) @compileError("y() can only be used on vectors.");
-    if (info.vector.len < 2) @compileError("Vector must have at least 2 element.");
+    if (info.vector.len < 2) @compileError("y() must have at least 2 element.");
     return v[1];
 }
 
@@ -265,7 +251,7 @@ pub fn y(v: anytype) @typeInfo(@TypeOf(v)).vector.child {
 pub fn z(v: anytype) @typeInfo(@TypeOf(v)).vector.child {
     const info = @typeInfo(@TypeOf(v));
     if (info != .vector) @compileError("z() can only be used on vectors.");
-    if (info.vector.len < 3) @compileError("Vector must have at least 3 element.");
+    if (info.vector.len < 3) @compileError("z() must have at least 3 element.");
     return v[2];
 }
 
@@ -275,7 +261,7 @@ pub fn z(v: anytype) @typeInfo(@TypeOf(v)).vector.child {
 pub fn w(v: anytype) @typeInfo(@TypeOf(v)).vector.child {
     const info = @typeInfo(@TypeOf(v));
     if (info != .vector) @compileError("w() can only be used on vectors.");
-    if (info.vector.len < 4) @compileError("Vector must have at least 4 element.");
+    if (info.vector.len < 4) @compileError("w() must have at least 4 element.");
     return v[3];
 }
 
@@ -285,7 +271,7 @@ pub fn w(v: anytype) @typeInfo(@TypeOf(v)).vector.child {
 pub fn xy(v: anytype) @Vector(2, @typeInfo(@TypeOf(v)).vector.child) {
     const info = @typeInfo(@TypeOf(v));
     if (info != .vector) @compileError("xy() can only be used on vectors.");
-    if (info.vector.len < 2) @compileError("Vector must have at least 2 elements.");
+    if (info.vector.len < 2) @compileError("xy() must have at least 2 elements.");
     return @shuffle(info.vector.child, v, undefined, [_]i32{ 0, 1 });
 }
 
@@ -295,7 +281,7 @@ pub fn xy(v: anytype) @Vector(2, @typeInfo(@TypeOf(v)).vector.child) {
 pub fn xyz(v: anytype) @Vector(3, @typeInfo(@TypeOf(v)).vector.child) {
     const info = @typeInfo(@TypeOf(v));
     if (info != .vector) @compileError("xyz() can only be used on vectors.");
-    if (info.vector.len < 3) @compileError("Vector must have at least 3 elements.");
+    if (info.vector.len < 3) @compileError("xyz() must have at least 3 elements.");
     return @shuffle(@typeInfo(@TypeOf(v)).vector.child, v, undefined, [_]i32{ 0, 1, 2 });
 }
 
@@ -305,7 +291,7 @@ pub fn xyz(v: anytype) @Vector(3, @typeInfo(@TypeOf(v)).vector.child) {
 pub fn xyzw(v: anytype) @Vector(4, @typeInfo(@TypeOf(v)).vector.child) {
     const info = @typeInfo(@TypeOf(v));
     if (info != .vector) @compileError("xyzw() can only be used on vectors.");
-    if (info.vector.len < 4) @compileError("Vector must have at least 4 elements.");
+    if (info.vector.len < 4) @compileError("xyzw() must have at least 4 elements.");
     return @shuffle(info.vector.child, v, undefined, [_]i32{ 0, 1, 2, 3 });
 }
 
@@ -384,5 +370,48 @@ pub fn cross(a: anytype, b: @TypeOf(a)) @TypeOf(a) {
         a[1] * b[2] - a[2] * b[1], // x = (ay * bz - az * by)
         a[2] * b[0] - a[0] * b[2], // y = (az * bx - ax * bz)
         a[0] * b[1] - a[1] * b[0], // z = (ax * by - ay * bx)
+    };
+}
+
+// ------------------------------------------------------------------------------
+// 2D vector functions
+// ------------------------------------------------------------------------------
+
+pub fn getParallelVector2(start: anytype, end: @TypeOf(start), offset: f32) [2]@TypeOf(start) {
+    const info = @typeInfo(@TypeOf(start));
+    if (info != .vector) @compileError("getParallelVector2() can only be used on vectors.");
+    if (@typeInfo(info.vector.child) != .float) @compileError("getParallelVector2() can only be used on float vectors.");
+    if (info.vector.len != 2) @compileError("getParallelVector2() must have 2 elements.");
+    const dir: @TypeOf(start) = end - start;
+    const perp: @TypeOf(start) = .{ -dir[1], dir[0] };
+    const l: f32 = @sqrt(perp[0] * perp[0] + perp[1] * perp[1]);
+    if (l == 0.0) return .{ start, end };
+    const norm: @TypeOf(start) = descale(perp, l);
+    const offset_vec: @TypeOf(start) = scale(norm, offset);
+    return .{ start + offset_vec, end + offset_vec };
+}
+
+pub fn getVector2Intersection(start1: anytype, end1: @TypeOf(start1), start2: @TypeOf(start1), end2: @TypeOf(start1)) ?@TypeOf(start1) {
+    const info = @typeInfo(@TypeOf(start1));
+    if (info != .vector) @compileError("getVector2Intersection() can only be used on vectors.");
+    if (@typeInfo(info.vector.child) != .float) @compileError("getVector2Intersection() can only be used on float vectors.");
+    if (info.vector.len != 2) @compileError("getVector2Intersection() must have 2 elements.");
+    const denom: f32 = (start1[0] - end1[0]) * (start2[1] - end2[1]) - (start1[1] - end1[1]) * (start2[0] - end2[0]);
+    if (denom == 0.0) return null;
+    const t: f32 = ((start1[0] - start2[0]) * (start2[1] - end2[1]) - (start1[1] - start2[1]) * (start2[0] - end2[0])) / denom;
+    return start1 + @as(Vec2f, @splat(t)) * (end1 - start1);
+}
+
+pub fn rotate2D(v: anytype, angle: f32) @TypeOf(v) {
+    const info = @typeInfo(@TypeOf(v));
+    if (info != .vector) @compileError("rotate2D() can only be used on vectors.");
+    if (info.vector.len != 2) @compileError("rotate2D() must have 2 elements.");
+
+    const cosTheta = @cos(angle);
+    const sinTheta = @sin(angle);
+
+    return .{
+        v[0] * cosTheta - v[1] * sinTheta,
+        v[0] * sinTheta + v[1] * cosTheta,
     };
 }
